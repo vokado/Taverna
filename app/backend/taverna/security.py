@@ -67,9 +67,16 @@ class LocalSecurity:
         fetch_site = headers.get(b"sec-fetch-site", b"")
 
         async def reject(code, message, status):
-            response = JSONResponse({"code": code, "message_ru": message,
-                                     "request_id": str(uuid4()),
-                                     "recoverable": True, "details": {}}, status_code=status)
+            response = JSONResponse(
+                {
+                    "code": code,
+                    "message_ru": message,
+                    "request_id": str(uuid4()),
+                    "recoverable": True,
+                    "details": {},
+                },
+                status_code=status,
+            )
             await response(scope, receive, safe_send)
 
         async def safe_send(message):
@@ -78,7 +85,10 @@ class LocalSecurity:
                     (b"x-content-type-options", b"nosniff"),
                     (b"referrer-policy", b"no-referrer"),
                     (b"cache-control", b"no-store"),
-                    (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"),
+                    (
+                        b"content-security-policy",
+                        b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+                    ),
                 ]
             await send(message)
 

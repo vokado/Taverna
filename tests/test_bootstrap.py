@@ -28,7 +28,10 @@ def test_session_host_csrf_and_one_use(tmp_path):
     assert c.get("/api/v1/status", headers={"Host": "evil.test:8765"}).status_code == 403
     assert c.get("/api/v1/status", headers={"Origin": "https://evil.test"}).status_code == 403
     assert c.post("/api/v1/system/shutdown").status_code == 403
-    assert c.post("/api/v1/system/shutdown", headers={"X-Taverna-CSRF": response.json()["csrf"]}).status_code == 409
+    assert (
+        c.post("/api/v1/system/shutdown", headers={"X-Taverna-CSRF": response.json()["csrf"]}).status_code
+        == 409
+    )
 
 
 def test_limits_and_localized_errors(tmp_path):

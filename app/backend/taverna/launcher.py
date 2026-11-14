@@ -62,10 +62,11 @@ def main(diagnostic: bool = False):
                 app = create_app(config, shutdown, control_key)
                 launcher_token = app.state.sessions.bootstrap()
                 # Bootstrap URLs never enter logs or runtime metadata.
-                server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=config.port,
-                                                       log_config=None, access_log=False))
-                atomic_runtime_info(root / "data/config/instance.json",
-                                    {"port": config.port})
+                server = uvicorn.Server(
+                    uvicorn.Config(app, host="127.0.0.1", port=config.port, log_config=None, access_log=False)
+                )
+                atomic_runtime_info(root / "data/config/instance.json", {"port": config.port})
+
                 def open_when_ready():
                     for _ in range(200):
                         if server.should_exit:
@@ -74,6 +75,7 @@ def main(diagnostic: bool = False):
                             webbrowser.open(config.origin + "/#launch=" + launcher_token)
                             return
                         time.sleep(0.05)
+
                 if not args.no_browser:
                     threading.Thread(target=open_when_ready, daemon=True).start()
                 logger.info("Сервер запускается, порт %d", config.port)
@@ -90,8 +92,9 @@ def main(diagnostic: bool = False):
                 response = client.get(f"http://127.0.0.1:{port}/api/v1/health")
                 response.raise_for_status()
                 key = (root / "data/config/launcher.key").read_text(encoding="utf-8")
-                response = client.post(f"http://127.0.0.1:{port}/api/v1/launcher/open",
-                                       headers={"X-Taverna-Launcher": key})
+                response = client.post(
+                    f"http://127.0.0.1:{port}/api/v1/launcher/open", headers={"X-Taverna-Launcher": key}
+                )
                 response.raise_for_status()
             if not args.no_browser:
                 webbrowser.open(response.json()["url"])
@@ -107,6 +110,7 @@ def main(diagnostic: bool = False):
 def _show_error(message: str):
     if sys.platform == "win32":
         import ctypes
+
         ctypes.windll.user32.MessageBoxW(0, message, "Таверна: ошибка запуска", 0x10)
     else:
         print(f"Таверна: {message}", file=sys.stderr)

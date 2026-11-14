@@ -121,6 +121,38 @@
         }
       }
     },
+    "/api/v1/diagnostics/storage": {
+      "get": {
+        "summary": "Storage Diagnostics",
+        "operationId": "storage_diagnostics_api_v1_diagnostics_storage_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/integrity-check": {
+      "post": {
+        "summary": "Storage Integrity Check",
+        "operationId": "storage_integrity_check_api_v1_storage_integrity_check_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/reopen": {
       "post": {
         "summary": "Reopen",

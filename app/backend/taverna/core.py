@@ -52,8 +52,7 @@ class SafeLogFormatter(logging.Formatter):
     def format(self, record):
         text = super().format(record)
         text = re.sub(r"(?i)(bearer\s+)[^\s\"']+", r"\1[СКРЫТО]", text)
-        return re.sub(r"(?i)((?:token|secret|password|authorization)\s*[=:]\s*)[^\s,;]+",
-                      r"\1[СКРЫТО]", text)
+        return re.sub(r"(?i)((?:token|secret|password|authorization)\s*[=:]\s*)[^\s,;]+", r"\1[СКРЫТО]", text)
 
 
 def setup_logging(root: Path, diagnostic: bool = False):

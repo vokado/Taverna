@@ -37,12 +37,14 @@ def test_real_process_restart_single_instance_and_shutdown(tmp_path):
             url = c.post(base + "/api/v1/launcher/open", headers={"X-Taverna-Launcher": key}).json()["url"]
             token = url.split("#launch=")[1]
             csrf = c.post(base + "/api/v1/session/bootstrap", json={"token": token}).json()["csrf"]
-            assert c.post(base + "/api/v1/system/shutdown", headers={"X-Taverna-CSRF": csrf}).status_code == 200
+            assert (
+                c.post(base + "/api/v1/system/shutdown", headers={"X-Taverna-CSRF": csrf}).status_code == 200
+            )
             process.wait(timeout=10)
             assert process.returncode == 0
             assert not info.exists()
             assert not (tmp_path / "data/config/launcher.key").exists()
-            assert key not in (tmp_path / "logs/taverna.log").read_text()
+            assert key not in (tmp_path / "logs/taverna.log").read_text(encoding="utf-8")
     finally:
         if process.poll() is None:
             process.kill()

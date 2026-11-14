@@ -16,6 +16,7 @@ from starlette.staticfiles import StaticFiles
 from . import __version__
 from .core import AppError, Config
 from .security import LocalSecurity, Sessions
+from .storage import JsonStore
 
 
 class BootstrapRequest(BaseModel):
@@ -25,15 +26,23 @@ class BootstrapRequest(BaseModel):
 
 def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -> FastAPI:
     sessions = Sessions()
-    app = FastAPI(title="Таверна", version=__version__, docs_url=None, redoc_url=None,
-                  openapi_url=None)
+    app = FastAPI(title="Таверна", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
     app.state.sessions = sessions
     app.state.config = config
+    app.state.store = JsonStore(config.root)
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
-        return JSONResponse({"code": code, "message_ru": message, "request_id": str(uuid4()),
-                             "recoverable": status < 500, "details": details or {}}, status_code=status)
+        return JSONResponse(
+            {
+                "code": code,
+                "message_ru": message,
+                "request_id": str(uuid4()),
+                "recoverable": status < 500,
+                "details": details or {},
+            },
+            status_code=status,
+        )
 
     @app.exception_handler(AppError)
     async def app_error(request, exc):
@@ -41,13 +50,20 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
-        return error("validation_error", "Проверьте формат и обязательные поля запроса.", 422,
-                     {"fields": [".".join(map(str, item["loc"])) for item in exc.errors()]})
+        return error(
+            "validation_error",
+            "Проверьте формат и обязательные поля запроса.",
+            422,
+            {"fields": [".".join(map(str, item["loc"])) for item in exc.errors()]},
+        )
 
     @app.exception_handler(HTTPException)
     async def http_error(request, exc):
-        return error("not_found" if exc.status_code == 404 else "http_error",
-                     "Ресурс не найден." if exc.status_code == 404 else "Запрос отклонён.", exc.status_code)
+        return error(
+            "not_found" if exc.status_code == 404 else "http_error",
+            "Ресурс не найден." if exc.status_code == 404 else "Запрос отклонён.",
+            exc.status_code,
+        )
 
     @app.exception_handler(Exception)
     async def unexpected_error(request, exc):
@@ -83,13 +99,32 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
 
     @app.get("/api/v1/status")
     def status():
-        return {"name": "Таверна", "version": __version__, "release_ready": False,
-                "stage": "01", "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0."}
+        return {
+            "name": "Таверна",
+            "version": __version__,
+            "release_ready": False,
+            "stage": "02",
+            "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
+        }
 
     @app.get("/api/v1/capabilities")
     def capabilities():
-        return {"features": {"local_security": True, "graceful_shutdown": shutdown is not None},
-                "generation": {"available": False, "reason_ru": "Адаптер LM Studio ещё не реализован."}}
+        return {
+            "features": {
+                "local_security": True,
+                "json_storage": True,
+                "graceful_shutdown": shutdown is not None,
+            },
+            "generation": {"available": False, "reason_ru": "Адаптер LM Studio ещё не реализован."},
+        }
+
+    @app.get("/api/v1/diagnostics/storage")
+    def storage_diagnostics():
+        return app.state.store.integrity()
+
+    @app.post("/api/v1/storage/integrity-check")
+    def storage_integrity_check():
+        return app.state.store.integrity()
 
     @app.post("/api/v1/system/reopen")
     def reopen():
@@ -103,7 +138,9 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     @app.post("/api/v1/system/shutdown")
     async def stop():
         if shutdown is None:
-            raise AppError("shutdown_unavailable", "Управление завершением доступно только в приложении.", 409)
+            raise AppError(
+                "shutdown_unavailable", "Управление завершением доступно только в приложении.", 409
+            )
         asyncio.get_running_loop().call_later(0.3, shutdown)
         return {"message_ru": "Приложение завершает работу. Сохранённые данные останутся на диске."}
 
@@ -111,7 +148,11 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     def home():
         index = config.static / "index.html"
         if not index.is_file():
-            raise AppError("frontend_missing", "Файлы интерфейса отсутствуют. Пересоберите или восстановите приложение.", 503)
+            raise AppError(
+                "frontend_missing",
+                "Файлы интерфейса отсутствуют. Пересоберите или восстановите приложение.",
+                503,
+            )
         return FileResponse(index)
 
     assets: Path = config.static / "assets"
