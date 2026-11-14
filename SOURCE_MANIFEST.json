@@ -1,0 +1,15 @@
+{
+  "prepared_at": "2026-11-15",
+  "sources": [
+    {
+      "path": "docs/source/Taverna_1_0_Implementation_Plan.md",
+      "bytes": 92484,
+      "sha256": "6b2da7457f12227b90dda44a194575f9707485ae895bf5792e023b023c4bc447"
+    },
+    {
+      "path": "docs/source/Taverna_1_0_Technical_Specification.md",
+      "bytes": 67923,
+      "sha256": "50a3b1e80072519ff88d68c411d28b699803d406b6ab21b09026657540e94190"
+    }
+  ]
+}
