@@ -148,7 +148,7 @@ class LmStudioAdapter:
                 "Оценка контекста превышает доступное окно модели. Сократите запрос или резерв ответа.",
                 409,
             )
-        started, first, usage, tokens, final_seen = time.monotonic(), None, {}, 0, False
+        started, first, usage, tokens, final_seen = time.perf_counter(), None, {}, 0, False
         try:
             async with self.client() as client:
                 async with client.stream(
@@ -190,7 +190,7 @@ class LmStudioAdapter:
                                     if reasoning:
                                         yield "reasoning", {"text": reasoning}
                                     if delta.get("content"):
-                                        first = first or time.monotonic()
+                                        first = first or time.perf_counter()
                                         tokens += 1
                                         yield "delta", {"text": delta["content"]}
                             except (ValueError, TypeError, KeyError) as exc:
@@ -203,7 +203,7 @@ class LmStudioAdapter:
                             "Поток оборвался до завершения. Частичный ответ сохранён.",
                             502,
                         )
-            elapsed = time.monotonic() - started
+            elapsed = time.perf_counter() - started
             completion_tokens = usage.get("completion_tokens")
             yield (
                 "metrics",

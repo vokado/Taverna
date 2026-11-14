@@ -83,7 +83,12 @@ async def test_loaded_only_and_reasoning_separated():
     ]
     assert [e[0] for e in events] == ["reasoning", "delta", "metrics"]
     assert events[1][1]["text"] == "Привет"
-    assert events[-1][1]["tokens_per_second"] > 0
+    metrics = events[-1][1]
+    assert metrics["usage"]["completion_tokens"] == 2
+    if metrics["duration_seconds"] > 0:
+        assert metrics["tokens_per_second"] == 2 / metrics["duration_seconds"]
+    else:
+        assert metrics["tokens_per_second"] is None
     assert not any(path.endswith(("/load", "/unload", "/download")) for _, path in calls)
 
 
