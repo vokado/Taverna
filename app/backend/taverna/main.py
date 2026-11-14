@@ -17,6 +17,7 @@ from . import __version__
 from .core import AppError, Config
 from .generation_api import GenerationService
 from .security import LocalSecurity, Sessions
+from .settings import SettingsService
 from .storage import JsonStore
 
 
@@ -42,6 +43,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.store = store
     app.state.generation = generation
     app.include_router(generation.router())
+    app.include_router(SettingsService(store).router())
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
@@ -115,7 +117,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "03",
+            "stage": "04",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 

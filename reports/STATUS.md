@@ -7,8 +7,9 @@
 | 01 | Linux и Windows-runner source/browser/build PASS; frozen EXE smoke добавлен, ожидает CI; целевая Windows11/Edge/Chrome пока не подтверждена |
 | 02 | Foundation реализован; Linux/Windows-runner source tests PASS после исправлений; power-loss/целевой NTFS отдельно не подтверждены |
 | 03 | 34 backend tests с регрессией PASS, UI build/E2E PASS; live LM Studio/Dolphin/RTX5070 BLOCKED |
-| 04 | IN_PROGRESS, независимая от live LLM работа |
-| 05–16 | NOT_STARTED |
+| 04 | Основа settings/workspace/layout реализована; Linux backend/build/browser проверки PASS; доменные панели проверяются по мере модулей |
+| 05 | IN_PROGRESS |
+| 06–16 | NOT_STARTED |
 
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.
 

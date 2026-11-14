@@ -1,32 +1,22 @@
-import {useEffect, useState} from 'react';
+import {useEffect,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {authenticate, request} from './api';
+import {authenticate,request} from './api';
+import {Workspace} from './Workspace';
 import './style.css';
-import {GenerationPanel} from './GenerationPanel';
-import {GenerationHistory} from './GenerationHistory';
-
-function App() {
-  const [message, setMessage] = useState('Подключаемся к локальному серверу…');
-  const [ready, setReady] = useState(false);
-  const [generation, setGeneration] = useState('');
-  async function connect() {
+function App(){
+  const [message,setMessage]=useState('Подключаемся к локальному серверу…');
+  const [ready,setReady]=useState(false);
+  async function connect(){
     setMessage('Подключаемся…');
-    try {
-      await authenticate();
-      const status = await request<{message_ru: string}>('/status');
-      const capabilities = await request<{generation: {reason_ru: string}}>('/capabilities');
-      setMessage(status.message_ru); setGeneration(capabilities.generation.reason_ru); setReady(true);
-    } catch(e) {setMessage(e instanceof Error ? e.message : 'Ошибка подключения.'); setReady(false);}
+    try{await authenticate();await request('/status');setReady(true);}
+    catch(e){setMessage((e as Error).message);setReady(false);}
   }
-  useEffect(() => {void connect();}, []);
-  async function shutdown() {
-    if (!confirm('Завершить работу Таверны? Другие вкладки также отключатся.')) return;
-    try {await request('/system/shutdown', 'POST'); setReady(false); setMessage('Таверна завершает работу. Можно закрыть вкладку.');}
-    catch(e) {setMessage((e as Error).message);}
+  useEffect(()=>{void connect();},[]);
+  async function shutdown(){
+    if(!confirm('Завершить работу Таверны? Другие вкладки также отключатся.'))return;
+    try{await request('/system/shutdown','POST');setReady(false);setMessage('Таверна завершает работу. Можно закрыть вкладку.');}
+    catch(e){setMessage((e as Error).message);}
   }
-  return <main><header><span className="mark">Т</span><div><h1>Таверна</h1><p>Локальные истории и персонажи</p></div><span className="badge">Внутренняя сборка</span></header>
-    <section><h2>Рабочее пространство</h2><p role="status">{message}</p>{ready ? <><p>{generation}</p><p>Функции добавляются последовательно. Эта сборка не является релизом 1.0.</p><button onClick={shutdown}>Завершить приложение</button></> : <button onClick={connect}>Повторить подключение</button>}</section>
-    {ready && <><GenerationPanel/><GenerationHistory/></>}
-    <footer>Данные остаются на вашем компьютере. Закрытие вкладки не завершает сервер.</footer></main>;
+  return ready?<Workspace shutdown={shutdown}/>:<main className="startup"><h1>Таверна</h1><p role="status">{message}</p><button onClick={connect}>Повторить подключение</button></main>;
 }
 createRoot(document.getElementById('root')!).render(<App/>);
