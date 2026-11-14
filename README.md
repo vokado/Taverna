@@ -2,7 +2,24 @@
 
 Русскоязычное локальное приложение для Windows с интеграцией LM Studio.
 
-Текущий статус: подготовка проекта; разработка приложения не начата, этап 01 не разрешён.
+Текущий статус: разработка этапов 01–16 разрешена владельцем 15 ноября 2026. Это внутренняя сборка, полный релиз 1.0 ещё не готов. Текущее состояние и недоступные испытания — в `reports/STATUS.md`.
+
+## Запуск для разработки
+
+Python 3.12+, Node 22+:
+
+```sh
+python -m venv .venv
+python -m pip install -r requirements.lock
+python -m pip install -e .
+cd app/web
+npm ci
+npm run build
+cd ../..
+python -m taverna.launcher
+```
+
+Перед командами активируйте `.venv` (`.venv\Scripts\Activate.ps1` в Windows). Пользовательская portable-сборка будет включать runtime; эти зависимости нужны только разработчику. Windows build: `packaging/build_windows.ps1` после сборки UI. Процедура инициализации/защиты описана в `docs/ARCHITECTURE.md`.
 
 Подготовительный пакет для согласования находится в ветке [`docs/preparation-1.0`](https://github.com/vokado/Taverna/tree/docs/preparation-1.0).
 
