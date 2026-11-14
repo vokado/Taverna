@@ -15,6 +15,7 @@ from starlette.staticfiles import StaticFiles
 
 from . import __version__
 from .core import AppError, Config
+from .generation_api import GenerationService
 from .security import LocalSecurity, Sessions
 from .storage import JsonStore
 
@@ -26,10 +27,21 @@ class BootstrapRequest(BaseModel):
 
 def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -> FastAPI:
     sessions = Sessions()
-    app = FastAPI(title="Таверна", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
+    store = JsonStore(config.root)
+    generation = GenerationService(store)
+    app = FastAPI(
+        title="Таверна",
+        version=__version__,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+        lifespan=generation.lifespan,
+    )
     app.state.sessions = sessions
     app.state.config = config
-    app.state.store = JsonStore(config.root)
+    app.state.store = store
+    app.state.generation = generation
+    app.include_router(generation.router())
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
@@ -103,7 +115,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "02",
+            "stage": "03",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 
@@ -115,7 +127,11 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
                 "json_storage": True,
                 "graceful_shutdown": shutdown is not None,
             },
-            "generation": {"available": False, "reason_ru": "Адаптер LM Studio ещё не реализован."},
+            "generation": {
+                "adapter_implemented": True,
+                "available": None,
+                "reason_ru": "Проверьте соединение с LM Studio. Модель должна быть загружена вручную.",
+            },
         }
 
     @app.get("/api/v1/diagnostics/storage")

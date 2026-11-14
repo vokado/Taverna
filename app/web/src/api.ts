@@ -2,11 +2,11 @@ let csrf = '';
 export class ApiError extends Error {
   constructor(public code: string, message: string) {super(message);}
 }
-export async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+export async function request<T>(path: string, method = 'GET', body?: unknown, headers: Record<string,string> = {}): Promise<T> {
   let response: Response;
   try {
     response = await fetch('/api/v1' + path, {
-      method, credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'X-Taverna-CSRF': csrf},
+      method, credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'X-Taverna-CSRF': csrf,...headers},
       ...(body === undefined ? {} : {body: JSON.stringify(body)})
     });
   } catch {throw new ApiError('network_error', 'Сервер недоступен. Запустите Таверну повторно.');}

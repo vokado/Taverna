@@ -33,7 +33,7 @@ test('Одноразовый вход, перезагрузка и закрыт�
     await other.goto(base);
     other.on('dialog', dialog => dialog.accept());
     await other.getByRole('button',{name:'Завершить приложение'}).click();
-    await expect(other.getByRole('status')).toContainText('завершает работу');
+    await expect(other.getByRole('status').filter({hasText:'Таверна завершает'})).toContainText('завершает работу');
     await expect.poll(() => proc.exitCode, {timeout:10000}).toBe(0);
   } finally {
     if (proc.exitCode === null) {proc.kill(); await new Promise(r=>proc.once('exit',r));}

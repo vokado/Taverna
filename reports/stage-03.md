@@ -1,0 +1,13 @@
+# Этап 03 — LM Studio / durable queue / SSE
+
+2026-11-15. Реализация протокольной интеграции и очереди проверена в доступной среде; живой LM Studio/Dolphin/RTX5070 BLOCKED. Этап не считается полностью принятым на целевом оборудовании; независимый UI развивается по разрешению владельца.
+
+Реально реализованы adapter каталога loaded instances и stateless chat stream, локальный configurable endpoint, inference-time loaded check, отдельный reasoning, context estimate guard, ограниченный connect retry до первого события, метрики по реальным полям usage, bounded priority queue, cancel blocked handler, JSON job/event/idempotency ledger, SSE replay/sequence dedup, interrupted recovery и сохранённые partial. UI подключается к настоящему серверу; тестовые ответы существуют только в tests/. Embeddings adapter существует, live vectors/качество не проверены. Advanced capabilities unknown не объявляются поддержанными.
+
+Доказательства: tests/test_generation.py + regression `.venv/bin/pytest -q`: **34 PASS** за 8.59s. Ruff PASS. UI strict TypeScript/Vite build PASS; Chromium E2E foundation regression 1 PASS. Новый протокол проверяет loaded-only, refusal unknown native catalog, EOF partial, reasoning separation, idempotency/replay, priority, cancellation blocked handler, restart terminal event, context guard/no POST, connect retry ровно 2 попытки. MockTransport — протокольный double, не работающая LLM. Отдельный full UI+live-model тест пока не выполнен.
+
+Целевая блокировка: socket connect_ex на 127.0.0.1:1234 = 111 (connection refused), nvidia-smi не найден, ОС Linux. Официальные lmstudio.ai страницы rest/list и chat-completions вернули HTTP403, новая native API версия не подтверждена этим источником. Не обещаем поддержку конкретной версии LM Studio до живого прогона. Внешняя JIT-конфигурация и гонка ручной выгрузки требуют отдельного live теста; никаких lifecycle вызовов приложение не выполняет.
+
+CI предыдущего коммита a2b4d4e: run 43636025382 — Ubuntu SUCCESS и Windows SUCCESS, source/backend/browser/build. Это Windows runner, а не clean Windows 11 с RTX5070. Полная frozen-runtime проверка добавлена: packaging/smoke_frozen.py запускает оба EXE из перенесённой папки с пробелами/кириллицей и PATH только System32, проверяет HTTP/session/storage/shutdown. Её фактический результат будет указан после нового CI; наличие скрипта не равно PASS.
+
+REQ частично: LLM-001–004/009–014, ARCH-007/008, API-002, SEC-007, AUTO-005. Полные профили/наследование, конструктор prompts, chat operations — 06/07. Общие REQ-ID в матрице не получают полный PASS по одному протокольному smoke. Известных критических дефектов доступных сценариев нет; hardware/advanced API проверки открыты.
