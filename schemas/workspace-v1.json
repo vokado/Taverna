@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "required": [
+    "name",
+    "immersive",
+    "panels"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "immersive": {
+      "type": "boolean"
+    },
+    "panels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "width",
+          "collapsed"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "models",
+              "history",
+              "storage"
+            ]
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 300,
+            "maximum": 1200
+          },
+          "collapsed": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

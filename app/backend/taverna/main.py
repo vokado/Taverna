@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
 
 from . import __version__
+from .characters import CharacterService
 from .core import AppError, Config
 from .generation_api import GenerationService
 from .security import LocalSecurity, Sessions
@@ -44,6 +45,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.generation = generation
     app.include_router(generation.router())
     app.include_router(SettingsService(store).router())
+    app.include_router(CharacterService(store, generation).router())
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
@@ -117,7 +119,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "04",
+            "stage": "05",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 

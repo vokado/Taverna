@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "required": [
+    "level",
+    "theme",
+    "economy",
+    "font",
+    "font_size",
+    "colors",
+    "expert"
+  ],
+  "properties": {
+    "level": {
+      "enum": [
+        "simple",
+        "advanced",
+        "expert"
+      ]
+    },
+    "theme": {
+      "enum": [
+        "night",
+        "warm",
+        "light",
+        "custom"
+      ]
+    },
+    "economy": {
+      "type": "boolean"
+    },
+    "font": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "font_size": {
+      "type": "integer",
+      "minimum": 12,
+      "maximum": 28
+    },
+    "colors": {
+      "type": "object",
+      "required": [
+        "background",
+        "surface",
+        "text",
+        "accent"
+      ],
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$"
+      }
+    },
+    "expert": {
+      "type": "object"
+    },
+    "active_workspace": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}
