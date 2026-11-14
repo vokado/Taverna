@@ -76,4 +76,4 @@ def migrate(
     )
     changes.append(Mutation(f"config/migrations/{log['id']}.json", log, 0))
     store.transaction(changes)
-    return {"migrated": len(changes), "backup": backup.name}
+    return {"migrated": len(matching), "backup": backup.name}
