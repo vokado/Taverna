@@ -7,11 +7,14 @@ from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
 import jsonschema
 
-from .cards import parse_json, png_chunks
+from .cards import parse_json
 from .characters import CHARACTER_SCHEMA
 from .core import AppError
 from .director_models import DirectorState, NPCState
 from .knowledge import player_id
+from .media import MediaService, asset_ids, media_value
+from .media_models import Asset
+from .media_probe import probe_media
 from .profiles import DEFAULTS, merge, validate_settings
 from .rpg import RpgService, rpg_value
 from .storage import Mutation, atomic_write, digest, document, encoded, safe_path
@@ -47,6 +50,8 @@ class StoryPackages:
                 snap["card"].get("portrait_id") for snap in story["payload"]["character_snapshots"].values()
             }
             for value in docs.values():
+                if value["kind"] == "branch_state":
+                    media_ids.update(asset_ids(media_value(value["payload"])))
                 if value["kind"] == "message_segment":
                     media_ids.update(
                         fid for message in value["payload"]["messages"] for fid in message.get("file_ids", [])
@@ -75,14 +80,9 @@ class StoryPackages:
                         "source_missing", "Медиа истории отсутствует; неполный пакет не создан.", 409
                     )
                 payload = media["payload"]
-                if payload.get("type") != "image/png":
-                    raise AppError(
-                        "unsupported_assets",
-                        "Пакет истории пока поддерживает PNG; другие медиа требуют адаптера этапа12.",
-                        422,
-                    )
                 raw = safe_path(self.store.root, payload["relative_path"]).read_bytes()
-                png_chunks(raw)
+                if probe_media(raw)["type"] != payload["type"]:
+                    raise AppError("media_type_mismatch", "Тип медиа не соответствует содержимому.", 422)
                 if digest(raw) != payload["checksum"]:
                     raise AppError("document_corrupt", "Контрольная сумма изображения не совпала.", 503)
                 docs[key] = media
@@ -162,7 +162,7 @@ class StoryPackages:
                     data = archive.read(name)
                     if digest(data) != checksum or name != f"assets/{checksum}.bin":
                         raise ValueError("checksum")
-                    png_chunks(data)
+                    probe_media(data)
                     assets[checksum] = data
             self.validate_graph(manifest["story_id"], docs, assets)
             return {
@@ -206,6 +206,22 @@ class StoryPackages:
         for state in states.values():
             payload = state["payload"]
             actors = set(story["payload"]["character_snapshots"])
+            media = media_value(payload)
+            branch_scenes = {
+                v["payload"]["scene"]["id"]
+                for v in states.values()
+                if v["payload"]["branch_id"] == payload["branch_id"]
+            }
+            if not set(media["compositions"]) <= branch_scenes:
+                raise ValueError("media scene scope")
+
+            def lookup_media(aid):
+                value = docs.get(f"media/{aid}.json")
+                if not value or value["kind"] != "media_asset":
+                    raise ValueError("media reference missing")
+                return Asset.model_validate(value["payload"]).model_dump(mode="json")
+
+            MediaService.validate_scope(story, state, media, lookup_media)
             rpg = rpg_value(payload)
             RpgService.validate_sheets(rpg, actors | {player_id(story_id)})
             for actor, npc in payload["character_states"].items():
@@ -314,12 +330,18 @@ class StoryPackages:
                     and self.chat.generation.profiles.key(payload["profile_id"]) in docs
                 )
             elif value["kind"] == "media_asset":
-                payload = value["payload"]
+                payload = Asset.model_validate(value["payload"]).model_dump(mode="json")
+                raw_asset = assets.get(payload["checksum"])
+                if raw_asset is None:
+                    raise ValueError("media bytes missing")
+                info = probe_media(raw_asset)
+                paths = {f"media/assets/{payload['checksum']}.{info['extension']}"}
+                if info["type"] == "image/png":
+                    paths.add(f"media/portraits/{payload['checksum']}.png")
                 allowed = (
                     key == f"media/{value['id']}.json"
-                    and payload.get("type") == "image/png"
-                    and payload.get("checksum") in assets
-                    and payload.get("relative_path") == f"media/portraits/{payload.get('checksum')}.png"
+                    and payload["type"] == info["type"]
+                    and payload["relative_path"] in paths
                 )
             if not allowed or set(value.get("refs", [])) - docs.keys():
                 raise ValueError("scope or reference")
@@ -429,13 +451,15 @@ class StoryPackages:
                 else:
                     value = copy.deepcopy(source)
                     changes.append(Mutation(key, value, 0))
-        for checksum, raw_asset in package["assets"].items():
-            path = safe_path(self.store.root, f"media/portraits/{checksum}.png")
-            if path.exists() and digest(path.read_bytes()) != checksum:
+        for value in package["documents"].values():
+            if value["kind"] != "media_asset":
+                continue
+            payload = value["payload"]
+            raw_asset = package["assets"][payload["checksum"]]
+            path = safe_path(self.store.root, payload["relative_path"])
+            if path.exists() and digest(path.read_bytes()) != payload["checksum"]:
                 raise AppError(
-                    "story_package_conflict",
-                    "Локальное изображение повреждено. Проверьте восстановление.",
-                    409,
+                    "story_package_conflict", "Локальный медиафайл повреждён. Проверьте восстановление.", 409
                 )
             if not path.exists():
                 atomic_write(path, raw_asset)

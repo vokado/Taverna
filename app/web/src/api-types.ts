@@ -1506,6 +1506,247 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Media */
+        get: operations["media_api_v1_media_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Media */
+        post: operations["import_media_api_v1_media_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{asset_id}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metadata */
+        get: operations["metadata_api_v1_media__asset_id__metadata_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{asset_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** File */
+        get: operations["file_api_v1_media__asset_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{asset_id}/thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Thumbnail */
+        get: operations["thumbnail_api_v1_media__asset_id__thumbnail_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/{asset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["update_api_v1_media__asset_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scene */
+        get: operations["scene_api_v1_stories__story_id__media_get"];
+        /** Save Scene */
+        put: operations["save_scene_api_v1_stories__story_id__media_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/media/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stage */
+        get: operations["stage_api_v1_stories__story_id__media_stage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Library Read */
+        get: operations["library_read_api_v1_media_drafts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Library Write */
+        put: operations["library_write_api_v1_media_drafts__draft_id__put"];
+        post?: never;
+        /** Library Delete */
+        delete: operations["library_delete_api_v1_media_drafts__draft_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/media/drafts/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Metadata */
+        post: operations["validate_metadata_api_v1_media_drafts_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/media/drafts/{branch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scene Read */
+        get: operations["scene_read_api_v1_stories__story_id__media_drafts__branch_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/media/drafts/{branch_id}/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Scene Write */
+        put: operations["scene_write_api_v1_stories__story_id__media_drafts__branch_id___draft_id__put"];
+        post?: never;
+        /** Scene Delete */
+        delete: operations["scene_delete_api_v1_stories__story_id__media_drafts__branch_id___draft_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/media/drafts/{branch_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Scene */
+        post: operations["validate_scene_api_v1_stories__story_id__media_drafts__branch_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stories/{story_id}/rpg": {
         parameters: {
             query?: never;
@@ -2061,6 +2302,29 @@ export interface components {
              */
             min_age_messages: number;
         };
+        /** AssetMetadata */
+        AssetMetadata: {
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Category
+             * @default illustration
+             * @enum {string}
+             */
+            category: "portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient";
+            /** Tags */
+            tags?: string[];
+            /**
+             * Archived
+             * @default false
+             */
+            archived: boolean;
+        };
         /** Attach */
         Attach: {
             /**
@@ -2087,6 +2351,26 @@ export interface components {
              */
             confirmed: boolean;
         };
+        /** AudioTrack */
+        AudioTrack: {
+            /** Asset Id */
+            asset_id?: string | null;
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Volume
+             * @default 0.5
+             */
+            volume: number;
+            /**
+             * Loop
+             * @default true
+             */
+            loop: boolean;
+        };
         /** AutosaveRequest */
         AutosaveRequest: {
             /** Expected Revision */
@@ -2110,6 +2394,29 @@ export interface components {
              * @enum {string}
              */
             editor: "wizard" | "expert";
+        };
+        /** Binding */
+        Binding: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "character" | "scene" | "event" | "world";
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
         };
         /** BindingWrite */
         BindingWrite: {
@@ -2211,6 +2518,50 @@ export interface components {
             role: "system" | "user" | "assistant";
             /** Content */
             content: string;
+        };
+        /** Composition */
+        Composition: {
+            /**
+             * Visuals Enabled
+             * @default true
+             */
+            visuals_enabled: boolean;
+            /** Layers */
+            layers?: components["schemas"]["Layer"][];
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            music?: components["schemas"]["AudioTrack"];
+            ambient?: components["schemas"]["AudioTrack"];
+            /**
+             * Effects Enabled
+             * @default true
+             */
+            effects_enabled: boolean;
+            /**
+             * Lighting
+             * @default neutral
+             * @enum {string}
+             */
+            lighting: "neutral" | "warm" | "cold" | "night";
+            /**
+             * Effect
+             * @default none
+             * @enum {string}
+             */
+            effect: "none" | "rain" | "fog" | "vignette";
+            /**
+             * Transition Ms
+             * @default 300
+             */
+            transition_ms: number;
+            /**
+             * Low Effects
+             * @default false
+             */
+            low_effects: boolean;
         };
         /** ConfigureRpg */
         ConfigureRpg: {
@@ -2483,6 +2834,116 @@ export interface components {
             raw: string;
             payload: components["schemas"]["Editor"];
         };
+        /** DraftAssetMetadata */
+        DraftAssetMetadata: {
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Category
+             * @default illustration
+             * @enum {string}
+             */
+            category: "portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient";
+            /** Tags */
+            tags?: string[];
+            /**
+             * Archived
+             * @default false
+             */
+            archived: boolean;
+        };
+        /** DraftAudioTrack */
+        DraftAudioTrack: {
+            /** Asset Id */
+            asset_id?: string | null;
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Volume
+             * @default 0.5
+             */
+            volume: number;
+            /**
+             * Loop
+             * @default true
+             */
+            loop: boolean;
+        };
+        /** DraftBinding */
+        DraftBinding: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "character" | "scene" | "event" | "world";
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /** DraftComposition */
+        DraftComposition: {
+            /**
+             * Visuals Enabled
+             * @default true
+             */
+            visuals_enabled: boolean;
+            /** Layers */
+            layers?: components["schemas"]["DraftLayer"][];
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            music?: components["schemas"]["DraftAudioTrack"];
+            ambient?: components["schemas"]["DraftAudioTrack"];
+            /**
+             * Effects Enabled
+             * @default true
+             */
+            effects_enabled: boolean;
+            /**
+             * Lighting
+             * @default neutral
+             * @enum {string}
+             */
+            lighting: "neutral" | "warm" | "cold" | "night";
+            /**
+             * Effect
+             * @default none
+             * @enum {string}
+             */
+            effect: "none" | "rain" | "fog" | "vignette";
+            /**
+             * Transition Ms
+             * @default 300
+             */
+            transition_ms: number;
+            /**
+             * Low Effects
+             * @default false
+             */
+            low_effects: boolean;
+        };
         /** DraftCurrency */
         DraftCurrency: {
             /** Name */
@@ -2507,6 +2968,100 @@ export interface components {
              * @default
              */
             description: string;
+        };
+        /** DraftLayer */
+        DraftLayer: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /** Name */
+            name: string;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Character Id */
+            character_id?: string | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * X
+             * @default 50
+             */
+            x: number;
+            /**
+             * Y
+             * @default 50
+             */
+            y: number;
+            /**
+             * Width
+             * @default 50
+             */
+            width: number;
+            /**
+             * Height
+             * @default 100
+             */
+            height: number;
+            /**
+             * Opacity
+             * @default 1
+             */
+            opacity: number;
+            /**
+             * Z
+             * @default 0
+             */
+            z: number;
+            /**
+             * Fit
+             * @default contain
+             * @enum {string}
+             */
+            fit: "contain" | "cover" | "fill";
+            /**
+             * Costume
+             * @default
+             */
+            costume: string;
+            /**
+             * Pose
+             * @default
+             */
+            pose: string;
+            /**
+             * Emotion
+             * @default auto
+             */
+            emotion: string;
+        };
+        /** DraftMediaState */
+        DraftMediaState: {
+            /**
+             * Format
+             * @default 1
+             * @constant
+             */
+            format: 1;
+            /** Compositions */
+            compositions?: {
+                [key: string]: components["schemas"]["DraftComposition"];
+            };
+            /** Variants */
+            variants?: components["schemas"]["DraftVariant"][];
+            /** Bindings */
+            bindings?: components["schemas"]["DraftBinding"][];
+            /** History */
+            history?: {
+                [key: string]: unknown;
+            }[];
         };
         /** DraftOutcome */
         DraftOutcome: {
@@ -2642,6 +3197,44 @@ export interface components {
         /** DraftValidation */
         DraftValidation: {
             record: components["schemas"]["DraftRecordInput"];
+        };
+        /** DraftVariant */
+        DraftVariant: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /**
+             * Character Id
+             * Format: uuid
+             */
+            character_id: string;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /**
+             * Costume
+             * @default
+             */
+            costume: string;
+            /**
+             * Pose
+             * @default
+             */
+            pose: string;
+            /**
+             * Emotion
+             * @default
+             */
+            emotion: string;
+            /**
+             * Priority
+             * @default 0
+             */
+            priority: number;
         };
         /** DraftWorldRpgPolicy */
         DraftWorldRpgPolicy: {
@@ -2929,6 +3522,94 @@ export interface components {
             description: string;
         };
         JsonValue: unknown;
+        /** Layer */
+        Layer: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /** Name */
+            name: string;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Character Id */
+            character_id?: string | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * X
+             * @default 50
+             */
+            x: number;
+            /**
+             * Y
+             * @default 50
+             */
+            y: number;
+            /**
+             * Width
+             * @default 50
+             */
+            width: number;
+            /**
+             * Height
+             * @default 100
+             */
+            height: number;
+            /**
+             * Opacity
+             * @default 1
+             */
+            opacity: number;
+            /**
+             * Z
+             * @default 0
+             */
+            z: number;
+            /**
+             * Fit
+             * @default contain
+             * @enum {string}
+             */
+            fit: "contain" | "cover" | "fill";
+            /**
+             * Costume
+             * @default
+             */
+            costume: string;
+            /**
+             * Pose
+             * @default
+             */
+            pose: string;
+            /**
+             * Emotion
+             * @default auto
+             */
+            emotion: string;
+        };
+        /** LibraryDraft */
+        LibraryDraft: {
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Template Id
+             * Format: uuid
+             */
+            template_id: string;
+            /** Source Revision */
+            source_revision: number;
+            /** Raw */
+            raw: string;
+            payload: components["schemas"]["DraftAssetMetadata"];
+        };
         /** LoreImport */
         LoreImport: {
             /** Text */
@@ -2948,6 +3629,27 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+        };
+        /** MediaState */
+        MediaState: {
+            /**
+             * Format
+             * @default 1
+             * @constant
+             */
+            format: 1;
+            /** Compositions */
+            compositions?: {
+                [key: string]: components["schemas"]["Composition"];
+            };
+            /** Variants */
+            variants?: components["schemas"]["Variant"][];
+            /** Bindings */
+            bindings?: components["schemas"]["Binding"][];
+            /** History */
+            history?: {
+                [key: string]: unknown;
+            }[];
         };
         /** MemorySettings */
         MemorySettings: {
@@ -2987,6 +3689,31 @@ export interface components {
             branch_id: string;
             /** Text */
             text: string;
+        };
+        /** Metadata */
+        Metadata: {
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Category
+             * @default illustration
+             * @enum {string}
+             */
+            category: "portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient";
+            /** Tags */
+            tags?: string[];
+            /**
+             * Archived
+             * @default false
+             */
+            archived: boolean;
+            /** Expected Revision */
+            expected_revision: number;
         };
         /** NPCDraft */
         NPCDraft: {
@@ -3441,6 +4168,37 @@ export interface components {
                 [key: string]: components["schemas"]["RandomTable"];
             };
         };
+        /** SceneDraft */
+        SceneDraft: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Template Id */
+            template_id?: string | null;
+            /** Source Revision */
+            source_revision: number;
+            /** Raw */
+            raw: string;
+            payload: components["schemas"]["SceneEditor"];
+        };
+        /** SceneEditor */
+        SceneEditor: {
+            media: components["schemas"]["DraftMediaState"];
+            /** Reason */
+            reason: string;
+        };
+        /** SceneWrite */
+        SceneWrite: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            media: components["schemas"]["MediaState"];
+            /** Reason */
+            reason: string;
+        };
         /** Scope */
         Scope: {
             /**
@@ -3558,6 +4316,44 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** Variant */
+        Variant: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /**
+             * Character Id
+             * Format: uuid
+             */
+            character_id: string;
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /**
+             * Costume
+             * @default
+             */
+            costume: string;
+            /**
+             * Pose
+             * @default
+             */
+            pose: string;
+            /**
+             * Emotion
+             * @default
+             */
+            emotion: string;
+            /**
+             * Priority
+             * @default 0
+             */
+            priority: number;
         };
         /** WorkspaceRequest */
         WorkspaceRequest: {
@@ -7404,6 +8200,566 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["WorldEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    media_api_v1_media_get: {
+        parameters: {
+            query?: {
+                query?: string;
+                tag?: string | null;
+                category?: ("portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient") | null;
+                archived?: boolean;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_media_api_v1_media_import_post: {
+        parameters: {
+            query: {
+                name: string;
+                category?: "portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient";
+                tags?: string[] | null;
+                confirmed?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metadata_api_v1_media__asset_id__metadata_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    file_api_v1_media__asset_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    thumbnail_api_v1_media__asset_id__thumbnail_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_api_v1_media__asset_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Metadata"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scene_api_v1_stories__story_id__media_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_scene_api_v1_stories__story_id__media_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SceneWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stage_api_v1_stories__story_id__media_stage_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    library_read_api_v1_media_drafts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    library_write_api_v1_media_drafts__draft_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LibraryDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    library_delete_api_v1_media_drafts__draft_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_metadata_api_v1_media_drafts_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetMetadata"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scene_read_api_v1_stories__story_id__media_drafts__branch_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scene_write_api_v1_stories__story_id__media_drafts__branch_id___draft_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SceneDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scene_delete_api_v1_stories__story_id__media_drafts__branch_id___draft_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_scene_api_v1_stories__story_id__media_drafts__branch_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MediaState"];
             };
         };
         responses: {

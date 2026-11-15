@@ -52,6 +52,31 @@ def main():
                         base + "/api/v1/session/bootstrap", json={"token": link.split("#launch=")[1]}
                     ).json()["csrf"]
                     assert client.get(base + "/").status_code == 200
+                    fixtures = Path(__file__).resolve().parents[1] / "tests/fixtures/media"
+                    for filename, category in [
+                        ("background.png", "background"),
+                        ("expression.webp", "expression"),
+                        ("tone.wav", "music"),
+                        ("tone.mp3", "music"),
+                        ("tone.ogg", "ambient"),
+                        ("tone.flac", "music"),
+                    ]:
+                        raw = (fixtures / filename).read_bytes()
+                        imported = client.post(
+                            base + "/api/v1/media/import",
+                            params={"name": filename, "category": category, "confirmed": True},
+                            content=raw,
+                            headers={"X-Taverna-CSRF": csrf, "Content-Type": "application/octet-stream"},
+                            timeout=10,
+                        )
+                        assert imported.status_code == 200, imported.text
+                        asset_id = imported.json()["id"]
+                        served = client.get(base + f"/api/v1/media/{asset_id}/file", timeout=10)
+                        assert served.status_code == 200 and served.content == raw
+                        if category in ("background", "expression"):
+                            thumb = client.get(base + f"/api/v1/media/{asset_id}/thumbnail", timeout=10)
+                            assert thumb.status_code == 200 and thumb.content.startswith(b"\x89PNG\r\n\x1a\n")
+                    assert not list(root.rglob("*.sqlite*"))
                     assert client.get(base + "/api/v1/diagnostics/storage").json()["ok"]
                     assert (
                         client.post(
@@ -62,7 +87,10 @@ def main():
                     process.wait(timeout=15)
                     assert process.returncode == 0
                     assert not info.exists()
-                print(executable, "PASS: relocated portable, restricted PATH, HTTP/session/storage/shutdown")
+                print(
+                    executable,
+                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media codecs/shutdown",
+                )
             finally:
                 if process.poll() is None:
                     process.kill()

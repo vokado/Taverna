@@ -18,6 +18,15 @@ export function useTemplateDraft(
   busy: boolean,
   baseOverride?: string,
 ) {
+  const label =
+    (
+      {
+        rpg: "RPG",
+        director: "режиссёра",
+        media: "медиа",
+        scene: "сцены",
+      } as Record<string, string>
+    )[kind] || "шаблона";
   const [id, setId] = useState<string>(() => crypto.randomUUID());
   const [items, setItems] = useState<TemplateDraft[]>([]),
     [status, setStatus] = useState("");
@@ -56,11 +65,7 @@ export function useTemplateDraft(
         setItems((old) => [saved, ...old.filter((d) => d.id !== saved.id)]);
         setStatus(
           JSON.stringify(current.current.editor) === fingerprint
-            ? kind === "rpg"
-              ? "Черновик RPG автосохранён."
-              : kind === "director"
-                ? "Черновик режиссёра автосохранён."
-                : "Черновик шаблона автосохранён."
+            ? `Черновик ${label} автосохранён.`
             : "Сохраняем следующую редакцию черновика…",
         );
       });
@@ -109,13 +114,7 @@ export function useTemplateDraft(
   }, []);
   useEffect(() => {
     if (!dirty || busy) return;
-    setStatus(
-      kind === "rpg"
-        ? "Сохраняем черновик RPG…"
-        : kind === "director"
-          ? "Сохраняем черновик режиссёра…"
-          : "Сохраняем черновик шаблона…",
-    );
+    setStatus(`Сохраняем черновик ${label}…`);
     const snapshot = JSON.parse(JSON.stringify({ id, editor, dirty }));
     const timer = setTimeout(
       () =>

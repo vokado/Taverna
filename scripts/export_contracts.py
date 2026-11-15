@@ -16,6 +16,7 @@ from taverna.director_models import (
 )
 from taverna.knowledge import MemoryRecord
 from taverna.main import create_app
+from taverna.media_models import Asset, AssetMetadata, Composition, Layer, MediaState, Variant
 from taverna.memory_ai import MemorySettings
 from taverna.profiles import ProfileSettings
 from taverna.prompts import CONTEXT_SCHEMA
@@ -34,6 +35,12 @@ with TemporaryDirectory() as temporary:
         "profile-settings-v1.json": ProfileSettings.model_json_schema(),
         "generation-context-v1.json": CONTEXT_SCHEMA,
         "memory-record-v1.json": MemoryRecord.model_json_schema(),
+        "media-asset-v1.json": Asset.model_json_schema(),
+        "media-metadata-v1.json": AssetMetadata.model_json_schema(),
+        "media-state-v1.json": MediaState.model_json_schema(),
+        "media-composition-v1.json": Composition.model_json_schema(),
+        "media-layer-v1.json": Layer.model_json_schema(),
+        "media-variant-v1.json": Variant.model_json_schema(),
         "rpg-state-v1.json": RpgState.model_json_schema(),
         "rpg-settings-v1.json": RpgSettings.model_json_schema(),
         "rpg-actor-v1.json": ActorSheet.model_json_schema(),

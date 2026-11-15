@@ -7,6 +7,7 @@ import { MemoryPanel } from "./MemoryPanel";
 import { RpgPanel } from "./RpgPanel";
 import { DirectorPanel } from "./DirectorPanel";
 import { StoryWorld } from "./StoryWorld";
+import { SceneStudio } from "./SceneStudio";
 import { StoryPackagePanel } from "./StoryPackagePanel";
 
 type Card = {
@@ -73,8 +74,10 @@ type Event = {
 
 export function Chat({
   openStory,
+  active = true,
 }: {
   openStory?: { id: string; nonce: number } | null;
+  active?: boolean;
 }) {
   const [stories, setStories] = useState<Story[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
@@ -112,6 +115,7 @@ export function Chat({
   const stream = useRef<EventSource | null>(null);
   const loadSequence = useRef(0);
   const memoryFlush = useRef<(() => Promise<void>) | null>(null);
+  const sceneFlush = useRef<(() => Promise<void>) | null>(null);
   const rpgFlush = useRef<(() => Promise<void>) | null>(null);
   const directorFlush = useRef<(() => Promise<void>) | null>(null);
   async function refresh() {
@@ -160,6 +164,7 @@ export function Chat({
         memoryFlush.current?.(),
         directorFlush.current?.(),
         rpgFlush.current?.(),
+        sceneFlush.current?.(),
       ]);
       const bundle = await request<Bundle>(`/stories/${id}`);
       const base = `/stories/${id}/messages?branch_id=${bundle.branch.id}&query=${encodeURIComponent(query)}`;
@@ -1020,6 +1025,39 @@ export function Chat({
               ))}
             </details>
           </section>
+          <SceneStudio
+            key={"scene/" + current.story.id + "/" + current.branch.id}
+            storyId={current.story.id}
+            branchId={current.branch.id}
+            revision={current.branch.revision}
+            actors={Object.entries(
+              current.story.payload.character_snapshots,
+            ).map(([id, snapshot]) => ({
+              id,
+              name: String(snapshot.card.fields.name),
+            }))}
+            events={(Array.isArray(current.state.payload.events)
+              ? current.state.payload.events
+              : []
+            )
+              .filter(
+                (e) =>
+                  e && typeof e.id === "string" && typeof e.kind === "string",
+              )
+              .map((e) => ({ id: e.id, kind: e.kind }))}
+            worldId={
+              (
+                current.state.payload.world as
+                  { template?: { id?: string } } | undefined
+              )?.template?.id || null
+            }
+            disabled={busy || loading}
+            active={active}
+            onChanged={() => load(current.story.id)}
+            registerFlush={(fn) => {
+              sceneFlush.current = fn;
+            }}
+          />
           <section>
             <div className="pagination">
               <button

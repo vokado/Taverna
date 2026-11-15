@@ -1,0 +1,224 @@
+{
+  "$defs": {
+    "AudioTrack": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "volume": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Volume",
+          "type": "number"
+        },
+        "loop": {
+          "default": true,
+          "title": "Loop",
+          "type": "boolean"
+        }
+      },
+      "title": "AudioTrack",
+      "type": "object"
+    },
+    "Layer": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "character_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Character Id"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "x": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": -100,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": -100,
+          "title": "Y",
+          "type": "number"
+        },
+        "width": {
+          "default": 50,
+          "exclusiveMinimum": 0,
+          "maximum": 300,
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "default": 100,
+          "exclusiveMinimum": 0,
+          "maximum": 300,
+          "title": "Height",
+          "type": "number"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "z": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Z",
+          "type": "integer"
+        },
+        "fit": {
+          "default": "contain",
+          "enum": [
+            "contain",
+            "cover",
+            "fill"
+          ],
+          "title": "Fit",
+          "type": "string"
+        },
+        "costume": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Costume",
+          "type": "string"
+        },
+        "pose": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Pose",
+          "type": "string"
+        },
+        "emotion": {
+          "default": "auto",
+          "maxLength": 100,
+          "title": "Emotion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "asset_id"
+      ],
+      "title": "Layer",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "visuals_enabled": {
+      "default": true,
+      "title": "Visuals Enabled",
+      "type": "boolean"
+    },
+    "layers": {
+      "items": {
+        "$ref": "#/$defs/Layer"
+      },
+      "maxItems": 32,
+      "title": "Layers",
+      "type": "array"
+    },
+    "enabled": {
+      "default": true,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "music": {
+      "$ref": "#/$defs/AudioTrack"
+    },
+    "ambient": {
+      "$ref": "#/$defs/AudioTrack"
+    },
+    "effects_enabled": {
+      "default": true,
+      "title": "Effects Enabled",
+      "type": "boolean"
+    },
+    "lighting": {
+      "default": "neutral",
+      "enum": [
+        "neutral",
+        "warm",
+        "cold",
+        "night"
+      ],
+      "title": "Lighting",
+      "type": "string"
+    },
+    "effect": {
+      "default": "none",
+      "enum": [
+        "none",
+        "rain",
+        "fog",
+        "vignette"
+      ],
+      "title": "Effect",
+      "type": "string"
+    },
+    "transition_ms": {
+      "default": 300,
+      "maximum": 3000,
+      "minimum": 0,
+      "title": "Transition Ms",
+      "type": "integer"
+    },
+    "low_effects": {
+      "default": false,
+      "title": "Low Effects",
+      "type": "boolean"
+    }
+  },
+  "title": "Composition",
+  "type": "object"
+}

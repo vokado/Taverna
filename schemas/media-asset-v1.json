@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "relative_path": {
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Relative Path",
+      "type": "string"
+    },
+    "checksum": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Checksum",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif",
+        "audio/wav",
+        "audio/mpeg",
+        "audio/ogg",
+        "audio/flac"
+      ],
+      "title": "Type",
+      "type": "string"
+    },
+    "name": {
+      "default": "Портрет",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Description",
+      "type": "string"
+    },
+    "category": {
+      "default": "portrait",
+      "enum": [
+        "portrait",
+        "illustration",
+        "expression",
+        "costume",
+        "animation",
+        "background",
+        "music",
+        "ambient"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Tags",
+      "type": "array"
+    },
+    "archived": {
+      "default": false,
+      "title": "Archived",
+      "type": "boolean"
+    },
+    "info": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Info",
+      "type": "object"
+    },
+    "provenance": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Provenance",
+      "type": "object"
+    }
+  },
+  "required": [
+    "relative_path",
+    "checksum",
+    "type"
+  ],
+  "title": "Asset",
+  "type": "object"
+}

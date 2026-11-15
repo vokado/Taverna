@@ -4850,6 +4850,896 @@
         }
       }
     },
+    "/api/v1/media": {
+      "get": {
+        "summary": "Media",
+        "operationId": "media_api_v1_media_get",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 2000,
+              "default": "",
+              "title": "Query"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "portrait",
+                    "illustration",
+                    "expression",
+                    "costume",
+                    "animation",
+                    "background",
+                    "music",
+                    "ambient"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Archived"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/import": {
+      "post": {
+        "summary": "Import Media",
+        "operationId": "import_media_api_v1_media_import_post",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "title": "Name"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "portrait",
+                "illustration",
+                "expression",
+                "costume",
+                "animation",
+                "background",
+                "music",
+                "ambient"
+              ],
+              "type": "string",
+              "default": "illustration",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tags"
+            }
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Confirmed"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/{asset_id}/metadata": {
+      "get": {
+        "summary": "Metadata",
+        "operationId": "metadata_api_v1_media__asset_id__metadata_get",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/{asset_id}/file": {
+      "get": {
+        "summary": "File",
+        "operationId": "file_api_v1_media__asset_id__file_get",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/{asset_id}/thumbnail": {
+      "get": {
+        "summary": "Thumbnail",
+        "operationId": "thumbnail_api_v1_media__asset_id__thumbnail_get",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/{asset_id}": {
+      "patch": {
+        "summary": "Update",
+        "operationId": "update_api_v1_media__asset_id__patch",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Metadata"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/media": {
+      "get": {
+        "summary": "Scene",
+        "operationId": "scene_api_v1_stories__story_id__media_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Save Scene",
+        "operationId": "save_scene_api_v1_stories__story_id__media_put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SceneWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/media/stage": {
+      "get": {
+        "summary": "Stage",
+        "operationId": "stage_api_v1_stories__story_id__media_stage_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/drafts": {
+      "get": {
+        "summary": "Library Read",
+        "operationId": "library_read_api_v1_media_drafts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/drafts/{draft_id}": {
+      "put": {
+        "summary": "Library Write",
+        "operationId": "library_write_api_v1_media_drafts__draft_id__put",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Library Delete",
+        "operationId": "library_delete_api_v1_media_drafts__draft_id__delete",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          },
+          {
+            "name": "expected_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Expected Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/drafts/validate": {
+      "post": {
+        "summary": "Validate Metadata",
+        "operationId": "validate_metadata_api_v1_media_drafts_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetMetadata"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/media/drafts/{branch_id}": {
+      "get": {
+        "summary": "Scene Read",
+        "operationId": "scene_read_api_v1_stories__story_id__media_drafts__branch_id__get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/media/drafts/{branch_id}/{draft_id}": {
+      "put": {
+        "summary": "Scene Write",
+        "operationId": "scene_write_api_v1_stories__story_id__media_drafts__branch_id___draft_id__put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SceneDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Scene Delete",
+        "operationId": "scene_delete_api_v1_stories__story_id__media_drafts__branch_id___draft_id__delete",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          },
+          {
+            "name": "expected_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Expected Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/media/drafts/{branch_id}/validate": {
+      "post": {
+        "summary": "Validate Scene",
+        "operationId": "validate_scene_api_v1_stories__story_id__media_drafts__branch_id__validate_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaState"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/rpg": {
       "get": {
         "summary": "Read",
@@ -6232,6 +7122,56 @@
         ],
         "title": "ArchiveRequest"
       },
+      "AssetMetadata": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000,
+            "title": "Description",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "illustration",
+              "expression",
+              "costume",
+              "animation",
+              "background",
+              "music",
+              "ambient"
+            ],
+            "title": "Category",
+            "default": "illustration"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Tags"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "AssetMetadata"
+      },
       "Attach": {
         "properties": {
           "branch_id": {
@@ -6301,6 +7241,42 @@
         ],
         "title": "Attach"
       },
+      "AudioTrack": {
+        "properties": {
+          "asset_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "volume": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Volume",
+            "default": 0.5
+          },
+          "loop": {
+            "type": "boolean",
+            "title": "Loop",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AudioTrack"
+      },
       "AutosaveRequest": {
         "properties": {
           "expected_revision": {
@@ -6364,6 +7340,43 @@
           "editor"
         ],
         "title": "AutosaveRequest"
+      },
+      "Binding": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "character",
+              "scene",
+              "event",
+              "world"
+            ],
+            "title": "Kind"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_id",
+          "kind",
+          "target_id"
+        ],
+        "title": "Binding"
       },
       "BindingWrite": {
         "properties": {
@@ -6630,6 +7643,76 @@
           "content"
         ],
         "title": "ChatMessage"
+      },
+      "Composition": {
+        "properties": {
+          "visuals_enabled": {
+            "type": "boolean",
+            "title": "Visuals Enabled",
+            "default": true
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/Layer"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Layers"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "music": {
+            "$ref": "#/components/schemas/AudioTrack"
+          },
+          "ambient": {
+            "$ref": "#/components/schemas/AudioTrack"
+          },
+          "effects_enabled": {
+            "type": "boolean",
+            "title": "Effects Enabled",
+            "default": true
+          },
+          "lighting": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "warm",
+              "cold",
+              "night"
+            ],
+            "title": "Lighting",
+            "default": "neutral"
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "none",
+              "rain",
+              "fog",
+              "vignette"
+            ],
+            "title": "Effect",
+            "default": "none"
+          },
+          "transition_ms": {
+            "type": "integer",
+            "maximum": 3000.0,
+            "minimum": 0.0,
+            "title": "Transition Ms",
+            "default": 300
+          },
+          "low_effects": {
+            "type": "boolean",
+            "title": "Low Effects",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Composition"
       },
       "ConfigureRpg": {
         "properties": {
@@ -7174,6 +8257,190 @@
         ],
         "title": "Draft"
       },
+      "DraftAssetMetadata": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "illustration",
+              "expression",
+              "costume",
+              "animation",
+              "background",
+              "music",
+              "ambient"
+            ],
+            "title": "Category",
+            "default": "illustration"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DraftAssetMetadata"
+      },
+      "DraftAudioTrack": {
+        "properties": {
+          "asset_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "volume": {
+            "type": "number",
+            "title": "Volume",
+            "default": 0.5
+          },
+          "loop": {
+            "type": "boolean",
+            "title": "Loop",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftAudioTrack"
+      },
+      "DraftBinding": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "character",
+              "scene",
+              "event",
+              "world"
+            ],
+            "title": "Kind"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_id",
+          "kind",
+          "target_id"
+        ],
+        "title": "DraftBinding"
+      },
+      "DraftComposition": {
+        "properties": {
+          "visuals_enabled": {
+            "type": "boolean",
+            "title": "Visuals Enabled",
+            "default": true
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/DraftLayer"
+            },
+            "type": "array",
+            "title": "Layers"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "music": {
+            "$ref": "#/components/schemas/DraftAudioTrack"
+          },
+          "ambient": {
+            "$ref": "#/components/schemas/DraftAudioTrack"
+          },
+          "effects_enabled": {
+            "type": "boolean",
+            "title": "Effects Enabled",
+            "default": true
+          },
+          "lighting": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "warm",
+              "cold",
+              "night"
+            ],
+            "title": "Lighting",
+            "default": "neutral"
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "none",
+              "rain",
+              "fog",
+              "vignette"
+            ],
+            "title": "Effect",
+            "default": "none"
+          },
+          "transition_ms": {
+            "type": "integer",
+            "title": "Transition Ms",
+            "default": 300
+          },
+          "low_effects": {
+            "type": "boolean",
+            "title": "Low Effects",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftComposition"
+      },
       "DraftCurrency": {
         "properties": {
           "name": {
@@ -7216,6 +8483,148 @@
           "name"
         ],
         "title": "DraftItem"
+      },
+      "DraftLayer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "character_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Character Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "x": {
+            "type": "number",
+            "title": "X",
+            "default": 50
+          },
+          "y": {
+            "type": "number",
+            "title": "Y",
+            "default": 50
+          },
+          "width": {
+            "type": "number",
+            "title": "Width",
+            "default": 50
+          },
+          "height": {
+            "type": "number",
+            "title": "Height",
+            "default": 100
+          },
+          "opacity": {
+            "type": "number",
+            "title": "Opacity",
+            "default": 1
+          },
+          "z": {
+            "type": "integer",
+            "title": "Z",
+            "default": 0
+          },
+          "fit": {
+            "type": "string",
+            "enum": [
+              "contain",
+              "cover",
+              "fill"
+            ],
+            "title": "Fit",
+            "default": "contain"
+          },
+          "costume": {
+            "type": "string",
+            "title": "Costume",
+            "default": ""
+          },
+          "pose": {
+            "type": "string",
+            "title": "Pose",
+            "default": ""
+          },
+          "emotion": {
+            "type": "string",
+            "title": "Emotion",
+            "default": "auto"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "asset_id"
+        ],
+        "title": "DraftLayer"
+      },
+      "DraftMediaState": {
+        "properties": {
+          "format": {
+            "type": "integer",
+            "const": 1,
+            "title": "Format",
+            "default": 1
+          },
+          "compositions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DraftComposition"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "title": "Compositions"
+          },
+          "variants": {
+            "items": {
+              "$ref": "#/components/schemas/DraftVariant"
+            },
+            "type": "array",
+            "title": "Variants"
+          },
+          "bindings": {
+            "items": {
+              "$ref": "#/components/schemas/DraftBinding"
+            },
+            "type": "array",
+            "title": "Bindings"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftMediaState"
       },
       "DraftOutcome": {
         "properties": {
@@ -7536,6 +8945,52 @@
           "record"
         ],
         "title": "DraftValidation"
+      },
+      "DraftVariant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "character_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Character Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "costume": {
+            "type": "string",
+            "title": "Costume",
+            "default": ""
+          },
+          "pose": {
+            "type": "string",
+            "title": "Pose",
+            "default": ""
+          },
+          "emotion": {
+            "type": "string",
+            "title": "Emotion",
+            "default": ""
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "character_id",
+          "asset_id"
+        ],
+        "title": "DraftVariant"
       },
       "DraftWorldRpgPolicy": {
         "properties": {
@@ -8246,6 +9701,157 @@
         "title": "Item"
       },
       "JsonValue": {},
+      "Layer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "character_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Character Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "x": {
+            "type": "number",
+            "maximum": 200.0,
+            "minimum": -100.0,
+            "title": "X",
+            "default": 50
+          },
+          "y": {
+            "type": "number",
+            "maximum": 200.0,
+            "minimum": -100.0,
+            "title": "Y",
+            "default": 50
+          },
+          "width": {
+            "type": "number",
+            "maximum": 300.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "default": 50
+          },
+          "height": {
+            "type": "number",
+            "maximum": 300.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Height",
+            "default": 100
+          },
+          "opacity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Opacity",
+            "default": 1
+          },
+          "z": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": -100.0,
+            "title": "Z",
+            "default": 0
+          },
+          "fit": {
+            "type": "string",
+            "enum": [
+              "contain",
+              "cover",
+              "fill"
+            ],
+            "title": "Fit",
+            "default": "contain"
+          },
+          "costume": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Costume",
+            "default": ""
+          },
+          "pose": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Pose",
+            "default": ""
+          },
+          "emotion": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Emotion",
+            "default": "auto"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "asset_id"
+        ],
+        "title": "Layer"
+      },
+      "LibraryDraft": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "template_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Template Id"
+          },
+          "source_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Source Revision"
+          },
+          "raw": {
+            "type": "string",
+            "maxLength": 1048576,
+            "title": "Raw"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/DraftAssetMetadata"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "template_id",
+          "source_revision",
+          "raw",
+          "payload"
+        ],
+        "title": "LibraryDraft"
+      },
       "LoreImport": {
         "properties": {
           "text": {
@@ -8276,6 +9882,54 @@
           "text"
         ],
         "title": "LoreImport"
+      },
+      "MediaState": {
+        "properties": {
+          "format": {
+            "type": "integer",
+            "const": 1,
+            "title": "Format",
+            "default": 1
+          },
+          "compositions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Composition"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "maxProperties": 1000,
+            "title": "Compositions"
+          },
+          "variants": {
+            "items": {
+              "$ref": "#/components/schemas/Variant"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Variants"
+          },
+          "bindings": {
+            "items": {
+              "$ref": "#/components/schemas/Binding"
+            },
+            "type": "array",
+            "maxItems": 5000,
+            "title": "Bindings"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "MediaState"
       },
       "MemorySettings": {
         "properties": {
@@ -8354,6 +10008,62 @@
           "text"
         ],
         "title": "MessageRequest"
+      },
+      "Metadata": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000,
+            "title": "Description",
+            "default": ""
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "illustration",
+              "expression",
+              "costume",
+              "animation",
+              "background",
+              "music",
+              "ambient"
+            ],
+            "title": "Category",
+            "default": "illustration"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Tags"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "expected_revision"
+        ],
+        "title": "Metadata"
       },
       "NPCDraft": {
         "properties": {
@@ -9513,6 +11223,100 @@
         "type": "object",
         "title": "RpgSettings"
       },
+      "SceneDraft": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "source_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Source Revision"
+          },
+          "raw": {
+            "type": "string",
+            "maxLength": 1048576,
+            "title": "Raw"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/SceneEditor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "source_revision",
+          "raw",
+          "payload"
+        ],
+        "title": "SceneDraft"
+      },
+      "SceneEditor": {
+        "properties": {
+          "media": {
+            "$ref": "#/components/schemas/DraftMediaState"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "media",
+          "reason"
+        ],
+        "title": "SceneEditor"
+      },
+      "SceneWrite": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "media": {
+            "$ref": "#/components/schemas/MediaState"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "media",
+          "reason"
+        ],
+        "title": "SceneWrite"
+      },
       "Scope": {
         "properties": {
           "branch_id": {
@@ -9881,6 +11685,57 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "Variant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "character_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Character Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "costume": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Costume",
+            "default": ""
+          },
+          "pose": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Pose",
+            "default": ""
+          },
+          "emotion": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Emotion",
+            "default": ""
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": -100.0,
+            "title": "Priority",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "character_id",
+          "asset_id"
+        ],
+        "title": "Variant"
       },
       "WorkspaceRequest": {
         "properties": {

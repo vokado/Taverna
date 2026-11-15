@@ -23,6 +23,9 @@ from .director import DirectorService
 from .director_api import router as director_router
 from .director_drafts import router as director_drafts_router
 from .generation_api import GenerationService
+from .media import MediaService
+from .media_api import router as media_router
+from .media_drafts import router as media_drafts_router
 from .memory import MemoryService
 from .memory_api import router as memory_router
 from .rpg import RpgService
@@ -72,6 +75,9 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.worlds = WorldService(app.state.chat)
     app.state.chat.state_reducer = app.state.worlds.message_state
     app.include_router(world_router(app.state.worlds))
+    app.state.media = MediaService(app.state.worlds)
+    app.include_router(media_router(app.state.media))
+    app.include_router(media_drafts_router(app.state.media))
     app.state.rpg = RpgService(app.state.worlds)
     app.include_router(rpg_router(app.state.rpg))
     app.include_router(rpg_drafts_router(app.state.rpg))

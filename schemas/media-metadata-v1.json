@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Description",
+      "type": "string"
+    },
+    "category": {
+      "default": "illustration",
+      "enum": [
+        "portrait",
+        "illustration",
+        "expression",
+        "costume",
+        "animation",
+        "background",
+        "music",
+        "ambient"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Tags",
+      "type": "array"
+    },
+    "archived": {
+      "default": false,
+      "title": "Archived",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "AssetMetadata",
+  "type": "object"
+}

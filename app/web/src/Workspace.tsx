@@ -12,6 +12,7 @@ import { Characters } from "./Characters";
 import { Chat } from "./Chat";
 import { Profiles } from "./Profiles";
 import { Worlds } from "./Worlds";
+import { MediaLibrary } from "./MediaLibrary";
 
 type Colors = {
   background: string;
@@ -243,6 +244,7 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["chat", "Истории"],
           ["profiles", "Профили и промпты"],
           ["worlds", "Миры и сценарии"],
+          ["media", "Медиабиблиотека"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
           <button
@@ -285,9 +287,11 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                       ? "Истории"
                       : page === "worlds"
                         ? "Миры и сценарии"
-                        : page === "profiles"
-                          ? "Профили и промпты"
-                          : "Рабочее пространство"}
+                        : page === "media"
+                          ? "Медиабиблиотека"
+                          : page === "profiles"
+                            ? "Профили и промпты"
+                            : "Рабочее пространство"}
             </h1>
             <p>Локальные истории и персонажи</p>
           </div>
@@ -590,8 +594,11 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         <div hidden={page !== "worlds"}>
           <Worlds />
         </div>
+        <div hidden={page !== "media"}>
+          <MediaLibrary visible={page === "media"} />
+        </div>
         <div hidden={page !== "chat"}>
-          <Chat openStory={openStory} />
+          <Chat openStory={openStory} active={page === "chat"} />
         </div>
         <div hidden={page !== "profiles"}>
           <Profiles />

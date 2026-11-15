@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "character_id": {
+      "format": "uuid",
+      "title": "Character Id",
+      "type": "string"
+    },
+    "asset_id": {
+      "format": "uuid",
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "costume": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Costume",
+      "type": "string"
+    },
+    "pose": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Pose",
+      "type": "string"
+    },
+    "emotion": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Emotion",
+      "type": "string"
+    },
+    "priority": {
+      "default": 0,
+      "maximum": 100,
+      "minimum": -100,
+      "title": "Priority",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "character_id",
+    "asset_id"
+  ],
+  "title": "Variant",
+  "type": "object"
+}

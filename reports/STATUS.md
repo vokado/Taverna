@@ -14,8 +14,9 @@
 | 08 | Память/знания/отношения/поиск/редактор/обмен реализованы; 98 backend PASS, 7 E2E PASS, build/Ruff PASS; CI43698689482 для31a403a Ubuntu/Windows/frozen SUCCESS; live LLM/embeddings/RTX5070 BLOCKED; календарь/режиссёр в09–10 |
 | 09 | Миры/сценарии/snapshots/calendar/events/AST/lore/пакеты/editor реализованы;119 backend PASS,8 E2E PASS, build/Ruff PASS; CI43702010767 дляa12e6ee Ubuntu/Windows/frozen SUCCESS; live AI/corpus/целевая среда BLOCKED; NPC/director в10 |
 | 10 | Реализованы NPC/director/API/UI/drafts/источники/ручной отказ;139 backend и9 E2E PASS, Ruff/types/build PASS; CI43739668246/ad0e711 Ubuntu/Windows/frozen SUCCESS после исправления чтений и поиска; Windows139 backend и9 browser PASS; live/target BLOCKED |
-| 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;новый Windows CI ожидается,целевая среда BLOCKED |
-| 12–16 | NOT_STARTED |
+| 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;CI43740639796/2ab1475 Ubuntu/Windows/frozen SUCCESS,целевая среда BLOCKED |
+| 12 | IN_PROGRESS: библиотека/слои/варианты/аудио/drafts/ZIP;173 backend и11 browser Linux PASS;image engine ещё не реализован |
+| 13–16 | NOT_STARTED |
 
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.
 
