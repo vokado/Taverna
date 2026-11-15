@@ -14,6 +14,7 @@ from taverna.director_models import (
     DirectorState,
     NPCState,
 )
+from taverna.image_models import ImageLease, ImageRequest, ImageSettings
 from taverna.knowledge import MemoryRecord
 from taverna.main import create_app
 from taverna.media_models import Asset, AssetMetadata, Composition, Layer, MediaState, Variant
@@ -35,6 +36,9 @@ with TemporaryDirectory() as temporary:
         "profile-settings-v1.json": ProfileSettings.model_json_schema(),
         "generation-context-v1.json": CONTEXT_SCHEMA,
         "memory-record-v1.json": MemoryRecord.model_json_schema(),
+        "image-settings-v1.json": ImageSettings.model_json_schema(),
+        "image-request-v1.json": ImageRequest.model_json_schema(),
+        "image-lease-v1.json": ImageLease.model_json_schema(),
         "media-asset-v1.json": Asset.model_json_schema(),
         "media-metadata-v1.json": AssetMetadata.model_json_schema(),
         "media-state-v1.json": MediaState.model_json_schema(),

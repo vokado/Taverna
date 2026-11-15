@@ -25,6 +25,7 @@ export function useTemplateDraft(
         director: "режиссёра",
         media: "медиа",
         scene: "сцены",
+        image: "изображения",
       } as Record<string, string>
     )[kind] || "шаблона";
   const [id, setId] = useState<string>(() => crypto.randomUUID());

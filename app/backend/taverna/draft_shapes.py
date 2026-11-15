@@ -3,11 +3,13 @@ from __future__ import annotations
 from types import UnionType
 from typing import Annotated, Union, get_args, get_origin
 
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, create_model
 
 
 def relaxed(annotation):
     """Draft shape only; full domain validators are mandatory on publication."""
+    if annotation is int or annotation is float:
+        return StrictFloat
     if isinstance(annotation, type) and issubclass(annotation, BaseModel):
         return create_model(
             "Draft" + annotation.__name__,

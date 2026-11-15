@@ -1747,6 +1747,161 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/images/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings */
+        get: operations["settings_api_v1_images_settings_get"];
+        /** Configure */
+        put: operations["configure_api_v1_images_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Jobs */
+        get: operations["jobs_api_v1_images_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Image Job */
+        get: operations["image_job_api_v1_images_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Capabilities */
+        get: operations["capabilities_api_v1_images_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate */
+        post: operations["generate_api_v1_images_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/lease/reconcile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reconcile */
+        post: operations["reconcile_api_v1_images_lease_reconcile_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/lease/manual-release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release */
+        post: operations["release_api_v1_images_lease_manual_release_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_images_drafts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Write */
+        put: operations["write_api_v1_images_drafts__draft_id__put"];
+        post?: never;
+        /** Delete */
+        delete: operations["delete_api_v1_images_drafts__draft_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stories/{story_id}/rpg": {
         parameters: {
             query?: never;
@@ -2563,6 +2718,12 @@ export interface components {
              */
             low_effects: boolean;
         };
+        /** ConfigureImage */
+        ConfigureImage: {
+            /** Expected Revision */
+            expected_revision: number;
+            settings: components["schemas"]["ImageSettings"];
+        };
         /** ConfigureRpg */
         ConfigureRpg: {
             /**
@@ -2953,6 +3114,115 @@ export interface components {
              * @default 0
              */
             decimals: number;
+        };
+        /** DraftImageRequest */
+        DraftImageRequest: {
+            /** Settings Revision */
+            settings_revision: number;
+            /** Name */
+            name: string;
+            /** Prompt */
+            prompt: string;
+            /**
+             * Negative Prompt
+             * @default
+             */
+            negative_prompt: string;
+            /** Checkpoint */
+            checkpoint: string;
+            /**
+             * Width
+             * @default 512
+             */
+            width: number;
+            /**
+             * Height
+             * @default 512
+             */
+            height: number;
+            /**
+             * Steps
+             * @default 20
+             */
+            steps: number;
+            /**
+             * Cfg
+             * @default 7
+             */
+            cfg: number;
+            /**
+             * Seed
+             * @default 0
+             */
+            seed: number;
+            /**
+             * Sampler
+             * @default euler
+             */
+            sampler: string;
+            /**
+             * Scheduler
+             * @default normal
+             */
+            scheduler: string;
+            /**
+             * Category
+             * @default illustration
+             * @enum {string}
+             */
+            category: "portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient";
+            /** Tags */
+            tags?: string[];
+            /** Story Id */
+            story_id?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** Expected Revision */
+            expected_revision?: number | null;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
+        /** DraftImageSettings */
+        DraftImageSettings: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Adapter
+             * @default comfyui-modern-v1
+             * @constant
+             */
+            adapter: "comfyui-modern-v1";
+            /**
+             * Endpoint
+             * @default http://127.0.0.1:8188
+             */
+            endpoint: string;
+            /**
+             * Timeout Seconds
+             * @default 300
+             */
+            timeout_seconds: number;
+            /**
+             * Cancel Wait Seconds
+             * @default 10
+             */
+            cancel_wait_seconds: number;
+            /**
+             * Minimum Free Vram Mib
+             * @default 0
+             */
+            minimum_free_vram_mib: number;
+            /**
+             * Max Pixels
+             * @default 1048576
+             */
+            max_pixels: number;
         };
         /** DraftItem */
         DraftItem: {
@@ -3477,6 +3747,137 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** ImageDraft */
+        ImageDraft: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Template Id */
+            template_id?: string | null;
+            /** Source Revision */
+            source_revision: number;
+            /** Raw */
+            raw: string;
+            payload: components["schemas"]["ImageEditor"];
+        };
+        /** ImageEditor */
+        ImageEditor: {
+            settings: components["schemas"]["DraftImageSettings"];
+            request: components["schemas"]["DraftImageRequest"];
+            /**
+             * Dirty Settings
+             * @default false
+             */
+            dirty_settings: boolean;
+        };
+        /** ImageRequest */
+        ImageRequest: {
+            /** Settings Revision */
+            settings_revision: number;
+            /** Name */
+            name: string;
+            /** Prompt */
+            prompt: string;
+            /**
+             * Negative Prompt
+             * @default
+             */
+            negative_prompt: string;
+            /** Checkpoint */
+            checkpoint: string;
+            /**
+             * Width
+             * @default 512
+             */
+            width: number;
+            /**
+             * Height
+             * @default 512
+             */
+            height: number;
+            /**
+             * Steps
+             * @default 20
+             */
+            steps: number;
+            /**
+             * Cfg
+             * @default 7
+             */
+            cfg: number;
+            /**
+             * Seed
+             * @default 0
+             */
+            seed: number;
+            /**
+             * Sampler
+             * @default euler
+             */
+            sampler: string;
+            /**
+             * Scheduler
+             * @default normal
+             */
+            scheduler: string;
+            /**
+             * Category
+             * @default illustration
+             * @enum {string}
+             */
+            category: "portrait" | "illustration" | "expression" | "costume" | "animation" | "background" | "music" | "ambient";
+            /** Tags */
+            tags?: string[];
+            /** Story Id */
+            story_id?: string | null;
+            /** Branch Id */
+            branch_id?: string | null;
+            /** Expected Revision */
+            expected_revision?: number | null;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
+        /** ImageSettings */
+        ImageSettings: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Adapter
+             * @default comfyui-modern-v1
+             * @constant
+             */
+            adapter: "comfyui-modern-v1";
+            /**
+             * Endpoint
+             * @default http://127.0.0.1:8188
+             */
+            endpoint: string;
+            /**
+             * Timeout Seconds
+             * @default 300
+             */
+            timeout_seconds: number;
+            /**
+             * Cancel Wait Seconds
+             * @default 10
+             */
+            cancel_wait_seconds: number;
+            /**
+             * Minimum Free Vram Mib
+             * @default 0
+             */
+            minimum_free_vram_mib: number;
+            /**
+             * Max Pixels
+             * @default 1048576
+             */
+            max_pixels: number;
+        };
         /** Initiative */
         Initiative: {
             /**
@@ -3852,6 +4253,19 @@ export interface components {
             /** Outcomes */
             outcomes: components["schemas"]["Outcome"][];
         };
+        /** ReconcileImage */
+        ReconcileImage: {
+            /**
+             * Cancel External
+             * @default false
+             */
+            cancel_external: boolean;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
         /** RecordDelete */
         RecordDelete: {
             /**
@@ -4004,6 +4418,18 @@ export interface components {
             };
             /** Episode Ids */
             episode_ids?: string[];
+        };
+        /** ReleaseImage */
+        ReleaseImage: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Reason */
+            reason: string;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
         };
         /** ResolveRequest */
         ResolveRequest: {
@@ -8762,6 +9188,319 @@ export interface operations {
                 "application/json": components["schemas"]["MediaState"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settings_api_v1_images_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    configure_api_v1_images_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfigureImage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    jobs_api_v1_images_jobs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    image_job_api_v1_images_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    capabilities_api_v1_images_capabilities_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    generate_api_v1_images_generate_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reconcile_api_v1_images_lease_reconcile_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconcileImage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_api_v1_images_lease_manual_release_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReleaseImage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_api_v1_images_drafts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    write_api_v1_images_drafts__draft_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImageDraft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_api_v1_images_drafts__draft_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

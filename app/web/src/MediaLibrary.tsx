@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { components } from "./api-types";
 import { request, upload } from "./api";
 import { useTemplateDraft } from "./useTemplateDraft";
+import { ImageGeneratePanel } from "./ImageGeneratePanel";
 export type MediaMetadata = components["schemas"]["AssetMetadata"];
 export type MediaAsset = {
   id: string;
@@ -182,6 +183,11 @@ export function MediaLibrary({ visible = true }: { visible?: boolean }) {
         галереи, сохраняя файл и ссылки истории. Изображения в списке показаны
         статическими миниатюрами.
       </p>
+      <ImageGeneratePanel
+        visible={visible}
+        onGenerated={() => load(0)}
+        onResult={choose}
+      />
       <fieldset disabled={busy}>
         <details>
           <summary>Импорт собственного медиа</summary>

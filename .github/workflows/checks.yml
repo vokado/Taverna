@@ -38,6 +38,15 @@ jobs:
           name: Browser-failure-${{ matrix.os }}
           path: app/web/test-results/
       - if: runner.os == 'Windows'
+        name: Parse Windows test-kit scripts
+        shell: pwsh
+        run: |
+          Get-ChildItem docs/testing/*.ps1 | ForEach-Object {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - if: runner.os == 'Windows'
         run: ./packaging/build_windows.ps1
         shell: pwsh
       - if: runner.os == 'Windows'

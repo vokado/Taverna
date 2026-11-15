@@ -23,6 +23,9 @@ from .director import DirectorService
 from .director_api import router as director_router
 from .director_drafts import router as director_drafts_router
 from .generation_api import GenerationService
+from .image_api import router as image_router
+from .image_drafts import router as image_drafts_router
+from .images import ImageService
 from .media import MediaService
 from .media_api import router as media_router
 from .media_drafts import router as media_drafts_router
@@ -78,6 +81,9 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.media = MediaService(app.state.worlds)
     app.include_router(media_router(app.state.media))
     app.include_router(media_drafts_router(app.state.media))
+    app.state.images = ImageService(app.state.media)
+    app.include_router(image_router(app.state.images))
+    app.include_router(image_drafts_router(app.state.images))
     app.state.rpg = RpgService(app.state.worlds)
     app.include_router(rpg_router(app.state.rpg))
     app.include_router(rpg_drafts_router(app.state.rpg))
@@ -157,7 +163,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "10",
+            "stage": "12",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 

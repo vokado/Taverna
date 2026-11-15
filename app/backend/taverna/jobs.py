@@ -20,6 +20,7 @@ class JobQueue:
         self.store, self.capacity = store, capacity
         self.queue = asyncio.PriorityQueue(maxsize=capacity)
         self.handlers: dict[str, JobHandler] = {}
+        self.resource_guard = None
         self.cancellations: dict[str, asyncio.Event] = {}
         self.worker = None
         self.guard = asyncio.Lock()
@@ -258,6 +259,8 @@ class JobQueue:
                         await self.emit(job_id, kind, payload)
 
                     try:
+                        if self.resource_guard:
+                            await self.resource_guard(job["payload"]["kind"], job["payload"]["request"])
                         # Cancellation must interrupt a blocked socket read, not wait for the next token.
                         handler = asyncio.create_task(
                             self.handlers[job["payload"]["kind"]](job["payload"]["request"], cancel, emit)

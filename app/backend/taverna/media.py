@@ -62,7 +62,7 @@ class MediaService:
             raise AppError("invalid_path", "Медиафайл должен находиться в медиакаталоге.", 422)
         return value
 
-    def import_raw(self, raw, name, category, tags=(), provenance=None):
+    def import_raw(self, raw, name, category, tags=(), provenance=None, asset_id=None, before_commit=None):
         info = probe_media(raw)
         checksum = digest(raw)
         try:
@@ -81,6 +81,14 @@ class MediaService:
                 "invalid_media_metadata", "Категория/название/теги не соответствуют ресурсу.", 422
             ) from exc
 
+        if asset_id:
+            existing = self.store.get(self.key(asset_id))
+            if existing:
+                if existing["kind"] != "media_asset" or existing["payload"]["checksum"] != checksum:
+                    raise AppError(
+                        "image_result_conflict", "ID результата уже содержит другой медиаресурс.", 409
+                    )
+                return self.get(asset_id)
         path = safe_path(self.store.root, payload["relative_path"])
         if path.exists():
             if digest(path.read_bytes()) != checksum:
@@ -89,8 +97,8 @@ class MediaService:
                 )
         else:
             atomic_write(path, raw)
-        value = document("media_asset", payload)
-        self.store.transaction([Mutation(self.key(value["id"]), value, 0)])
+        value = document("media_asset", payload, entity_id=asset_id)
+        self.store.transaction([Mutation(self.key(value["id"]), value, 0)], before_commit=before_commit)
         return self.get(value["id"])
 
     def update(self, asset_id, expected_revision, metadata):

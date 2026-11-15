@@ -1,0 +1,158 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "settings_revision": {
+      "minimum": 1,
+      "title": "Settings Revision",
+      "type": "integer"
+    },
+    "name": {
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "prompt": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Prompt",
+      "type": "string"
+    },
+    "negative_prompt": {
+      "default": "",
+      "maxLength": 4000,
+      "title": "Negative Prompt",
+      "type": "string"
+    },
+    "checkpoint": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Checkpoint",
+      "type": "string"
+    },
+    "width": {
+      "default": 512,
+      "maximum": 2048,
+      "minimum": 128,
+      "title": "Width",
+      "type": "integer"
+    },
+    "height": {
+      "default": 512,
+      "maximum": 2048,
+      "minimum": 128,
+      "title": "Height",
+      "type": "integer"
+    },
+    "steps": {
+      "default": 20,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Steps",
+      "type": "integer"
+    },
+    "cfg": {
+      "default": 7,
+      "maximum": 30,
+      "minimum": 0,
+      "title": "Cfg",
+      "type": "number"
+    },
+    "seed": {
+      "default": 0,
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "sampler": {
+      "default": "euler",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Sampler",
+      "type": "string"
+    },
+    "scheduler": {
+      "default": "normal",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Scheduler",
+      "type": "string"
+    },
+    "category": {
+      "default": "illustration",
+      "enum": [
+        "portrait",
+        "illustration",
+        "expression",
+        "costume",
+        "animation",
+        "background",
+        "music",
+        "ambient"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Tags",
+      "type": "array"
+    },
+    "story_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Story Id"
+    },
+    "branch_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Branch Id"
+    },
+    "expected_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Revision"
+    },
+    "confirmed": {
+      "default": false,
+      "title": "Confirmed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "settings_revision",
+    "name",
+    "prompt",
+    "checkpoint"
+  ],
+  "title": "ImageRequest",
+  "type": "object"
+}

@@ -1,0 +1,52 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "adapter": {
+      "const": "comfyui-modern-v1",
+      "default": "comfyui-modern-v1",
+      "title": "Adapter",
+      "type": "string"
+    },
+    "endpoint": {
+      "default": "http://127.0.0.1:8188",
+      "maxLength": 200,
+      "title": "Endpoint",
+      "type": "string"
+    },
+    "timeout_seconds": {
+      "default": 300,
+      "maximum": 1800,
+      "minimum": 10,
+      "title": "Timeout Seconds",
+      "type": "integer"
+    },
+    "cancel_wait_seconds": {
+      "default": 10,
+      "maximum": 60,
+      "minimum": 1,
+      "title": "Cancel Wait Seconds",
+      "type": "integer"
+    },
+    "minimum_free_vram_mib": {
+      "default": 0,
+      "maximum": 262144,
+      "minimum": 0,
+      "title": "Minimum Free Vram Mib",
+      "type": "integer"
+    },
+    "max_pixels": {
+      "default": 1048576,
+      "maximum": 4194304,
+      "minimum": 16384,
+      "title": "Max Pixels",
+      "type": "integer"
+    }
+  },
+  "title": "ImageSettings",
+  "type": "object"
+}

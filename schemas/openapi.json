@@ -5740,6 +5740,353 @@
         }
       }
     },
+    "/api/v1/images/settings": {
+      "get": {
+        "summary": "Settings",
+        "operationId": "settings_api_v1_images_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Configure",
+        "operationId": "configure_api_v1_images_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigureImage"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/jobs": {
+      "get": {
+        "summary": "Jobs",
+        "operationId": "jobs_api_v1_images_jobs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/jobs/{job_id}": {
+      "get": {
+        "summary": "Image Job",
+        "operationId": "image_job_api_v1_images_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/capabilities": {
+      "get": {
+        "summary": "Capabilities",
+        "operationId": "capabilities_api_v1_images_capabilities_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/generate": {
+      "post": {
+        "summary": "Generate",
+        "operationId": "generate_api_v1_images_generate_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/lease/reconcile": {
+      "post": {
+        "summary": "Reconcile",
+        "operationId": "reconcile_api_v1_images_lease_reconcile_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcileImage"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/lease/manual-release": {
+      "post": {
+        "summary": "Release",
+        "operationId": "release_api_v1_images_lease_manual_release_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReleaseImage"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/drafts": {
+      "get": {
+        "summary": "Read",
+        "operationId": "read_api_v1_images_drafts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/drafts/{draft_id}": {
+      "put": {
+        "summary": "Write",
+        "operationId": "write_api_v1_images_drafts__draft_id__put",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete",
+        "operationId": "delete_api_v1_images_drafts__draft_id__delete",
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          },
+          {
+            "name": "expected_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Expected Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/rpg": {
       "get": {
         "summary": "Read",
@@ -7714,6 +8061,25 @@
         "type": "object",
         "title": "Composition"
       },
+      "ConfigureImage": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ImageSettings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "settings"
+        ],
+        "title": "ConfigureImage"
+      },
       "ConfigureRpg": {
         "properties": {
           "branch_id": {
@@ -8427,7 +8793,7 @@
             "default": "none"
           },
           "transition_ms": {
-            "type": "integer",
+            "type": "number",
             "title": "Transition Ms",
             "default": 300
           },
@@ -8448,7 +8814,7 @@
             "title": "Name"
           },
           "decimals": {
-            "type": "integer",
+            "type": "number",
             "title": "Decimals",
             "default": 0
           }
@@ -8460,6 +8826,180 @@
         ],
         "title": "DraftCurrency"
       },
+      "DraftImageRequest": {
+        "properties": {
+          "settings_revision": {
+            "type": "number",
+            "title": "Settings Revision"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "negative_prompt": {
+            "type": "string",
+            "title": "Negative Prompt",
+            "default": ""
+          },
+          "checkpoint": {
+            "type": "string",
+            "title": "Checkpoint"
+          },
+          "width": {
+            "type": "number",
+            "title": "Width",
+            "default": 512
+          },
+          "height": {
+            "type": "number",
+            "title": "Height",
+            "default": 512
+          },
+          "steps": {
+            "type": "number",
+            "title": "Steps",
+            "default": 20
+          },
+          "cfg": {
+            "type": "number",
+            "title": "Cfg",
+            "default": 7
+          },
+          "seed": {
+            "type": "number",
+            "title": "Seed",
+            "default": 0
+          },
+          "sampler": {
+            "type": "string",
+            "title": "Sampler",
+            "default": "euler"
+          },
+          "scheduler": {
+            "type": "string",
+            "title": "Scheduler",
+            "default": "normal"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "illustration",
+              "expression",
+              "costume",
+              "animation",
+              "background",
+              "music",
+              "ambient"
+            ],
+            "title": "Category",
+            "default": "illustration"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "story_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Story Id"
+          },
+          "branch_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "settings_revision",
+          "name",
+          "prompt",
+          "checkpoint"
+        ],
+        "title": "DraftImageRequest"
+      },
+      "DraftImageSettings": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "adapter": {
+            "type": "string",
+            "const": "comfyui-modern-v1",
+            "title": "Adapter",
+            "default": "comfyui-modern-v1"
+          },
+          "endpoint": {
+            "type": "string",
+            "title": "Endpoint",
+            "default": "http://127.0.0.1:8188"
+          },
+          "timeout_seconds": {
+            "type": "number",
+            "title": "Timeout Seconds",
+            "default": 300
+          },
+          "cancel_wait_seconds": {
+            "type": "number",
+            "title": "Cancel Wait Seconds",
+            "default": 10
+          },
+          "minimum_free_vram_mib": {
+            "type": "number",
+            "title": "Minimum Free Vram Mib",
+            "default": 0
+          },
+          "max_pixels": {
+            "type": "number",
+            "title": "Max Pixels",
+            "default": 1048576
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftImageSettings"
+      },
       "DraftItem": {
         "properties": {
           "name": {
@@ -8467,7 +9007,7 @@
             "title": "Name"
           },
           "weight_grams": {
-            "type": "integer",
+            "type": "number",
             "title": "Weight Grams",
             "default": 0
           },
@@ -8543,7 +9083,7 @@
             "default": 1
           },
           "z": {
-            "type": "integer",
+            "type": "number",
             "title": "Z",
             "default": 0
           },
@@ -8637,7 +9177,7 @@
             "title": "Text"
           },
           "weight": {
-            "type": "integer",
+            "type": "number",
             "title": "Weight",
             "default": 1
           },
@@ -8872,7 +9412,7 @@
             "default": ""
           },
           "amount": {
-            "type": "integer",
+            "type": "number",
             "title": "Amount"
           }
         },
@@ -8979,7 +9519,7 @@
             "default": ""
           },
           "priority": {
-            "type": "integer",
+            "type": "number",
             "title": "Priority",
             "default": 0
           }
@@ -9607,6 +10147,278 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "ImageDraft": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "source_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Source Revision"
+          },
+          "raw": {
+            "type": "string",
+            "maxLength": 1048576,
+            "title": "Raw"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ImageEditor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "source_revision",
+          "raw",
+          "payload"
+        ],
+        "title": "ImageDraft"
+      },
+      "ImageEditor": {
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/DraftImageSettings"
+          },
+          "request": {
+            "$ref": "#/components/schemas/DraftImageRequest"
+          },
+          "dirty_settings": {
+            "type": "boolean",
+            "title": "Dirty Settings",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "settings",
+          "request"
+        ],
+        "title": "ImageEditor"
+      },
+      "ImageRequest": {
+        "properties": {
+          "settings_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Settings Revision"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Prompt"
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Negative Prompt",
+            "default": ""
+          },
+          "checkpoint": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Checkpoint"
+          },
+          "width": {
+            "type": "integer",
+            "maximum": 2048.0,
+            "minimum": 128.0,
+            "title": "Width",
+            "default": 512
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 2048.0,
+            "minimum": 128.0,
+            "title": "Height",
+            "default": 512
+          },
+          "steps": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Steps",
+            "default": 20
+          },
+          "cfg": {
+            "type": "number",
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Cfg",
+            "default": 7
+          },
+          "seed": {
+            "type": "integer",
+            "maximum": 9007199254740991.0,
+            "minimum": 0.0,
+            "title": "Seed",
+            "default": 0
+          },
+          "sampler": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Sampler",
+            "default": "euler"
+          },
+          "scheduler": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Scheduler",
+            "default": "normal"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "portrait",
+              "illustration",
+              "expression",
+              "costume",
+              "animation",
+              "background",
+              "music",
+              "ambient"
+            ],
+            "title": "Category",
+            "default": "illustration"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Tags"
+          },
+          "story_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Story Id"
+          },
+          "branch_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Revision"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "settings_revision",
+          "name",
+          "prompt",
+          "checkpoint"
+        ],
+        "title": "ImageRequest"
+      },
+      "ImageSettings": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "adapter": {
+            "type": "string",
+            "const": "comfyui-modern-v1",
+            "title": "Adapter",
+            "default": "comfyui-modern-v1"
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Endpoint",
+            "default": "http://127.0.0.1:8188"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "maximum": 1800.0,
+            "minimum": 10.0,
+            "title": "Timeout Seconds",
+            "default": 300
+          },
+          "cancel_wait_seconds": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Cancel Wait Seconds",
+            "default": 10
+          },
+          "minimum_free_vram_mib": {
+            "type": "integer",
+            "maximum": 262144.0,
+            "minimum": 0.0,
+            "title": "Minimum Free Vram Mib",
+            "default": 0
+          },
+          "max_pixels": {
+            "type": "integer",
+            "maximum": 4194304.0,
+            "minimum": 16384.0,
+            "title": "Max Pixels",
+            "default": 1048576
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ImageSettings"
       },
       "Initiative": {
         "properties": {
@@ -10455,6 +11267,23 @@
         ],
         "title": "RandomTable"
       },
+      "ReconcileImage": {
+        "properties": {
+          "cancel_external": {
+            "type": "boolean",
+            "title": "Cancel External",
+            "default": false
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ReconcileImage"
+      },
       "RecordDelete": {
         "properties": {
           "branch_id": {
@@ -10842,6 +11671,33 @@
           "parties"
         ],
         "title": "Relation"
+      },
+      "ReleaseImage": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "reason"
+        ],
+        "title": "ReleaseImage"
       },
       "ResolveRequest": {
         "properties": {

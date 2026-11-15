@@ -62,6 +62,7 @@ class GenerationService:
         from .prompts import ContextTraces
 
         self.store = store
+        self.inference_guard = None
         self.profiles = ProfileService(store)
         self.traces = ContextTraces(store)
         connection = store.get("config/lmstudio.json")
@@ -73,6 +74,9 @@ class GenerationService:
 
     async def run(self, payload, cancel, emit):
         from .tokens import estimate_messages
+
+        if self.inference_guard:
+            await self.inference_guard(payload)
 
         resolved = await asyncio.to_thread(
             self.profiles.resolve,
