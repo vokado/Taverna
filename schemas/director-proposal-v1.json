@@ -1,0 +1,641 @@
+{
+  "$defs": {
+    "DirectorAction": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "emotion",
+            "adaptation",
+            "evolution",
+            "relationship",
+            "knowledge",
+            "world_action",
+            "initiative",
+            "arc"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "source_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "source_fact_versions": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 1000,
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "title": "Source Fact Versions",
+          "type": "object"
+        },
+        "source_card": {
+          "default": false,
+          "title": "Source Card",
+          "type": "boolean"
+        },
+        "emotion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Emotion"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "trait": {
+          "anyOf": [
+            {
+              "enum": [
+                "trustfulness",
+                "courage",
+                "patience",
+                "assertiveness",
+                "curiosity",
+                "empathy",
+                "optimism",
+                "discipline"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trait"
+        },
+        "delta": {
+          "anyOf": [
+            {
+              "maximum": 0.1,
+              "minimum": -0.1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delta"
+        },
+        "record": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "record_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Id"
+        },
+        "expected_record_version": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Expected Record Version",
+          "type": "integer"
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Effect"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intent"
+        },
+        "arc_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arc Id"
+        },
+        "resolve_arc": {
+          "default": false,
+          "title": "Resolve Arc",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "reason"
+      ],
+      "title": "DirectorAction",
+      "type": "object"
+    },
+    "Effect": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "enum": [
+            "set_flag",
+            "change_resource",
+            "move_entity",
+            "set_attribute",
+            "add_arc",
+            "resolve_arc",
+            "set_clock"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "expected": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "check_expected": {
+          "default": false,
+          "title": "Check Expected",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "Effect",
+      "type": "object"
+    },
+    "Emotion": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "default": "спокойствие",
+          "enum": [
+            "спокойствие",
+            "радость",
+            "печаль",
+            "страх",
+            "гнев",
+            "интерес",
+            "удивление",
+            "отвращение",
+            "смущение",
+            "надежда"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "intensity": {
+          "default": 0.2,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Intensity",
+          "type": "number"
+        },
+        "valence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Valence",
+          "type": "number"
+        },
+        "arousal": {
+          "default": 0.2,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Arousal",
+          "type": "number"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "title": "Emotion",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "RecordInput": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "default": "personal",
+          "enum": [
+            "operational",
+            "episodic",
+            "personal",
+            "relationship",
+            "world",
+            "plot"
+          ],
+          "title": "Level",
+          "type": "string"
+        },
+        "nature": {
+          "default": "fact",
+          "enum": [
+            "fact",
+            "observation",
+            "report",
+            "rumor",
+            "belief",
+            "secret",
+            "summary"
+          ],
+          "title": "Nature",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 32768,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "subject_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Subject Ids",
+          "type": "array"
+        },
+        "knower_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Knower Ids",
+          "type": "array"
+        },
+        "confidence": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "salience": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Salience",
+          "type": "number"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "archived",
+            "superseded",
+            "deleted"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "pinned": {
+          "default": false,
+          "title": "Pinned",
+          "type": "boolean"
+        },
+        "source_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "source_fact_versions": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 1000,
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "title": "Source Fact Versions",
+          "type": "object"
+        },
+        "claim_key": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Claim Key",
+          "type": "string"
+        },
+        "location_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Id"
+        },
+        "story_time": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Story Time",
+          "type": "string"
+        },
+        "cause_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Cause Ids",
+          "type": "array"
+        },
+        "relation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Relation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extras": {
+          "additionalProperties": true,
+          "title": "Extras",
+          "type": "object"
+        }
+      },
+      "required": [
+        "text",
+        "knower_ids"
+      ],
+      "title": "RecordInput",
+      "type": "object"
+    },
+    "Relation": {
+      "additionalProperties": false,
+      "properties": {
+        "parties": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Parties",
+          "type": "array"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "maxProperties": 32,
+          "title": "Metrics",
+          "type": "object"
+        },
+        "episode_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Episode Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "parties"
+      ],
+      "title": "Relation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "story_id": {
+      "format": "uuid",
+      "title": "Story Id",
+      "type": "string"
+    },
+    "branch_id": {
+      "format": "uuid",
+      "title": "Branch Id",
+      "type": "string"
+    },
+    "character_id": {
+      "format": "uuid",
+      "title": "Character Id",
+      "type": "string"
+    },
+    "base_revision": {
+      "minimum": 1,
+      "title": "Base Revision",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "invalid",
+        "accepted",
+        "rejected"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "actions": {
+      "items": {
+        "$ref": "#/$defs/DirectorAction"
+      },
+      "maxItems": 16,
+      "title": "Actions",
+      "type": "array"
+    },
+    "notes": {
+      "default": "",
+      "maxLength": 4000,
+      "title": "Notes",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "source_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Source Hashes",
+      "type": "object"
+    },
+    "context_trace_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Context Trace Id"
+    },
+    "policy_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "base_npc_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Base Npc Sha256",
+      "type": "string"
+    },
+    "base_entity_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Base Entity Sha256"
+    },
+    "rebased_to_revision": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rebased To Revision"
+    },
+    "automatic": {
+      "default": false,
+      "title": "Automatic",
+      "type": "boolean"
+    },
+    "receipts": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Receipts",
+      "type": "array"
+    }
+  },
+  "required": [
+    "story_id",
+    "branch_id",
+    "character_id",
+    "base_revision",
+    "status",
+    "actions",
+    "policy_sha256",
+    "base_npc_sha256"
+  ],
+  "title": "DirectorProposal",
+  "type": "object"
+}

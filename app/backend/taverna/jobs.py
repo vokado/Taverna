@@ -112,6 +112,13 @@ class JobQueue:
                 pass
         self.cancellations.clear()
 
+    def _preempt_background(self):
+        if self.active and self.active[2] in self.preemptible_kinds:
+            active_cancel = self.cancellations.get(self.active[0])
+            if active_cancel:
+                self.preempted.add(self.active[0])
+                active_cancel.set()
+
     async def enqueue(
         self, kind: str, payload: dict, *, priority=0, idempotency_key: str, scope=None, identity=None
     ) -> dict:
@@ -119,6 +126,8 @@ class JobQueue:
             raise AppError("job_unavailable", "Обработчик задачи недоступен.", 409)
         if not 1 <= len(idempotency_key) <= 128:
             raise AppError("invalid_idempotency_key", "Некорректный ключ повторного запроса.")
+        if priority == 0:
+            self._preempt_background()
         async with self.guard:
             await self.start()
             key = "jobs/keys/" + hashlib.sha256(idempotency_key.encode()).hexdigest() + ".json"
@@ -167,11 +176,7 @@ class JobQueue:
             self.queue.put_nowait((priority, self.sequence, job["id"]))
             if priority == 0:
                 self.foreground_pending += 1
-                if self.active and self.active[2] in self.preemptible_kinds:
-                    active_cancel = self.cancellations.get(self.active[0])
-                    if active_cancel:
-                        self.preempted.add(self.active[0])
-                        active_cancel.set()
+                self._preempt_background()
             return await self.get(job["id"])
 
     async def get(self, job_id: str) -> dict:
@@ -216,6 +221,9 @@ class JobQueue:
         return result
 
     async def cancel(self, job_id: str):
+        event = self.cancellations.get(job_id)
+        if event:
+            event.set()
         job = await self.get(job_id)
         if job["payload"]["state"] not in TERMINAL:
             event = self.cancellations.get(job_id)

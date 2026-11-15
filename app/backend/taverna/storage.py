@@ -322,9 +322,12 @@ class JsonStore:
         *,
         transaction_id: str | None = None,
         guards: dict[str, int] | None = None,
+        before_commit: Callable[[], None] | None = None,
     ) -> dict:
         try:
-            return self._transaction(changes, transaction_id=transaction_id, guards=guards)
+            return self._transaction(
+                changes, transaction_id=transaction_id, guards=guards, before_commit=before_commit
+            )
         except OSError as exc:
             if exc.errno == errno.ENOSPC:
                 raise AppError(
@@ -344,6 +347,7 @@ class JsonStore:
         *,
         transaction_id: str | None = None,
         guards: dict[str, int] | None = None,
+        before_commit: Callable[[], None] | None = None,
     ) -> dict:
         if not changes or len({c.key for c in changes}) != len(changes):
             raise AppError("invalid_transaction", "Транзакция пуста или содержит повторные пути.")
@@ -380,6 +384,8 @@ class JsonStore:
                         key=key,
                         current_revision=actual,
                     )
+            if before_commit:
+                before_commit()
             after = json.loads(encoded(before))
             after.update(generation=before["generation"] + 1, transaction_id=txid)
             for change in changes:
@@ -439,6 +445,8 @@ class JsonStore:
             raw_intent = encoded(intent)
             atomic_write(directory / "intent.json", raw_intent)
             self.fault("prepared")
+            if before_commit:
+                before_commit()
             atomic_write(directory / "commit.json", encoded({"intent_sha256": digest(raw_intent)}))
             self.fault("committed")
             atomic_write(self.pointer, encoded(after))

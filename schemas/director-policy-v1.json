@@ -1,0 +1,113 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "before_reply": {
+      "default": true,
+      "title": "Before Reply",
+      "type": "boolean"
+    },
+    "after_every_messages": {
+      "default": 4,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "After Every Messages",
+      "type": "integer"
+    },
+    "pre_timeout_seconds": {
+      "default": 15,
+      "maximum": 60,
+      "minimum": 1,
+      "title": "Pre Timeout Seconds",
+      "type": "number"
+    },
+    "max_actions": {
+      "default": 8,
+      "maximum": 16,
+      "minimum": 1,
+      "title": "Max Actions",
+      "type": "integer"
+    },
+    "max_output_tokens": {
+      "default": 768,
+      "maximum": 2048,
+      "minimum": 128,
+      "title": "Max Output Tokens",
+      "type": "integer"
+    },
+    "model_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "profile_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Profile Id"
+    },
+    "auto_apply": {
+      "default": false,
+      "title": "Auto Apply",
+      "type": "boolean"
+    },
+    "auto_initiative": {
+      "default": false,
+      "title": "Auto Initiative",
+      "type": "boolean"
+    },
+    "offscene": {
+      "default": true,
+      "title": "Offscene",
+      "type": "boolean"
+    },
+    "actor_entities": {
+      "additionalProperties": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxProperties": 100,
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Actor Entities",
+      "type": "object"
+    },
+    "actor_attribute_keys": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "maxProperties": 100,
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Actor Attribute Keys",
+      "type": "object"
+    }
+  },
+  "title": "DirectorPolicy",
+  "type": "object"
+}

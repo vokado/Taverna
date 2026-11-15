@@ -27,7 +27,9 @@ class ChatService:
         self.store, self.generation = store, generation
         self.after_message = EventBus()
         self.state_reducer = None
-        self.state_cloner = None
+        self.message_state_hooks = {}
+        self.before_generate = None
+        self.state_cloners = {}
         self.segments = SegmentStore(store)
         for kind, schema in [
             ("story", STORY_SCHEMA),
@@ -197,6 +199,7 @@ class ChatService:
         metadata=None,
         branch_id=None,
         extra_changes=(),
+        before_commit=None,
     ):
         if not text.strip():
             raise AppError("empty_message", "Сообщение не может быть пустым.", 422)
@@ -225,12 +228,24 @@ class ChatService:
         )
         previous_state_id = branch["payload"]["state_id"]
         state_changes = []
-        if self.state_reducer:
+        if self.state_reducer or self.message_state_hooks:
             state = self.state(story_id, bid)
-            reduced = self.state_reducer(state["payload"], message, expected_revision)
+            reduced = (
+                self.state_reducer(state["payload"], message, expected_revision)
+                if self.state_reducer
+                else None
+            )
+            for hook in self.message_state_hooks.values():
+                result = hook(
+                    reduced if reduced is not None else state["payload"], message, expected_revision
+                )
+                if result is not None:
+                    reduced = result
             if reduced is not None:
                 updated = document("branch_state", reduced)
                 branch["payload"]["state_id"] = updated["id"]
+                branch["payload"]["participants"] = copy.deepcopy(reduced["scene"]["participants"])
+                branch["payload"]["speaker_order"] = copy.deepcopy(reduced["scene"]["speaker_order"])
                 branch["refs"] = list(
                     {
                         self.state_key(story_id, updated["id"]),
@@ -238,7 +253,15 @@ class ChatService:
                     }
                 )
                 message["state_id"] = updated["id"]
-                message["event_ids"] = list(dict.fromkeys([*message["event_ids"], message["id"]]))
+                previous_events = {
+                    event.get("id") for event in state["payload"].get("events", []) if isinstance(event, dict)
+                }
+                added_events = [
+                    event["id"]
+                    for event in reduced.get("events", [])
+                    if isinstance(event, dict) and event.get("id") and event["id"] not in previous_events
+                ]
+                message["event_ids"] = list(dict.fromkeys([*message["event_ids"], *added_events]))
                 state_changes.append(Mutation(self.state_key(story_id, updated["id"]), updated, 0))
         branch["payload"]["head_message_id"] = message["id"]
         changes = [
@@ -249,7 +272,7 @@ class ChatService:
             Mutation(self.branch_key(story_id, bid), branch, expected_revision),
             Mutation(self.story_key(story_id), story, story["revision"]),
         ]
-        self.store.transaction([*changes, *extra_changes])
+        self.store.transaction([*changes, *extra_changes], before_commit=before_commit)
         return {"message": message, "branch": self.branch(story_id, bid)}
 
     def messages(self, story_id, branch_id=None, offset=0, limit=100):
@@ -347,8 +370,8 @@ class ChatService:
                             mapping.get(source, source): checksum
                             for source, checksum in fact["provenance"].get("source_hashes", {}).items()
                         }
-            if self.state_cloner:
-                self.state_cloner(payload, mapping, bid)
+            for cloner in self.state_cloners.values():
+                cloner(payload, mapping, bid, original_state["payload"]["branch_id"])
             state = document("branch_state", payload)
             changes.append(Mutation(self.state_key(story_id, state["id"]), state, 0))
             state_payloads[state["id"]] = state["payload"]
@@ -420,7 +443,15 @@ class ChatService:
         return self.story(story_id)
 
     def update_state(
-        self, story_id, data, expected_revision, branch_id=None, *, extra_changes=(), guards=None
+        self,
+        story_id,
+        data,
+        expected_revision,
+        branch_id=None,
+        *,
+        extra_changes=(),
+        guards=None,
+        before_commit=None,
     ):
         story = self.story(story_id)
         branch = self.branch(story_id, branch_id)
@@ -452,8 +483,13 @@ class ChatService:
             Mutation(self.branch_key(story_id, branch["id"]), branch, expected_revision),
             Mutation(self.story_key(story_id), story, story["revision"]),
         ]
-        self.store.transaction([*changes, *extra_changes], guards=guards)
+        self.store.transaction([*changes, *extra_changes], guards=guards, before_commit=before_commit)
         return self.state(story_id)
+
+    @staticmethod
+    def cancellation_guard(cancel):
+        if cancel.is_set():
+            raise AppError("task_cancelled", "Задача остановлена до публикации изменений.", 409)
 
     async def generate(self, payload, cancel, emit):
         story = await asyncio.to_thread(self.story, payload["story_id"])
@@ -480,6 +516,15 @@ class ChatService:
         if not model_id:
             raise AppError("model_required", "Выберите загруженную модель или назначьте её профилю.", 422)
         model = await adapter.require_loaded(model_id)
+        if self.before_generate:
+            preparation = await self.before_generate({**payload, "model_id": model_id}, cancel, emit)
+            expected = preparation.get("branch_revision", payload["expected_revision"])
+            if expected != payload["expected_revision"]:
+                payload = {**payload, "expected_revision": expected}
+                story = await asyncio.to_thread(self.story, payload["story_id"])
+                branch = await asyncio.to_thread(self.branch, payload["story_id"], payload["branch_id"])
+                if branch["revision"] != expected or story["payload"]["active_branch"] != branch["id"]:
+                    raise AppError("generation_stale", "История изменилась после подготовки режиссёра.", 409)
         history = await asyncio.to_thread(self._prefix, story["id"], branch["id"])
         state = await asyncio.to_thread(self.state, story["id"], branch["id"])
         from .prompts import PromptBuilder
@@ -538,6 +583,16 @@ class ChatService:
             flags = inspect_answer(text, previous, quality)
             audit.append({"attempt": attempt, "flags": flags, "trace_id": trace["id"]})
             await emit("quality", {"attempt": attempt, "flags": flags, "mode": quality["mode"]})
+            if any(flag.get("user_impersonation") for flag in flags) and (
+                quality["mode"] != "retry"
+                or "role" not in quality["retry_on"]
+                or attempt == quality["max_attempts"]
+            ):
+                raise AppError(
+                    "user_impersonation",
+                    "Модель попыталась создать реплику пользователя; ответ не сохранён. Повторите генерацию или используйте явный редакторский запрос.",
+                    422,
+                )
             if not flags or quality["mode"] == "warn":
                 break
             if quality["mode"] == "retry" and not any(flag["code"] in quality["retry_on"] for flag in flags):
@@ -556,6 +611,12 @@ class ChatService:
         if cancel.is_set():
             return {"text": text, "partial": True}
         answer = payload.get("prefix", "") + text + payload.get("suffix", "")
+        from .quality import user_utterance_marker
+
+        if user_utterance_marker(answer):
+            raise AppError(
+                "user_impersonation", "Итоговый вариант содержит реплику за пользователя и не сохранён.", 422
+            )
         saved = await asyncio.to_thread(
             self.append,
             payload["story_id"],
@@ -564,11 +625,14 @@ class ChatService:
             role="assistant",
             author_id=cid,
             branch_id=branch["id"],
+            before_commit=lambda: self.cancellation_guard(cancel),
             metadata={
                 "model_id": model_id,
                 "prompt_profile_id": resolved["profile_id"],
                 "context_trace_id": trace["id"],
                 "quality_audit": audit,
+                "generated_by": "director_initiative" if payload.get("director_initiative") else "chat",
+                "director_intention_id": payload.get("intention_id"),
                 "source_message_ids": payload.get("source_message_ids", []),
             },
         )

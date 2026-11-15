@@ -11,14 +11,19 @@ class EventBus:
     def __init__(self):
         self.subscribers = {}
 
-    def subscribe(self, name, handler):
+    def subscribe(self, name, handler, topic="message"):
         if name in self.subscribers:
             raise ValueError("Подписчик уже зарегистрирован")
-        self.subscribers[name] = handler
+        self.subscribers[name] = (topic, handler)
 
     async def __call__(self, story_id, branch_id, message_id, model_id=None):
+        return await self.publish("message", story_id, branch_id, message_id, model_id)
+
+    async def publish(self, topic, story_id, branch_id, message_id, model_id=None):
         results = {}
-        for name, handler in self.subscribers.items():
+        for name, (subscribed_topic, handler) in self.subscribers.items():
+            if topic != subscribed_topic:
+                continue
             try:
                 results[name] = await handler(story_id, branch_id, message_id, model_id)
             except AppError as exc:

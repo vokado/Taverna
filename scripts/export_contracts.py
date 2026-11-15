@@ -7,6 +7,13 @@ from tempfile import TemporaryDirectory
 from taverna.characters import CHARACTER_SCHEMA
 from taverna.chat_schemas import BRANCH_SCHEMA, MESSAGE_SCHEMA, STATE_SCHEMA, STORY_SCHEMA
 from taverna.core import Config
+from taverna.director_models import (
+    DirectorPolicy,
+    DirectorProposal,
+    DirectorResponse,
+    DirectorState,
+    NPCState,
+)
 from taverna.knowledge import MemoryRecord
 from taverna.main import create_app
 from taverna.memory_ai import MemorySettings
@@ -26,6 +33,11 @@ with TemporaryDirectory() as temporary:
         "profile-settings-v1.json": ProfileSettings.model_json_schema(),
         "generation-context-v1.json": CONTEXT_SCHEMA,
         "memory-record-v1.json": MemoryRecord.model_json_schema(),
+        "npc-state-v1.json": NPCState.model_json_schema(),
+        "director-policy-v1.json": DirectorPolicy.model_json_schema(),
+        "director-state-v1.json": DirectorState.model_json_schema(),
+        "director-response-v1.json": DirectorResponse.model_json_schema(),
+        "director-proposal-v1.json": DirectorProposal.model_json_schema(),
         "world-template-v1.json": World.model_json_schema(),
         "scenario-template-v1.json": Scenario.model_json_schema(),
         "memory-policy-v1.json": MemorySettings.model_json_schema(),

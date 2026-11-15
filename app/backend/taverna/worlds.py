@@ -102,8 +102,9 @@ def effect(data, raw):
 class WorldService:
     def __init__(self, chat):
         self.chat, self.store, self.generation = chat, chat.store, chat.generation
+        self.after_reduce = None
         chat.state_reducer = self.message_state
-        chat.state_cloner = self.clone_scope
+        chat.state_cloners["world"] = self.clone_scope
         self.store.register("world_template", 1, World.model_json_schema())
         self.store.register("scenario_template", 1, Scenario.model_json_schema())
 
@@ -383,6 +384,8 @@ class WorldService:
                 changes.extend(effect(world, value) for value in rule["effects"])
                 fired.append(rule["id"])
                 world["rule_runs"][rule["id"]] = {"event_id": event_id, "minutes": world["clock"]["minutes"]}
+        if self.after_reduce:
+            self.after_reduce(data, operation, before, changes)
         data["scene"]["time"] = self.time_text(world)
         receipt = {
             "id": event_id,
@@ -471,7 +474,7 @@ class WorldService:
         return result
 
     @staticmethod
-    def clone_scope(payload, mapping, branch_id):
+    def clone_scope(payload, mapping, branch_id, source_branch_id=None):
         world = payload.get("world", {})
         if world.get("format") != 1:
             return

@@ -242,7 +242,16 @@ class MemoryService:
             "conflicts_kept": [row["id"] for row in conflicts] if conflict_policy == "keep_both" else [],
         }
 
-    def archive(self, story_id, branch_id, expected_revision, *, min_salience=0.2, min_age_messages=50):
+    def archive(
+        self,
+        story_id,
+        branch_id,
+        expected_revision,
+        *,
+        min_salience=0.2,
+        min_age_messages=50,
+        before_commit=None,
+    ):
         snap = self.snapshot(story_id, branch_id)
         messages = list(snap["messages"])
         recent = set(messages[max(0, len(messages) - min_age_messages) :])
@@ -285,7 +294,9 @@ class MemoryService:
                 )
                 archived.append(rid)
         if archived:
-            self.chat.update_state(story_id, payload, expected_revision, branch_id)
+            self.chat.update_state(
+                story_id, payload, expected_revision, branch_id, before_commit=before_commit
+            )
         elif snap["branch"]["revision"] != expected_revision:
             raise AppError("branch_conflict", "Ветвь изменилась.", 409)
         return {

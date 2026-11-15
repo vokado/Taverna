@@ -186,3 +186,32 @@ def test_consistent_reader_during_multi_file_publication(tmp_path):
             with store.view() as view:
                 assert view.get("characters/a.json")["payload"] == view.get("characters/b.json")["payload"]
         future.result()
+
+
+def test_cancellation_before_commit_marker_keeps_multi_document_snapshot_and_recovers(tmp_path):
+    store = JsonStore(tmp_path)
+    a, b = seed(store)
+    a["payload"]["n"] = b["payload"]["n"] = 1
+    cancelled = False
+
+    def fault(phase):
+        nonlocal cancelled
+        if phase == "prepared":
+            cancelled = True
+
+    def guard():
+        if cancelled:
+            raise AppError("task_cancelled", "Остановлено до фиксации.", 409)
+
+    store.fault = fault
+    with pytest.raises(AppError) as error:
+        store.transaction(
+            [Mutation("characters/a.json", a, 1), Mutation("characters/b.json", b, 1)], before_commit=guard
+        )
+    assert error.value.code == "task_cancelled"
+    assert store.get("characters/a.json")["payload"]["n"] == 0
+    assert store.get("characters/b.json")["payload"]["n"] == 0
+    recovered = JsonStore(tmp_path)
+    assert recovered.integrity()["ok"] and recovered.get("characters/a.json")["revision"] == 1
+    recovered.transaction([Mutation("characters/a.json", a, 1), Mutation("characters/b.json", b, 1)])
+    assert recovered.get("characters/a.json")["payload"]["n"] == 1

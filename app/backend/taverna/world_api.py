@@ -323,10 +323,15 @@ def router(service):
         return service.attach(str(story_id), **data)
 
     @router.post("/api/v1/stories/{story_id}/world/events")
-    def event(story_id: UUID, body: WorldEvent):
+    async def event(story_id: UUID, body: WorldEvent):
         if not body.confirmed:
             raise AppError("confirmation_required", "Подтвердите изменение мира.", 422)
         data = body.model_dump(mode="json", exclude={"confirmed"})
-        return service.apply(str(story_id), **data)
+        result = await asyncio.to_thread(service.apply, str(story_id), **data)
+        if not result["already_applied"]:
+            result["background"] = await service.chat.after_message.publish(
+                "world_event", str(story_id), str(body.branch_id), str(body.event_id)
+            )
+        return result
 
     return router

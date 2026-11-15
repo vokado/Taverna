@@ -2902,7 +2902,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PolicyWrite"
+                "$ref": "#/components/schemas/taverna__memory_api__PolicyWrite"
               }
             }
           }
@@ -4793,6 +4793,380 @@
         }
       }
     },
+    "/api/v1/stories/{story_id}/director": {
+      "get": {
+        "summary": "Read",
+        "operationId": "read_api_v1_stories__story_id__director_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/policy": {
+      "put": {
+        "summary": "Policy",
+        "operationId": "policy_api_v1_stories__story_id__director_policy_put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/taverna__director_api__PolicyWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/npcs/{actor_id}": {
+      "put": {
+        "summary": "Npc",
+        "operationId": "npc_api_v1_stories__story_id__director_npcs__actor_id__put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Actor Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NPCWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/analyze": {
+      "post": {
+        "summary": "Analyze",
+        "operationId": "analyze_api_v1_stories__story_id__director_analyze_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Analyze"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/proposals": {
+      "get": {
+        "summary": "Proposals",
+        "operationId": "proposals_api_v1_stories__story_id__director_proposals_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/proposals/{proposal_id}/review": {
+      "post": {
+        "summary": "Review",
+        "operationId": "review_api_v1_stories__story_id__director_proposals__proposal_id__review_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Review"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/initiative": {
+      "post": {
+        "summary": "Initiative",
+        "operationId": "initiative_api_v1_stories__story_id__director_initiative_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Initiative"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "summary": "Health",
@@ -5053,6 +5427,58 @@
           "instructions"
         ],
         "title": "AiDraftRequest"
+      },
+      "Analyze": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "character_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Character Id"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "character_id"
+        ],
+        "title": "Analyze"
       },
       "ArchiveRequest": {
         "properties": {
@@ -5539,6 +5965,117 @@
         ],
         "title": "DeleteMessage"
       },
+      "DirectorPolicy": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "before_reply": {
+            "type": "boolean",
+            "title": "Before Reply",
+            "default": true
+          },
+          "after_every_messages": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "After Every Messages",
+            "default": 4
+          },
+          "pre_timeout_seconds": {
+            "type": "number",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Pre Timeout Seconds",
+            "default": 15
+          },
+          "max_actions": {
+            "type": "integer",
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Max Actions",
+            "default": 8
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "maximum": 2048.0,
+            "minimum": 128.0,
+            "title": "Max Output Tokens",
+            "default": 768
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "auto_apply": {
+            "type": "boolean",
+            "title": "Auto Apply",
+            "default": false
+          },
+          "auto_initiative": {
+            "type": "boolean",
+            "title": "Auto Initiative",
+            "default": false
+          },
+          "offscene": {
+            "type": "boolean",
+            "title": "Offscene",
+            "default": true
+          },
+          "actor_entities": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Actor Entities"
+          },
+          "actor_attribute_keys": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Actor Attribute Keys"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DirectorPolicy"
+      },
       "DraftPreview": {
         "properties": {
           "text": {
@@ -5881,6 +6418,64 @@
           "op"
         ],
         "title": "Effect"
+      },
+      "Emotion": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "enum": [
+              "спокойствие",
+              "радость",
+              "печаль",
+              "страх",
+              "гнев",
+              "интерес",
+              "удивление",
+              "отвращение",
+              "смущение",
+              "надежда"
+            ],
+            "title": "Label",
+            "default": "спокойствие"
+          },
+          "intensity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Intensity",
+            "default": 0.2
+          },
+          "valence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Valence",
+            "default": 0
+          },
+          "arousal": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Arousal",
+            "default": 0.2
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Emotion"
       },
       "EventTransfer": {
         "properties": {
@@ -6295,6 +6890,69 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "Initiative": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "character_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Character Id"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "intention_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Intention Id"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "character_id",
+          "intention_id"
+        ],
+        "title": "Initiative"
+      },
       "JsonValue": {},
       "LoreImport": {
         "properties": {
@@ -6404,6 +7062,145 @@
           "text"
         ],
         "title": "MessageRequest"
+      },
+      "NPCPatch": {
+        "properties": {
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "fixed",
+                  "flexible",
+                  "developing"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "emotions_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emotions Enabled"
+          },
+          "relationships_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationships Enabled"
+          },
+          "emotion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Emotion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "traits": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "trustfulness",
+                    "courage",
+                    "patience",
+                    "assertiveness",
+                    "curiosity",
+                    "empathy",
+                    "optimism",
+                    "discipline"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Traits"
+          },
+          "adaptations": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "trustfulness",
+                    "courage",
+                    "patience",
+                    "assertiveness",
+                    "curiosity",
+                    "empathy",
+                    "optimism",
+                    "discipline"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adaptations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NPCPatch"
+      },
+      "NPCWrite": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "patch": {
+            "$ref": "#/components/schemas/NPCPatch"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "patch",
+          "reason"
+        ],
+        "title": "NPCWrite"
       },
       "NamedAnchor": {
         "properties": {
@@ -6519,31 +7316,6 @@
           "patch"
         ],
         "title": "PatchValidation"
-      },
-      "PolicyWrite": {
-        "properties": {
-          "branch_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Branch Id"
-          },
-          "expected_revision": {
-            "type": "integer",
-            "minimum": 1.0,
-            "title": "Expected Revision"
-          },
-          "settings": {
-            "$ref": "#/components/schemas/MemorySettings"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "branch_id",
-          "expected_revision",
-          "settings"
-        ],
-        "title": "PolicyWrite"
       },
       "ProfileWrite": {
         "properties": {
@@ -7024,6 +7796,48 @@
         "additionalProperties": false,
         "type": "object",
         "title": "ResolveRequest"
+      },
+      "Review": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "proposal_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Proposal Revision"
+          },
+          "accept": {
+            "type": "boolean",
+            "title": "Accept"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          },
+          "rebase": {
+            "type": "boolean",
+            "title": "Rebase",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "proposal_revision",
+          "accept"
+        ],
+        "title": "Review"
       },
       "RevisionRequest": {
         "properties": {
@@ -7654,6 +8468,38 @@
         ],
         "title": "ImportRequest"
       },
+      "taverna__director_api__PolicyWrite": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/DirectorPolicy"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "policy",
+          "reason"
+        ],
+        "title": "PolicyWrite"
+      },
       "taverna__memory_api__DraftDelete": {
         "properties": {
           "draft_id": {
@@ -7751,6 +8597,31 @@
           "text"
         ],
         "title": "ImportRequest"
+      },
+      "taverna__memory_api__PolicyWrite": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/MemorySettings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "settings"
+        ],
+        "title": "PolicyWrite"
       },
       "taverna__memory_api__ProposalReview": {
         "properties": {

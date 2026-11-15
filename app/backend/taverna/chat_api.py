@@ -207,7 +207,26 @@ def router(chat: ChatService):
         changes = []
         if body.participants is not None or body.speaker_order is not None:
             data = chat.state(story_id, branch["id"])["payload"]
+            previous_participants = set(data["scene"]["participants"])
             data["scene"].update(participants=participants, speaker_order=order)
+            location = data["scene"].get("location_id")
+            bindings = data.get("director", {}).get("policy", {}).get("actor_entities", {})
+            for actor in set(participants) - previous_participants:
+                entity = data.get("world", {}).get("entities", {}).get(bindings.get(actor))
+                if location and entity:
+                    previous = entity.get("location_id")
+                    entity["location_id"] = location
+                    data["events"].append(
+                        {
+                            "id": str(uuid4()),
+                            "kind": "manual_presence_enter",
+                            "story_id": story_id,
+                            "branch_id": branch["id"],
+                            "actor_id": actor,
+                            "before": previous,
+                            "after": location,
+                        }
+                    )
             state = document("branch_state", data)
             branch["payload"]["state_id"] = state["id"]
             branch["refs"] = list(
@@ -305,7 +324,7 @@ def router(chat: ChatService):
         saved = job["payload"].get("applied_message_id")
         request = job["payload"]["request"]
         if (
-            job["payload"]["kind"] not in ("chat", "chat_regenerate", "chat_group")
+            job["payload"]["kind"] not in ("chat", "chat_regenerate", "chat_group", "director_turn")
             or request.get("story_id") != story_id
         ):
             raise AppError("invalid_partial", "Частичный ответ не принадлежит этой истории.", 409)
@@ -345,6 +364,14 @@ def router(chat: ChatService):
                 break
         if target_branch != body.branch_id or not text.strip():
             raise AppError("invalid_partial", "Нет частичного текста для этой ветви.", 409)
+        from .quality import user_utterance_marker
+
+        if user_utterance_marker(text):
+            raise AppError(
+                "user_impersonation",
+                "Частичный ответ содержит реплику за пользователя. Для такого текста нужен отдельный явный редакторский запрос.",
+                422,
+            )
         source = request.get("request", request)
         if source.get("action") in ("continue", "fragment"):
             originals = await asyncio.to_thread(
@@ -357,6 +384,10 @@ def router(chat: ChatService):
                 fragment = source["fragment"]
                 start = original.index(fragment)
                 text = original[:start] + text + original[start + len(fragment) :]
+        if user_utterance_marker(text):
+            raise AppError(
+                "user_impersonation", "Итоговый вариант содержит реплику за пользователя и не сохранён.", 422
+            )
         message_id = str(uuid4())
         job["payload"]["applied_message_id"] = message_id
         result = await asyncio.to_thread(
@@ -372,11 +403,16 @@ def router(chat: ChatService):
                 "model_id": source.get("model_id"),
                 "partial": True,
                 "source_job_id": job_id,
+                "generated_by": "director_initiative" if source.get("director_initiative") else "chat",
+                "director_intention_id": source.get("intention_id"),
                 **context_metadata,
             },
             extra_changes=[Mutation(chat.generation.queue.key(job_id), job, job["revision"])],
         )
-        return {"message_id": result["message"]["id"], "already_applied": False}
+        background = await chat.after_message(
+            story_id, body.branch_id, result["message"]["id"], source.get("model_id")
+        )
+        return {"message_id": result["message"]["id"], "already_applied": False, "background": background}
 
     @router.post("/{story_id}/generations", status_code=202)
     async def generate(

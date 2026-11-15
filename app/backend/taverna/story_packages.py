@@ -10,6 +10,7 @@ import jsonschema
 from .cards import parse_json, png_chunks
 from .characters import CHARACTER_SCHEMA
 from .core import AppError
+from .director_models import DirectorState, NPCState
 from .profiles import DEFAULTS, merge, validate_settings
 from .storage import Mutation, atomic_write, digest, document, encoded, safe_path
 from .world_models import Scenario, World
@@ -202,6 +203,35 @@ class StoryPackages:
         }
         for state in states.values():
             payload = state["payload"]
+            actors = set(story["payload"]["character_snapshots"])
+            for actor, npc in payload["character_states"].items():
+                if not isinstance(npc, dict):
+                    raise ValueError("npc shape")
+                if npc.get("format") is not None:
+                    if actor not in actors:
+                        raise ValueError("npc scope")
+                    NPCState.model_validate(npc)
+            if payload.get("director"):
+                director = DirectorState.model_validate(payload["director"]).model_dump(mode="json")
+                if (
+                    not set(director["policy"]["actor_entities"]) <= actors
+                    or not set(director["policy"]["actor_attribute_keys"]) <= actors
+                    or any(not set(arc["knower_ids"]) <= actors for arc in director["arcs"].values())
+                ):
+                    raise ValueError("director scope")
+            for event in payload.get("events", []):
+                if not isinstance(event, dict):
+                    continue
+                if event.get("id") is not None:
+                    from uuid import UUID
+
+                    UUID(event["id"])
+                for field in ("source_ids", "cause_ids", "knower_ids"):
+                    if field in event and (
+                        not isinstance(event[field], list)
+                        or any(not isinstance(item, str) for item in event[field])
+                    ):
+                        raise ValueError("event links")
             world = payload.get("world", {})
             if world.get("format") == 1:
                 source = world["template"]

@@ -1489,6 +1489,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stories/{story_id}/director": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_stories__story_id__director_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Policy */
+        put: operations["policy_api_v1_stories__story_id__director_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/npcs/{actor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Npc */
+        put: operations["npc_api_v1_stories__story_id__director_npcs__actor_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/analyze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Analyze */
+        post: operations["analyze_api_v1_stories__story_id__director_analyze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proposals */
+        get: operations["proposals_api_v1_stories__story_id__director_proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/proposals/{proposal_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review */
+        post: operations["review_api_v1_stories__story_id__director_proposals__proposal_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/initiative": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Initiative */
+        post: operations["initiative_api_v1_stories__story_id__director_initiative_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1714,6 +1833,25 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** Analyze */
+        Analyze: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Character Id
+             * Format: uuid
+             */
+            character_id: string;
+            /** Model Id */
+            model_id?: string | null;
+            /** Profile Id */
+            profile_id?: string | null;
+        };
         /** ArchiveRequest */
         ArchiveRequest: {
             /**
@@ -1901,6 +2039,66 @@ export interface components {
              */
             confirmed: boolean;
         };
+        /** DirectorPolicy */
+        DirectorPolicy: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Before Reply
+             * @default true
+             */
+            before_reply: boolean;
+            /**
+             * After Every Messages
+             * @default 4
+             */
+            after_every_messages: number;
+            /**
+             * Pre Timeout Seconds
+             * @default 15
+             */
+            pre_timeout_seconds: number;
+            /**
+             * Max Actions
+             * @default 8
+             */
+            max_actions: number;
+            /**
+             * Max Output Tokens
+             * @default 768
+             */
+            max_output_tokens: number;
+            /** Model Id */
+            model_id?: string | null;
+            /** Profile Id */
+            profile_id?: string | null;
+            /**
+             * Auto Apply
+             * @default false
+             */
+            auto_apply: boolean;
+            /**
+             * Auto Initiative
+             * @default false
+             */
+            auto_initiative: boolean;
+            /**
+             * Offscene
+             * @default true
+             */
+            offscene: boolean;
+            /** Actor Entities */
+            actor_entities?: {
+                [key: string]: string;
+            };
+            /** Actor Attribute Keys */
+            actor_attribute_keys?: {
+                [key: string]: string[];
+            };
+        };
         /** DraftPreview */
         DraftPreview: {
             /** Text */
@@ -2044,6 +2242,32 @@ export interface components {
              * @default false
              */
             check_expected: boolean;
+        };
+        /** Emotion */
+        Emotion: {
+            /**
+             * Label
+             * @default спокойствие
+             * @enum {string}
+             */
+            label: "спокойствие" | "радость" | "печаль" | "страх" | "гнев" | "интерес" | "удивление" | "отвращение" | "смущение" | "надежда";
+            /**
+             * Intensity
+             * @default 0.2
+             */
+            intensity: number;
+            /**
+             * Valence
+             * @default 0
+             */
+            valence: number;
+            /**
+             * Arousal
+             * @default 0.2
+             */
+            arousal: number;
+            /** Confidence */
+            confidence?: number | null;
         };
         /** EventTransfer */
         EventTransfer: {
@@ -2207,6 +2431,35 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** Initiative */
+        Initiative: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Character Id
+             * Format: uuid
+             */
+            character_id: string;
+            /** Model Id */
+            model_id?: string | null;
+            /** Profile Id */
+            profile_id?: string | null;
+            /**
+             * Intention Id
+             * Format: uuid
+             */
+            intention_id: string;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
         JsonValue: unknown;
         /** LoreImport */
         LoreImport: {
@@ -2267,6 +2520,37 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** NPCPatch */
+        NPCPatch: {
+            /** Mode */
+            mode?: ("fixed" | "flexible" | "developing") | null;
+            /** Emotions Enabled */
+            emotions_enabled?: boolean | null;
+            /** Relationships Enabled */
+            relationships_enabled?: boolean | null;
+            emotion?: components["schemas"]["Emotion"] | null;
+            /** Traits */
+            traits?: {
+                [key: string]: number;
+            } | null;
+            /** Adaptations */
+            adaptations?: {
+                [key: string]: number;
+            } | null;
+        };
+        /** NPCWrite */
+        NPCWrite: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            patch: components["schemas"]["NPCPatch"];
+            /** Reason */
+            reason: string;
+        };
         /** NamedAnchor */
         NamedAnchor: {
             /** Expected Revision */
@@ -2312,17 +2596,6 @@ export interface components {
             patch: {
                 [key: string]: unknown;
             };
-        };
-        /** PolicyWrite */
-        PolicyWrite: {
-            /**
-             * Branch Id
-             * Format: uuid
-             */
-            branch_id: string;
-            /** Expected Revision */
-            expected_revision: number;
-            settings: components["schemas"]["MemorySettings"];
         };
         /** ProfileWrite */
         ProfileWrite: {
@@ -2503,6 +2776,30 @@ export interface components {
             /** Profile Id */
             profile_id?: string | null;
             parameters?: components["schemas"]["GenerationParameters"] | null;
+        };
+        /** Review */
+        Review: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Proposal Revision */
+            proposal_revision: number;
+            /** Accept */
+            accept: boolean;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /**
+             * Rebase
+             * @default false
+             */
+            rebase: boolean;
         };
         /** RevisionRequest */
         RevisionRequest: {
@@ -2723,6 +3020,19 @@ export interface components {
              */
             confirmed: boolean;
         };
+        /** PolicyWrite */
+        taverna__director_api__PolicyWrite: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            policy: components["schemas"]["DirectorPolicy"];
+            /** Reason */
+            reason: string;
+        };
         /** DraftDelete */
         taverna__memory_api__DraftDelete: {
             /**
@@ -2769,6 +3079,17 @@ export interface components {
             confirmed: boolean;
             /** Conflict Policy */
             conflict_policy?: "keep_both" | null;
+        };
+        /** PolicyWrite */
+        taverna__memory_api__PolicyWrite: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            settings: components["schemas"]["MemorySettings"];
         };
         /** ProposalReview */
         taverna__memory_api__ProposalReview: {
@@ -5032,7 +5353,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PolicyWrite"];
+                "application/json": components["schemas"]["taverna__memory_api__PolicyWrite"];
             };
         };
         responses: {
@@ -6343,6 +6664,253 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["WorldEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_api_v1_stories__story_id__director_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    policy_api_v1_stories__story_id__director_policy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["taverna__director_api__PolicyWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    npc_api_v1_stories__story_id__director_npcs__actor_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                actor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NPCWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyze_api_v1_stories__story_id__director_analyze_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Analyze"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proposals_api_v1_stories__story_id__director_proposals_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_api_v1_stories__story_id__director_proposals__proposal_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Review"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    initiative_api_v1_stories__story_id__director_initiative_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Initiative"];
             };
         };
         responses: {

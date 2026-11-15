@@ -19,6 +19,8 @@ from .chat import ChatService
 from .chat_api import router as chat_router
 from .chat_import import router as chat_import_router
 from .core import AppError, Config
+from .director import DirectorService
+from .director_api import router as director_router
 from .generation_api import GenerationService
 from .memory import MemoryService
 from .memory_api import router as memory_router
@@ -66,6 +68,8 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.worlds = WorldService(app.state.chat)
     app.state.chat.state_reducer = app.state.worlds.message_state
     app.include_router(world_router(app.state.worlds))
+    app.state.director = DirectorService(app.state.memory, app.state.worlds)
+    app.include_router(director_router(app.state.director))
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
@@ -139,7 +143,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "09",
+            "stage": "10",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 

@@ -5,6 +5,10 @@ import re
 from difflib import SequenceMatcher
 
 
+def user_utterance_marker(text):
+    return bool(re.search(r"(?im)^\s*(?:пользователь|user|вы)\s*:", text))
+
+
 def inspect_answer(text, previous, settings):
     flags = []
     if not text.strip():
@@ -16,10 +20,16 @@ def inspect_answer(text, previous, settings):
         for row in previous[-3:]
     ):
         flags.append({"code": "repetition", "message_ru": "Ответ похож на предыдущую реплику персонажа."})
-    if re.search(r"(?im)^\s*(?:пользователь|user|вы)\s*:", text) or re.search(
+    if user_utterance_marker(text) or re.search(
         r"(?i)как (?:языковая|искусственный интеллект|ИИ[- ]?модель)", text
     ):
-        flags.append({"code": "role", "message_ru": "Возможный выход из роли или реплика за пользователя."})
+        flags.append(
+            {
+                "code": "role",
+                "message_ru": "Возможный выход из роли или реплика за пользователя.",
+                "user_impersonation": user_utterance_marker(text),
+            }
+        )
     if settings["format"] == "json":
         try:
             json.loads(text, parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))

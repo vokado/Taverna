@@ -365,6 +365,7 @@ class MemoryAI:
             payload["expected_revision"],
             min_salience=payload["min_salience"],
             min_age_messages=payload["min_age_messages"],
+            before_commit=lambda: self.service.chat.cancellation_guard(cancel),
         )
 
     async def on_message(self, story_id, branch_id, message_id, model_id=None):
@@ -372,7 +373,11 @@ class MemoryAI:
         try:
             snap = await asyncio.to_thread(self.service.scheduling_view, story_id, branch_id)
             settings = MemorySettings.model_validate(snap["state"]["payload"].get("memory_policy", {}))
-            if snap["message_count"] % settings.every_messages:
+            application = await asyncio.to_thread(self.store.get, "config/settings.json")
+            cadence = settings.every_messages * (
+                2 if application and application["payload"].get("economy") else 1
+            )
+            if snap["message_count"] % cadence:
                 return {"status": "not_due"}
             queued = []
             if settings.auto_extract:
