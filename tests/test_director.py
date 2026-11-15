@@ -297,7 +297,7 @@ async def test_director_auto_apply_tracks_own_revision_and_timeout_preserves_dia
             sid,
             chat.branch(sid)["id"],
             chat.branch(sid)["revision"],
-            {"enabled": True, "auto_apply": True, "pre_timeout_seconds": 1},
+            {"enabled": True, "auto_apply": True, "pre_timeout_seconds": 1 if timeout else 15},
             "Настройка испытания",
         )
         append(chat, sid, "Начало разговора")
@@ -910,3 +910,96 @@ async def test_user_role_marker_cannot_be_silently_saved_even_in_warning_mode(tm
         )
         assert len(calls) == 1 and chat.messages(sid)["total"] == 1
     await chat.generation.queue.close()
+
+
+@pytest.mark.asyncio
+async def test_preparation_deadline_cannot_abandon_committed_apply_receipt(tmp_path, monkeypatch):
+    import asyncio
+    import json
+    import time
+
+    import httpx
+    from taverna.director_ai import DirectorAI
+    from taverna.llm import LmStudioAdapter
+
+    service, chat, sid, ids = setup_director(tmp_path)
+    service.write_policy(
+        sid,
+        chat.branch(sid)["id"],
+        chat.branch(sid)["revision"],
+        {"enabled": True, "auto_apply": True, "pre_timeout_seconds": 5},
+        "Ограничена модельная фаза",
+    )
+
+    def transport(request):
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "models": [
+                        {
+                            "type": "llm",
+                            "key": "llm",
+                            "loaded_instances": [{"id": "loaded", "config": {"context_length": 32768}}],
+                        }
+                    ]
+                },
+            )
+        output = json.dumps(
+            {
+                "actions": [
+                    {
+                        "kind": "emotion",
+                        "reason": "Подготовленный результат",
+                        "source_card": True,
+                        "emotion": {"label": "радость"},
+                    }
+                ]
+            }
+        )
+        chunk = json.dumps({"choices": [{"delta": {"content": output}}]})
+        return httpx.Response(200, content=f"data: {chunk}\n\ndata: [DONE]\n\n".encode())
+
+    chat.generation.adapter = LmStudioAdapter(transport=httpx.MockTransport(transport))
+    ai = DirectorAI(service)
+    base = chat.branch(sid)["revision"]
+    original = service.review
+    reached_commit = False
+
+    def slow_commit(*args, **kwargs):
+        source_guard = kwargs["before_commit"]
+        first = True
+
+        def guard():
+            nonlocal first, reached_commit
+            if first:
+                first, reached_commit = False, True
+                time.sleep(5.1)  # Filesystem-delay injection exceeds the model deadline in the worker.
+            source_guard()
+
+        return original(*args, **{**kwargs, "before_commit": guard})
+
+    monkeypatch.setattr(service, "review", slow_commit)
+    events = []
+
+    async def emit(kind, data):
+        events.append(kind)
+
+    result = await asyncio.wait_for(
+        ai.prepare(
+            {
+                "story_id": sid,
+                "branch_id": chat.branch(sid)["id"],
+                "expected_revision": base,
+                "character_id": ids[0],
+                "model_id": "loaded",
+            },
+            asyncio.Event(),
+            emit,
+        ),
+        timeout=20,
+    )
+    assert reached_commit and "director_skipped" not in events
+    assert result["status"] == "accepted" and result["branch_revision"] == base + 1
+    assert chat.branch(sid)["revision"] == result["branch_revision"]
+    assert service.read(sid, chat.branch(sid)["id"])["characters"][ids[0]]["emotion"]["label"] == "радость"

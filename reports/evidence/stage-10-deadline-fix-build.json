@@ -1,0 +1,18 @@
+{
+  "execution_id": "stage-10-deadline-fix",
+  "base_commit": "518a77ecf5586c2b15c3516a3f7e3cea8879033a",
+  "executed_at": "2026-11-15T11:44:52.386215+00:00",
+  "environment": "Linux-6.18.57-x86_64-with-glibc2.41; Python3.12.14",
+  "result": "136 PASS 76.36s; Ruff PASS",
+  "failed_ci": {
+    "run_id": 43708361858,
+    "job_id": 132794308421,
+    "ubuntu": "1 FAIL /134 PASS",
+    "windows": "CANCELLED"
+  },
+  "files_sha256": {
+    "app/backend/taverna/director_ai.py": "f4b58c016ba868617f2d6ebccbb7744566320072a1ec89fd5a3664c33a2c4634",
+    "tests/test_director.py": "a220db0561debd332134cb8b9bd7a9b031872880f840ebcc6105cde872e5316b",
+    ".github/workflows/checks.yml": "9225a1fd782d5678dafe640fdcc31d035006786a6fed038f0bc9ee3df2d263ce"
+  }
+}

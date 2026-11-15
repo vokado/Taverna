@@ -326,7 +326,12 @@ class DirectorAI:
             and action.effect.value != snap["state"]["payload"]["scene"].get("location_id")
             for action in parsed.actions
         )
-        if policy["auto_apply"] and proposal["payload"]["status"] == "pending" and not movement_before_reply:
+        if (
+            policy["auto_apply"]
+            and proposal["payload"]["status"] == "pending"
+            and not movement_before_reply
+            and not payload.get("defer_apply")
+        ):
             applied = await asyncio.to_thread(
                 self.service.review,
                 payload["story_id"],
@@ -339,7 +344,7 @@ class DirectorAI:
                 automatic=True,
                 before_commit=lambda: self.chat.cancellation_guard(cancel),
             )
-            proposal, revision = applied["proposal"], applied["branch_revision"]
+            proposal, revision = applied["proposal"], applied.get("branch_revision", revision)
         await emit(
             "director_proposed",
             {
@@ -355,6 +360,7 @@ class DirectorAI:
             "has_initiative": proposal["payload"]["status"] == "accepted"
             and any(a.kind == "initiative" for a in parsed.actions),
             "model_id": context["model_id"],
+            "movement_deferred": movement_before_reply,
         }
 
     async def prepare(self, payload, cancel, emit):
@@ -399,17 +405,48 @@ class DirectorAI:
         await emit("director_phase", {"phase": "before_reply"})
         try:
             async with asyncio.timeout(policy["pre_timeout_seconds"]):
-                return await self.run(
+                result = await self.run(
                     {
                         **payload,
                         "proposal_id": proposal_id,
                         "phase": "before",
+                        "defer_apply": True,
                         "model_id": policy["model_id"] or payload.get("model_id"),
                         "profile_id": policy["profile_id"],
                     },
                     cancel,
                     emit,
                 )
+            # A deadline can cancel inference/proposal construction, never an in-flight primary-state commit.
+            # Await the actual transaction receipt outside that deadline; user cancellation still has its guard.
+            if (
+                policy["auto_apply"]
+                and result.get("status") == "pending"
+                and not result.get("movement_deferred")
+            ):
+                proposal = await asyncio.to_thread(
+                    self.store.get,
+                    self.service.proposal_key(
+                        payload["story_id"], payload["branch_id"], result["proposal_id"]
+                    ),
+                )
+                applied = await asyncio.to_thread(
+                    self.service.review,
+                    payload["story_id"],
+                    payload["branch_id"],
+                    proposal["id"],
+                    expected_revision=payload["expected_revision"],
+                    proposal_revision=proposal["revision"],
+                    accept=True,
+                    confirmed=True,
+                    automatic=True,
+                    before_commit=lambda: self.chat.cancellation_guard(cancel),
+                )
+                result.update(
+                    status=applied["proposal"]["payload"]["status"],
+                    branch_revision=applied.get("branch_revision", payload["expected_revision"]),
+                )
+            return result
         except TimeoutError:
             error = {
                 "code": "director_timeout",
