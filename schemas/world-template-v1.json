@@ -1,0 +1,485 @@
+{
+  "$defs": {
+    "Calendar": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "default": "Местный календарь",
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "months": {
+          "items": {
+            "$ref": "#/$defs/Month"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Months",
+          "type": "array"
+        },
+        "hours_per_day": {
+          "default": 24,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Hours Per Day",
+          "type": "integer"
+        },
+        "minutes_per_hour": {
+          "default": 60,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Minutes Per Hour",
+          "type": "integer"
+        },
+        "epoch_year": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Epoch Year",
+          "type": "integer"
+        }
+      },
+      "title": "Calendar",
+      "type": "object"
+    },
+    "Effect": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "enum": [
+            "set_flag",
+            "change_resource",
+            "move_entity",
+            "set_attribute",
+            "add_arc",
+            "resolve_arc",
+            "set_clock"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "expected": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "check_expected": {
+          "default": false,
+          "title": "Check Expected",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "Effect",
+      "type": "object"
+    },
+    "Entity": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "default": "location",
+          "enum": [
+            "region",
+            "location",
+            "faction",
+            "person",
+            "resource",
+            "culture",
+            "history"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 32768,
+          "title": "Description",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "location_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Id"
+        },
+        "attributes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxProperties": 100,
+          "title": "Attributes",
+          "type": "object"
+        },
+        "extras": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Extras",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Entity",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "format": "uuid",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "target_id": {
+          "format": "uuid",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "kind": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Kind",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "target_id",
+        "kind"
+      ],
+      "title": "Link",
+      "type": "object"
+    },
+    "LoreEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "Запись",
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 32768,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "keys": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Keys",
+          "type": "array"
+        },
+        "secondary_keys": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Secondary Keys",
+          "type": "array"
+        },
+        "selective": {
+          "default": false,
+          "title": "Selective",
+          "type": "boolean"
+        },
+        "constant": {
+          "default": false,
+          "title": "Constant",
+          "type": "boolean"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "public": {
+          "default": false,
+          "title": "Public",
+          "type": "boolean"
+        },
+        "knower_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Knower Ids",
+          "type": "array"
+        },
+        "entity_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Entity Ids",
+          "type": "array"
+        },
+        "priority": {
+          "default": 50,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "extras": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Extras",
+          "type": "object"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "LoreEntry",
+      "type": "object"
+    },
+    "Month": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "days": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "days"
+      ],
+      "title": "Month",
+      "type": "object"
+    },
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "on": {
+          "default": "time_advance",
+          "enum": [
+            "time_advance",
+            "move",
+            "manual",
+            "message",
+            "any"
+          ],
+          "title": "On",
+          "type": "string"
+        },
+        "condition": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Condition",
+          "type": "object"
+        },
+        "effects": {
+          "items": {
+            "$ref": "#/$defs/Effect"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Effects",
+          "type": "array"
+        },
+        "once": {
+          "default": true,
+          "title": "Once",
+          "type": "boolean"
+        },
+        "cooldown_minutes": {
+          "default": 1,
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Cooldown Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "condition",
+        "effects"
+      ],
+      "title": "Rule",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 32768,
+      "title": "Description",
+      "type": "string"
+    },
+    "calendar": {
+      "$ref": "#/$defs/Calendar"
+    },
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/Entity"
+      },
+      "maxItems": 2000,
+      "title": "Entities",
+      "type": "array"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/Link"
+      },
+      "maxItems": 5000,
+      "title": "Links",
+      "type": "array"
+    },
+    "lore": {
+      "items": {
+        "$ref": "#/$defs/LoreEntry"
+      },
+      "maxItems": 2000,
+      "title": "Lore",
+      "type": "array"
+    },
+    "rules": {
+      "items": {
+        "$ref": "#/$defs/Rule"
+      },
+      "maxItems": 256,
+      "title": "Rules",
+      "type": "array"
+    },
+    "flags": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "maxProperties": 1000,
+      "title": "Flags",
+      "type": "object"
+    },
+    "resources": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "maxProperties": 1000,
+      "title": "Resources",
+      "type": "object"
+    },
+    "extras": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Extras",
+      "type": "object"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "World",
+  "type": "object"
+}

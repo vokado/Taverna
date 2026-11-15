@@ -1,0 +1,24 @@
+
+> taverna-web@0.1.0-dev.1 test:e2e
+> playwright test
+
+
+Running 8 tests using 1 worker
+
+(node:21437) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/bootstrap.spec.ts:7:1 › Одноразовый вход, перезагрузка и закрытие вкладки (10.4s)
+  ✓  2 e2e/chat.spec.ts:3:1 › Чат без модели, режимы, редактирование и возврат к оригиналу (8.1s)
+  ✓  3 e2e/long-chat.spec.ts:3:1 › 10 000 импортированных сообщений: страницы и ограниченный DOM (11.0s)
+  ✓  4 e2e/memory.spec.ts:4:1 › Память: тайна NPC, автосохранение, отношения с игроком, поиск и импорт (13.2s)
+  ✓  5 e2e/memory.spec.ts:238:1 › Отдельные черновики переживают смену записи и истории, ошибочный JSON сохраняется (6.3s)
+  ✓  6 e2e/profiles.spec.ts:3:1 › Профиль, наследование и предпросмотр действительного контекста (4.2s)
+  ✓  7 e2e/profiles.spec.ts:93:1 › Некорректные экспертные поля не ломают редактор профиля (2.7s)
+  ✓  8 e2e/worlds.spec.ts:3:1 › Мир, сценарий, снимок истории и время; невалидный JSON и черновик (8.5s)
+
+  8 passed (1.1m)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

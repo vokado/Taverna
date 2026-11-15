@@ -83,3 +83,24 @@ export function authenticate(): Promise<void> {
   });
   return authentication;
 }
+
+export async function upload<T>(
+  path: string,
+  file: File,
+  headers: Record<string, string> = {},
+): Promise<T> {
+  const response = await fetch("/api/v1" + path, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "X-Taverna-CSRF": csrf,
+      ...headers,
+    },
+    body: file,
+  });
+  const value = await response.json();
+  if (!response.ok)
+    throw new ApiError(value.code, value.message_ru || "Импорт не выполнен.");
+  return value as T;
+}

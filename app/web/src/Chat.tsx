@@ -4,6 +4,8 @@ import { ChatImportPanel } from "./ChatImportPanel";
 import { EventTransferPanel } from "./EventTransferPanel";
 import { ContextInspector } from "./ContextInspector";
 import { MemoryPanel } from "./MemoryPanel";
+import { StoryWorld } from "./StoryWorld";
+import { StoryPackagePanel } from "./StoryPackagePanel";
 
 type Card = {
   id: string;
@@ -668,6 +670,15 @@ export function Chat({
           {status ||
             "Без LM Studio доступны сохранённые истории и редактирование."}
         </p>
+        <StoryPackagePanel
+          storyId={current?.story.id || null}
+          disabled={busy || loading}
+          onImported={async (id) => {
+            setSearch("");
+            await load(id, undefined, "");
+            await refresh();
+          }}
+        />
         <ChatImportPanel
           cards={cards}
           onImported={async (id) => {
@@ -689,6 +700,14 @@ export function Chat({
               }}
               disabled={busy}
               onApplied={() => load(current.story.id)}
+            />
+            <StoryWorld
+              key={"world/" + current.story.id + "/" + current.branch.id}
+              storyId={current.story.id}
+              branchId={current.branch.id}
+              revision={current.branch.revision}
+              disabled={busy || loading}
+              onChanged={() => load(current.story.id)}
             />
             <MemoryPanel
               key={current.story.id + "/" + current.branch.id}

@@ -8,6 +8,7 @@ import jsonschema
 
 from .chat_schemas import BRANCH_SCHEMA, MESSAGE_SCHEMA, STATE_SCHEMA, STORY_SCHEMA
 from .core import AppError
+from .events import EventBus
 from .llm import LmStudioAdapter
 from .segments import SegmentStore
 from .storage import JsonStore, Mutation, document, now
@@ -24,7 +25,9 @@ def identifier(value: str) -> str:
 class ChatService:
     def __init__(self, store: JsonStore, generation):
         self.store, self.generation = store, generation
-        self.after_message = None
+        self.after_message = EventBus()
+        self.state_reducer = None
+        self.state_cloner = None
         self.segments = SegmentStore(store)
         for kind, schema in [
             ("story", STORY_SCHEMA),
@@ -220,8 +223,28 @@ class ChatService:
             present_ids=list(branch["payload"]["participants"]),
             **(metadata or {}),
         )
+        previous_state_id = branch["payload"]["state_id"]
+        state_changes = []
+        if self.state_reducer:
+            state = self.state(story_id, bid)
+            reduced = self.state_reducer(state["payload"], message, expected_revision)
+            if reduced is not None:
+                updated = document("branch_state", reduced)
+                branch["payload"]["state_id"] = updated["id"]
+                branch["refs"] = list(
+                    {
+                        self.state_key(story_id, updated["id"]),
+                        self.state_key(story_id, branch["payload"]["initial_state_id"]),
+                    }
+                )
+                message["state_id"] = updated["id"]
+                message["event_ids"] = list(dict.fromkeys([*message["event_ids"], message["id"]]))
+                state_changes.append(Mutation(self.state_key(story_id, updated["id"]), updated, 0))
         branch["payload"]["head_message_id"] = message["id"]
-        changes = self.segments.plan_append(bid, [message], seal_tail_state=branch["payload"]["state_id"])
+        changes = [
+            *state_changes,
+            *self.segments.plan_append(bid, [message], seal_tail_state=previous_state_id),
+        ]
         changes += [
             Mutation(self.branch_key(story_id, bid), branch, expected_revision),
             Mutation(self.story_key(story_id), story, story["revision"]),
@@ -324,6 +347,8 @@ class ChatService:
                             mapping.get(source, source): checksum
                             for source, checksum in fact["provenance"].get("source_hashes", {}).items()
                         }
+            if self.state_cloner:
+                self.state_cloner(payload, mapping, bid)
             state = document("branch_state", payload)
             changes.append(Mutation(self.state_key(story_id, state["id"]), state, 0))
             state_payloads[state["id"]] = state["payload"]

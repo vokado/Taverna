@@ -178,7 +178,7 @@ class SettingsService:
                     key=lambda value: value["updated_at"],
                     reverse=True,
                 )[:10],
-                "scenario_count": sum(row["value"]["kind"] == "scenario" for row in scenarios),
+                "scenario_count": sum(row["value"]["kind"] == "scenario_template" for row in scenarios),
                 "errors": ce + se + we,
             }
 

@@ -11,6 +11,7 @@ import { GenerationHistory } from "./GenerationHistory";
 import { Characters } from "./Characters";
 import { Chat } from "./Chat";
 import { Profiles } from "./Profiles";
+import { Worlds } from "./Worlds";
 
 type Colors = {
   background: string;
@@ -241,6 +242,7 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["characters", "Персонажи"],
           ["chat", "Истории"],
           ["profiles", "Профили и промпты"],
+          ["worlds", "Миры и сценарии"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
           <button
@@ -281,9 +283,11 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                     ? "Персонажи"
                     : page === "chat"
                       ? "Истории"
-                      : page === "profiles"
-                        ? "Профили и промпты"
-                        : "Рабочее пространство"}
+                      : page === "worlds"
+                        ? "Миры и сценарии"
+                        : page === "profiles"
+                          ? "Профили и промпты"
+                          : "Рабочее пространство"}
             </h1>
             <p>Локальные истории и персонажи</p>
           </div>
@@ -582,6 +586,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         )}
         <div hidden={page !== "characters"}>
           <Characters />
+        </div>
+        <div hidden={page !== "worlds"}>
+          <Worlds />
         </div>
         <div hidden={page !== "chat"}>
           <Chat openStory={openStory} />

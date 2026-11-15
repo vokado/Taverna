@@ -1,0 +1,248 @@
+{
+  "$defs": {
+    "Effect": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "enum": [
+            "set_flag",
+            "change_resource",
+            "move_entity",
+            "set_attribute",
+            "add_arc",
+            "resolve_arc",
+            "set_clock"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "expected": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        },
+        "check_expected": {
+          "default": false,
+          "title": "Check Expected",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "Effect",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "on": {
+          "default": "time_advance",
+          "enum": [
+            "time_advance",
+            "move",
+            "manual",
+            "message",
+            "any"
+          ],
+          "title": "On",
+          "type": "string"
+        },
+        "condition": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Condition",
+          "type": "object"
+        },
+        "effects": {
+          "items": {
+            "$ref": "#/$defs/Effect"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Effects",
+          "type": "array"
+        },
+        "once": {
+          "default": true,
+          "title": "Once",
+          "type": "boolean"
+        },
+        "cooldown_minutes": {
+          "default": 1,
+          "maximum": 1000000000,
+          "minimum": 1,
+          "title": "Cooldown Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "condition",
+        "effects"
+      ],
+      "title": "Rule",
+      "type": "object"
+    },
+    "Start": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 32768,
+          "title": "Text",
+          "type": "string"
+        },
+        "location_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Id"
+        },
+        "minutes": {
+          "default": 0,
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Minutes",
+          "type": "integer"
+        },
+        "flags": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxProperties": 1000,
+          "title": "Flags",
+          "type": "object"
+        },
+        "resources": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "maxProperties": 1000,
+          "title": "Resources",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Start",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "world_id": {
+      "format": "uuid",
+      "title": "World Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "premise": {
+      "default": "",
+      "maxLength": 32768,
+      "title": "Premise",
+      "type": "string"
+    },
+    "goals": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Goals",
+      "type": "array"
+    },
+    "starts": {
+      "items": {
+        "$ref": "#/$defs/Start"
+      },
+      "maxItems": 100,
+      "title": "Starts",
+      "type": "array"
+    },
+    "rules": {
+      "items": {
+        "$ref": "#/$defs/Rule"
+      },
+      "maxItems": 256,
+      "title": "Rules",
+      "type": "array"
+    },
+    "extras": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Extras",
+      "type": "object"
+    }
+  },
+  "required": [
+    "world_id",
+    "name"
+  ],
+  "title": "Scenario",
+  "type": "object"
+}

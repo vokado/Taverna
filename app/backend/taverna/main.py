@@ -25,7 +25,10 @@ from .memory_api import router as memory_router
 from .security import LocalSecurity, Sessions
 from .settings import SettingsService
 from .storage import JsonStore
+from .story_package_api import router as story_package_router
 from .transfers import router as transfer_router
+from .world_api import router as world_router
+from .worlds import WorldService
 
 
 class BootstrapRequest(BaseModel):
@@ -59,6 +62,10 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.include_router(memory_router(app.state.memory))
     app.include_router(chat_import_router(app.state.chat))
     app.include_router(transfer_router(app.state.chat))
+    app.include_router(story_package_router(app.state.chat))
+    app.state.worlds = WorldService(app.state.chat)
+    app.state.chat.state_reducer = app.state.worlds.message_state
+    app.include_router(world_router(app.state.worlds))
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
@@ -132,7 +139,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "06",
+            "stage": "09",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 

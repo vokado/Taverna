@@ -131,7 +131,7 @@ def router(service):
     search = MemorySearch(service)
     packages = MemoryPackages(service)
     service.ai, service.search, service.packages = ai, search, packages
-    service.chat.after_message = ai.on_message
+    service.chat.after_message.subscribe("memory", ai.on_message)
     router = APIRouter(prefix="/api/v1/stories/{story_id}/memories")
 
     def draft_key(story_id, branch_id, draft_id):

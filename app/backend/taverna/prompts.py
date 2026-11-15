@@ -7,6 +7,7 @@ from .core import AppError
 from .knowledge import KnowledgePolicy, relevance
 from .storage import Mutation, digest, document, encoded
 from .tokens import estimate_messages, estimate_text
+from .world_lore import select_lore
 
 POLICY = (
     "Играй только указанного NPC. Не создавай реплики, действия или решения пользователя. "
@@ -98,7 +99,9 @@ class PromptBuilder:
         scene = state["payload"].get("scene", {})
         # Only public scene coordinates; world truth/state and other NPC private state never serialized.
         scene_text = "\n".join(
-            f"{key}: {scene[key]}" for key in ("name", "location_id", "time") if scene.get(key)
+            f"{key}: {scene[key]}"
+            for key in ("name", "location", "location_id", "time", "opening")
+            if scene.get(key)
         )
         relationships = []
         for key, rel in state["payload"].get("relationships", {}).items():
@@ -129,6 +132,11 @@ class PromptBuilder:
                 str(key).casefold() in haystack for key in (keys if isinstance(keys, list) else []) if key
             ):
                 lore.append((f"card-lore:{index}", str(entry.get("content", ""))))
+        world_lore, world_excluded = select_lore(
+            state["payload"].get("world", {}), character_id, "\n".join(m["text"] for m in visible[-20:])
+        )
+        lore.extend(world_lore)
+        excluded.extend(world_excluded)
         sources = {
             "character": [
                 (
