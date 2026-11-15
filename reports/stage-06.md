@@ -17,3 +17,7 @@ Browser: bootstrap/workspace/cards/autosave regression + отдельный chat
 Завершение исправлено до перехода дальше: shutdown сначала закрывает очередь, прерывает active/pending jobs и фиксирует terminal events; открытый SSE больше не перезапускает worker во время остановки. Uvicorn graceful timeout 10s — выбранная политика, не измеренная гарантия hardware. Тест проверяет close/SSE/idempotent close/no enqueue после остановки. Windows smoke дополнительно проверяет PE subsystem: GUI основной EXE и console diagnostic EXE.
 
 Collector повторно выполнен успешно: 46 Python/npm/runtime/build-toolchain entries на Linux. Новые JSON Schema экспортированы из реализации; матрица обновлена без закрытия непроверенных составных требований.
+
+Повторная проверка CI f14a16a, run 43674474439: Ubuntu SUCCESS; Windows FAIL в поиске 10k (ожидание 1 строки за 5s, оставались 100 предыдущих). Причина: `_prefix` повторно читал предыдущие сегменты на каждой странице. Исправлен однократный обход под одним согласованным storage view; ожидания теста не увеличены. Linux после исправления: 61 backend PASS/15.07s, 3 E2E PASS/23.8s (10k сценарий 9.0s), Ruff/build PASS. Windows требует повторного CI; прежний FAIL не зачёркнут.
+
+`npm audit` выявил уязвимости dev-toolchain Vitest/mocker/tinypool; обновлён Vitest до 5.1.0 (проверены Node22.12+/24 и Vite6.4 peer contracts). Повторный audit: 0 уязвимостей; build/E2E и collector 46 entries PASS. Это не подтверждает отсутствие неизвестных уязвимостей.

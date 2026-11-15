@@ -234,17 +234,15 @@ class ChatService:
 
     def _prefix(self, story_id, branch_id, through_id=None):
         messages = []
-        offset = 0
         found = through_id is None
-        while True:
-            page = self.segments.page(branch_id, offset, 500)
-            for message in page["items"]:
-                messages.append(message)
-                if message["id"] == through_id:
-                    return messages
-            offset += len(page["items"])
-            if offset >= page["total"]:
-                break
+        # One consistent snapshot; repeated page() calls reread all preceding segments.
+        with self.store.view() as view:
+            head = view.get(self.segments._key(branch_id))
+            for key in head["payload"]["segments"] if head else []:
+                for message in view.get(key)["payload"]["messages"]:
+                    messages.append(message)
+                    if message["id"] == through_id:
+                        return messages
         if not found:
             raise AppError("message_missing", "Сообщение не найдено в этой ветви.", 404)
         return messages
