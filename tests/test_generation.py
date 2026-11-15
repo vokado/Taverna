@@ -155,7 +155,7 @@ async def test_context_guard_and_bounded_connection_retry():
     llm = adapter(calls)
     with pytest.raises(AppError) as error:
         async for _ in llm.stream(
-            "loaded-instance", [{"role": "user", "content": "a" * 8192}], {}, asyncio.Event()
+            "loaded-instance", [{"role": "user", "content": "a" * 20000}], {}, asyncio.Event()
         ):
             pass
     assert error.value.code == "context_overflow"

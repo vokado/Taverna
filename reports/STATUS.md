@@ -9,8 +9,8 @@
 | 03 | 34 backend tests с регрессией PASS, UI build/E2E PASS; live LM Studio/Dolphin/RTX5070 BLOCKED |
 | 04 | Основа settings/workspace/layout реализована; Linux backend/build/browser проверки PASS; доменные панели проверяются по мере модулей |
 | 05 | Карточки/обмен/draft autosave реализованы; 45 backend PASS, browser/build PASS; real corpus/live AI BLOCKED |
-| 06 | Реализованы чаты/ветви/сцена/группы/import/transfers; 61 backend PASS, 3 E2E PASS (включая 10k), build PASS; Windows run 43674474439 FAIL поиск10k; исправлен повторный обход, ожидается повтор CI |
-| 07 | IN_PROGRESS |
+| 06 | Реализованы чаты/ветви/сцена/группы/import/transfers; 61 backend PASS, 3 E2E PASS (включая 10k), build PASS; прежний Windows FAIL поиска исправлен; CI 43675486779 для b93e896 SUCCESS на Ubuntu/Windows, включая frozen EXE smoke |
+| 07 | Реализована основа профилей/контекста/качества/инспектора; 75 backend PASS, 4 E2E PASS, build/Ruff PASS; live LM Studio/RTX5070 BLOCKED; продолжение memory/retrieval в 08–10 |
 | 08–16 | NOT_STARTED |
 
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.

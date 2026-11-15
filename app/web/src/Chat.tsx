@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { request } from "./api";
 import { ChatImportPanel } from "./ChatImportPanel";
 import { EventTransferPanel } from "./EventTransferPanel";
+import { ContextInspector } from "./ContextInspector";
 
 type Card = {
   id: string;
@@ -46,6 +47,8 @@ type Message = {
   version: number;
   source_message_ids: string[];
   partial?: boolean;
+  context_trace_id?: string;
+  quality_audit?: Array<{ flags: Array<{ code: string; message_ru: string }> }>;
 };
 type Bundle = {
   story: Story;
@@ -59,6 +62,7 @@ type Event = {
     message_ru?: string;
     character_id?: string;
     branch_id?: string;
+    show_reasoning?: boolean;
   };
 };
 
@@ -82,11 +86,14 @@ export function Chat({
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [models, setModels] = useState<Array<{ id: string; name: string }>>([]);
+  const [profileId, setProfileId] = useState("");
   const [model, setModel] = useState("");
   const [speaker, setSpeaker] = useState("");
   const [turns, setTurns] = useState(2);
   const [job, setJob] = useState("");
   const [partial, setPartial] = useState("");
+  const [reasoning, setReasoning] = useState("");
+  const [showReasoning, setShowReasoning] = useState(false);
   const [partialAvailable, setPartialAvailable] = useState(false);
   const [partialSpeaker, setPartialSpeaker] = useState("");
   const [edit, setEdit] = useState<{ message: Message; text: string } | null>(
@@ -244,6 +251,9 @@ export function Chat({
       failures = 0;
     for (const kind of [
       "started",
+      "attempt_started",
+      "context",
+      "reasoning",
       "delta",
       "speaker",
       "turn_completed",
@@ -259,6 +269,14 @@ export function Chat({
         sequence = event.sequence;
         failures = 0;
         if (kind === "started") setStatus("Модель отвечает…");
+        if (kind === "attempt_started") {
+          setPartial("");
+          setReasoning("");
+        }
+        if (kind === "context")
+          setShowReasoning(Boolean(event.data.show_reasoning));
+        if (kind === "reasoning")
+          setReasoning((t) => t + (event.data.text || ""));
         if (kind === "delta") setPartial((t) => t + (event.data.text || ""));
         if (kind === "speaker") {
           setPartial("");
@@ -307,9 +325,9 @@ export function Chat({
         "POST",
         {
           ...revision(),
-          model_id: model,
+          ...(model ? { model_id: model } : {}),
+          profile_id: profileId || null,
           character_id: speaker,
-          parameters: { max_tokens: 1024 },
           ...(group ? { turns } : {}),
         },
         { "Idempotency-Key": crypto.randomUUID() },
@@ -344,7 +362,8 @@ export function Chat({
         {
           ...revision(),
           message_id: message.id,
-          model_id: model,
+          ...(model ? { model_id: model } : {}),
+          profile_id: profileId || null,
           character_id: message.author_id,
           action,
           ...(fragment ? { fragment } : {}),
@@ -892,6 +911,9 @@ export function Chat({
                     )}
                   <pre className="reply">{message.text}</pre>
                   {message.partial && <p>Сохранённый частичный ответ</p>}
+                  {message.quality_audit?.at(-1)?.flags.map((flag, i) => (
+                    <p key={i}>Проверка ответа: {flag.message_ru}</p>
+                  ))}
                   <div className="message-actions">
                     <button
                       disabled={busy}
@@ -913,19 +935,19 @@ export function Chat({
                     {message.role === "assistant" && (
                       <>
                         <button
-                          disabled={busy || !model}
+                          disabled={busy}
                           onClick={() => void regenerate(message, "regenerate")}
                         >
                           Другой вариант
                         </button>
                         <button
-                          disabled={busy || !model}
+                          disabled={busy}
                           onClick={() => void regenerate(message, "continue")}
                         >
                           Продолжить ответ
                         </button>
                         <button
-                          disabled={busy || !model}
+                          disabled={busy}
                           onClick={() => void regenerate(message, "fragment")}
                         >
                           Заменить фрагмент
@@ -983,6 +1005,30 @@ export function Chat({
             </button>
             <fieldset>
               <legend>Ответы персонажей</legend>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showReasoning}
+                  onChange={(e) => setShowReasoning(e.target.checked)}
+                />
+                Показывать отдельный канал рассуждений
+              </label>
+              {showReasoning && reasoning && (
+                <pre className="diagnostic">{reasoning}</pre>
+              )}
+              <ContextInspector
+                storyId={current.story.id}
+                branchId={current.branch.id}
+                revision={current.branch.revision}
+                characterId={speaker}
+                model={model}
+                profileId={profileId}
+                selectProfile={setProfileId}
+                traces={messages.flatMap((m) =>
+                  m.context_trace_id ? [m.context_trace_id] : [],
+                )}
+                busy={busy}
+              />
               <button onClick={loadModels} disabled={busy}>
                 Проверить модели для чата
               </button>
@@ -993,7 +1039,7 @@ export function Chat({
                   onChange={(e) => setModel(e.target.value)}
                   disabled={busy}
                 >
-                  <option value="">Модель не выбрана</option>
+                  <option value="">Из профиля (если назначена)</option>
                   {models.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.name}
@@ -1020,7 +1066,7 @@ export function Chat({
               </label>
               <button
                 onClick={() => void generate()}
-                disabled={busy || !model || !speaker}
+                disabled={busy || !speaker}
               >
                 Ответ NPC
               </button>
@@ -1037,7 +1083,7 @@ export function Chat({
               </label>
               <button
                 onClick={() => void generate(true)}
-                disabled={busy || !model || !speaker || turns < 1 || turns > 16}
+                disabled={busy || !speaker || turns < 1 || turns > 16}
               >
                 Диалог NPC друг с другом
               </button>

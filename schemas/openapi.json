@@ -173,6 +173,43 @@
         }
       }
     },
+    "/api/v1/contexts/{trace_id}": {
+      "get": {
+        "summary": "Context",
+        "operationId": "context_api_v1_contexts__trace_id__get",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/generations/{job_id}/events": {
       "get": {
         "summary": "Events",
@@ -310,12 +347,258 @@
       "get": {
         "summary": "Jobs",
         "operationId": "jobs_api_v1_jobs_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Story Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles": {
+      "get": {
+        "summary": "Profiles",
+        "operationId": "profiles_api_v1_profiles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create",
+        "operationId": "create_api_v1_profiles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/bindings": {
+      "get": {
+        "summary": "Bindings",
+        "operationId": "bindings_api_v1_profiles_bindings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Binding",
+        "operationId": "binding_api_v1_profiles_bindings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindingWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/resolve": {
+      "post": {
+        "summary": "Resolve",
+        "operationId": "resolve_api_v1_profiles_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{profile_id}": {
+      "get": {
+        "summary": "Read",
+        "operationId": "read_api_v1_profiles__profile_id__get",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update",
+        "operationId": "update_api_v1_profiles__profile_id__patch",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -1903,6 +2186,53 @@
         }
       }
     },
+    "/api/v1/stories/{story_id}/context-preview": {
+      "post": {
+        "summary": "Context Preview",
+        "operationId": "context_preview_api_v1_stories__story_id__context_preview_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoryGeneration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/regenerate": {
       "post": {
         "summary": "Regenerate",
@@ -2413,6 +2743,49 @@
         ],
         "title": "AutosaveRequest"
       },
+      "BindingWrite": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "global",
+              "character",
+              "story",
+              "service"
+            ],
+            "title": "Scope"
+          },
+          "scope_id": {
+            "type": "string",
+            "title": "Scope Id"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "scope",
+          "scope_id",
+          "profile_id"
+        ],
+        "title": "BindingWrite"
+      },
       "BootstrapRequest": {
         "properties": {
           "token": {
@@ -2830,6 +3203,34 @@
             "minimum": -2.0,
             "title": "Presence Penalty",
             "default": 0
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9.223372036854776e+18,
+                "minimum": -1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          },
+          "stop": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop"
           }
         },
         "additionalProperties": false,
@@ -2839,9 +3240,16 @@
       "GenerationRequest": {
         "properties": {
           "model_id": {
-            "type": "string",
-            "maxLength": 256,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Model Id"
           },
           "messages": {
@@ -2855,12 +3263,36 @@
           },
           "parameters": {
             "$ref": "#/components/schemas/GenerationParameters"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "service_role": {
+            "type": "string",
+            "enum": [
+              "generation",
+              "memory",
+              "director",
+              "editor",
+              "character",
+              "world",
+              "quality"
+            ],
+            "title": "Service Role",
+            "default": "generation"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "model_id",
           "messages"
         ],
         "title": "GenerationRequest"
@@ -2877,9 +3309,16 @@
             "title": "Branch Id"
           },
           "model_id": {
-            "type": "string",
-            "maxLength": 256,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Model Id"
           },
           "character_id": {
@@ -2895,6 +3334,17 @@
             "title": "Instruction",
             "default": ""
           },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
           "turns": {
             "type": "integer",
             "maximum": 16.0,
@@ -2908,7 +3358,6 @@
         "required": [
           "expected_revision",
           "branch_id",
-          "model_id",
           "character_id"
         ],
         "title": "GroupGeneration"
@@ -3063,6 +3512,34 @@
         ],
         "title": "NewStory"
       },
+      "ProfileWrite": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "patch": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Patch"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "name",
+          "patch"
+        ],
+        "title": "ProfileWrite"
+      },
       "Regenerate": {
         "properties": {
           "expected_revision": {
@@ -3075,9 +3552,16 @@
             "title": "Branch Id"
           },
           "model_id": {
-            "type": "string",
-            "maxLength": 256,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Model Id"
           },
           "character_id": {
@@ -3092,6 +3576,17 @@
             "maxLength": 12000,
             "title": "Instruction",
             "default": ""
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
           },
           "message_id": {
             "type": "string",
@@ -3125,11 +3620,74 @@
         "required": [
           "expected_revision",
           "branch_id",
-          "model_id",
           "character_id",
           "message_id"
         ],
         "title": "Regenerate"
+      },
+      "ResolveRequest": {
+        "properties": {
+          "character_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Character Id"
+          },
+          "story_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Story Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "generation",
+              "memory",
+              "director",
+              "editor",
+              "character",
+              "world",
+              "quality"
+            ],
+            "title": "Role",
+            "default": "generation"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GenerationParameters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ResolveRequest"
       },
       "RevisionRequest": {
         "properties": {
@@ -3184,9 +3742,16 @@
             "title": "Branch Id"
           },
           "model_id": {
-            "type": "string",
-            "maxLength": 256,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Model Id"
           },
           "character_id": {
@@ -3201,6 +3766,17 @@
             "maxLength": 12000,
             "title": "Instruction",
             "default": ""
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
           }
         },
         "additionalProperties": false,
@@ -3208,7 +3784,6 @@
         "required": [
           "expected_revision",
           "branch_id",
-          "model_id",
           "character_id"
         ],
         "title": "StoryGeneration"

@@ -1,0 +1,365 @@
+{
+  "$defs": {
+    "Condition": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "enum": [
+            "group",
+            "has_world",
+            "has_memory",
+            "performance",
+            "role"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "op": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "field",
+        "value"
+      ],
+      "title": "Condition",
+      "type": "object"
+    },
+    "GenerationParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "max_tokens": {
+          "default": 1024,
+          "maximum": 32768,
+          "minimum": 1,
+          "title": "Max Tokens",
+          "type": "integer"
+        },
+        "temperature": {
+          "default": 0.8,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "top_p": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Top P",
+          "type": "number"
+        },
+        "frequency_penalty": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": -2,
+          "title": "Frequency Penalty",
+          "type": "number"
+        },
+        "presence_penalty": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": -2,
+          "title": "Presence Penalty",
+          "type": "number"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": -1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        },
+        "stop": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 16,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop"
+        }
+      },
+      "title": "GenerationParameters",
+      "type": "object"
+    },
+    "PromptBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "system",
+            "character",
+            "scenario",
+            "scene",
+            "lore",
+            "memory",
+            "relationships",
+            "history",
+            "post_history",
+            "custom"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "role": {
+          "default": "system",
+          "enum": [
+            "system",
+            "user",
+            "assistant"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "priority": {
+          "default": 50,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "pinned": {
+          "default": false,
+          "title": "Pinned",
+          "type": "boolean"
+        },
+        "max_tokens": {
+          "anyOf": [
+            {
+              "maximum": 131072,
+              "minimum": 16,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Tokens"
+        },
+        "template": {
+          "default": "",
+          "maxLength": 65536,
+          "title": "Template",
+          "type": "string"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Condition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "source"
+      ],
+      "title": "PromptBlock",
+      "type": "object"
+    },
+    "QualitySettings": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "default": "warn",
+          "enum": [
+            "warn",
+            "retry",
+            "reject"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "max_attempts": {
+          "default": 2,
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "repeat_threshold": {
+          "default": 0.92,
+          "maximum": 1,
+          "minimum": 0.5,
+          "title": "Repeat Threshold",
+          "type": "number"
+        },
+        "format": {
+          "default": "text",
+          "enum": [
+            "text",
+            "json",
+            "dialogue"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "retry_on": {
+          "items": {
+            "enum": [
+              "empty",
+              "repetition",
+              "role",
+              "format"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Retry On",
+          "type": "array"
+        }
+      },
+      "title": "QualitySettings",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "model_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "performance": {
+      "default": "balanced",
+      "enum": [
+        "economy",
+        "balanced",
+        "quality"
+      ],
+      "title": "Performance",
+      "type": "string"
+    },
+    "context_limit": {
+      "default": 8192,
+      "maximum": 1048576,
+      "minimum": 256,
+      "title": "Context Limit",
+      "type": "integer"
+    },
+    "automatic_context": {
+      "default": true,
+      "title": "Automatic Context",
+      "type": "boolean"
+    },
+    "estimator": {
+      "default": "balanced",
+      "enum": [
+        "balanced",
+        "conservative"
+      ],
+      "title": "Estimator",
+      "type": "string"
+    },
+    "context_safety_margin": {
+      "default": 128,
+      "maximum": 32768,
+      "minimum": 0,
+      "title": "Context Safety Margin",
+      "type": "integer"
+    },
+    "parameters": {
+      "$ref": "#/$defs/GenerationParameters"
+    },
+    "blocks": {
+      "items": {
+        "$ref": "#/$defs/PromptBlock"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Blocks",
+      "type": "array"
+    },
+    "budgets": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Budgets",
+      "type": "object"
+    },
+    "quality": {
+      "$ref": "#/$defs/QualitySettings"
+    },
+    "save_context": {
+      "default": true,
+      "title": "Save Context",
+      "type": "boolean"
+    },
+    "show_reasoning": {
+      "default": false,
+      "title": "Show Reasoning",
+      "type": "boolean"
+    },
+    "extras": {
+      "additionalProperties": true,
+      "title": "Extras",
+      "type": "object"
+    }
+  },
+  "required": [
+    "blocks"
+  ],
+  "title": "ProfileSettings",
+  "type": "object"
+}

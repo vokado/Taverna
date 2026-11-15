@@ -47,10 +47,11 @@ class DeleteMessage(RevisionRequest):
 
 
 class StoryGeneration(RevisionRequest):
-    model_id: str = Field(min_length=1, max_length=256)
+    model_id: str | None = Field(default=None, min_length=1, max_length=256)
     character_id: str
     parameters: GenerationParameters = Field(default_factory=GenerationParameters)
     instruction: str = Field(default="", max_length=12000)
+    profile_id: str | None = None
 
 
 class GroupGeneration(StoryGeneration):
@@ -274,7 +275,12 @@ def router(chat: ChatService):
         story_id: str, body: GroupGeneration, idempotency_key: str = Header(min_length=1, max_length=128)
     ):
         branch = await asyncio.to_thread(chat.branch, story_id, body.branch_id)
-        payload = {**body.model_dump(), "story_id": story_id, "endpoint": chat.generation.adapter.endpoint}
+        payload = {
+            **body.model_dump(),
+            "parameters": body.parameters.model_dump(exclude_unset=True, exclude_none=True),
+            "story_id": story_id,
+            "endpoint": chat.generation.adapter.endpoint,
+        }
         job = await chat.generation.queue.enqueue(
             "chat_group",
             payload,
@@ -302,10 +308,20 @@ def router(chat: ChatService):
         text = ""
         after = 0
         speaker = None
+        context_metadata = {}
         while True:
             events = await chat.generation.queue.events(job_id, after)
             for event in events:
                 after = event["sequence"]
+                if event["type"] == "generation.attempt_started":
+                    text = ""
+                if event["type"] == "generation.context":
+                    data = event["data"]
+                    context_metadata = {
+                        "model_id": data.get("model_id"),
+                        "prompt_profile_id": data.get("profile_id"),
+                        "context_trace_id": data.get("trace_id"),
+                    }
                 if event["type"] == "generation.speaker":
                     text = ""
                     speaker = event["data"]["character_id"]
@@ -344,9 +360,10 @@ def router(chat: ChatService):
             author_id=speaker or source["character_id"],
             metadata={
                 "id": message_id,
-                "model_id": source["model_id"],
+                "model_id": source.get("model_id"),
                 "partial": True,
                 "source_job_id": job_id,
+                **context_metadata,
             },
             extra_changes=[Mutation(chat.generation.queue.key(job_id), job, job["revision"])],
         )
@@ -359,7 +376,7 @@ def router(chat: ChatService):
         branch = await asyncio.to_thread(chat.branch, story_id, body.branch_id)
         payload = {
             **body.model_dump(),
-            "parameters": body.parameters.model_dump(),
+            "parameters": body.parameters.model_dump(exclude_unset=True, exclude_none=True),
             "story_id": story_id,
             "branch_id": branch["id"],
             "endpoint": chat.generation.adapter.endpoint,
@@ -372,6 +389,35 @@ def router(chat: ChatService):
             identity={"story_id": story_id, "request": body.model_dump()},
         )
         return {"generation_id": job["id"]}
+
+    @router.post("/{story_id}/context-preview")
+    def context_preview(story_id: str, body: StoryGeneration):
+        from .prompts import PromptBuilder
+
+        story = chat.story(story_id)
+        branch = chat.branch(story_id, body.branch_id)
+        if branch["revision"] != body.expected_revision:
+            raise AppError("branch_conflict", "Ветвь изменилась. Обновите историю.", 409)
+        if body.character_id not in branch["payload"]["participants"]:
+            raise AppError("speaker_absent", "Персонаж отсутствует в сцене.", 409)
+        resolved = chat.generation.profiles.resolve(
+            character_id=body.character_id,
+            story_id=story_id,
+            profile_id=body.profile_id,
+            parameters=body.parameters.model_dump(exclude_unset=True, exclude_none=True),
+        )
+        result = PromptBuilder().build(
+            story=story,
+            branch=branch,
+            state=chat.state(story_id, branch["id"]),
+            character_id=body.character_id,
+            history=chat._prefix(story_id, branch["id"]),
+            resolved=resolved,
+            instruction=body.instruction,
+        )
+        if chat.branch(story_id, branch["id"])["revision"] != body.expected_revision:
+            raise AppError("branch_conflict", "Ветвь изменилась при подготовке контекста.", 409)
+        return {**result, "preview": True, "loaded_window_checked": False}
 
     async def regeneration_handler(payload, cancel, emit):
         body = Regenerate.model_validate(payload["request"])
@@ -395,7 +441,13 @@ def router(chat: ChatService):
             prefix = source["text"][:start]
             suffix = source["text"][start + len(body.fragment) :]
             instruction += "\nВерни только замену фрагмента без окружающего текста: " + body.fragment
-        await chat.generation.adapter.require_loaded(body.model_id)
+        resolved = chat.generation.profiles.resolve(
+            character_id=body.character_id, story_id=story_id, profile_id=body.profile_id
+        )
+        model_id = body.model_id or resolved["settings"]["model_id"]
+        if not model_id:
+            raise AppError("model_required", "Выберите загруженную модель.", 422)
+        await chat.generation.adapter.require_loaded(model_id)
         if cancel.is_set():
             return {"partial": True}
         forked = await asyncio.to_thread(
@@ -410,6 +462,8 @@ def router(chat: ChatService):
         await emit("branch_created", {"branch_id": forked["branch"]["id"]})
         request = {
             **body.model_dump(exclude={"message_id", "action", "fragment"}),
+            "model_id": model_id,
+            "parameters": body.parameters.model_dump(exclude_unset=True, exclude_none=True),
             "story_id": story_id,
             "branch_id": forked["branch"]["id"],
             "endpoint": payload["endpoint"],
@@ -429,7 +483,7 @@ def router(chat: ChatService):
     ):
         branch = await asyncio.to_thread(chat.branch, story_id, body.branch_id)
         payload = {
-            "request": body.model_dump(),
+            "request": body.model_dump(exclude_unset=True, exclude_none=True),
             "story_id": story_id,
             "branch_id": branch["id"],
             "endpoint": chat.generation.adapter.endpoint,

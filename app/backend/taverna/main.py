@@ -48,6 +48,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.store = store
     app.state.generation = generation
     app.include_router(generation.router())
+    app.include_router(generation.profiles.router())
     app.include_router(SettingsService(store).router())
     app.include_router(CharacterService(store, generation).router())
     app.state.chat = ChatService(store, generation)

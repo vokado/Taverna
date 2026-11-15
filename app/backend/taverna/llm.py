@@ -109,11 +109,21 @@ class LmStudioAdapter:
             "model_not_loaded", "Экземпляр модели не загружен. Загрузите его в LM Studio вручную.", 409
         )
 
-    async def stream(self, model_id: str, messages: list[dict], parameters: dict, cancel: asyncio.Event):
+    async def stream(
+        self,
+        model_id: str,
+        messages: list[dict],
+        parameters: dict,
+        cancel: asyncio.Event,
+        *,
+        estimator="balanced",
+    ):
         for attempt in range(2):
             emitted = False
             try:
-                async for event in self._stream_once(model_id, messages, parameters, cancel):
+                async for event in self._stream_once(
+                    model_id, messages, parameters, cancel, estimator=estimator
+                ):
                     emitted = True
                     yield event
                 return
@@ -123,7 +133,13 @@ class LmStudioAdapter:
                 await asyncio.sleep(0.2)
 
     async def _stream_once(
-        self, model_id: str, messages: list[dict], parameters: dict, cancel: asyncio.Event
+        self,
+        model_id: str,
+        messages: list[dict],
+        parameters: dict,
+        cancel: asyncio.Event,
+        *,
+        estimator="balanced",
     ):
         model = await self.require_loaded(model_id)
         allowed = {
@@ -140,8 +156,9 @@ class LmStudioAdapter:
                 "unsupported_parameter", "Параметр не включён в проверенный контракт Chat Completions.", 422
             )
         context = model["config"].get("context_length")
-        # Estimate is conservative UI guidance, not a precise tokenizer guarantee.
-        estimate = sum(len(m.get("content", "")) for m in messages) + len(messages) * 8
+        from .tokens import estimate_messages
+
+        estimate = estimate_messages(messages, estimator)
         if isinstance(context, int) and estimate + parameters.get("max_tokens", 1024) > context:
             raise AppError(
                 "context_overflow",
@@ -216,7 +233,8 @@ class LmStudioAdapter:
                     else None,
                     "stream_chunks": tokens,
                     "prompt_token_estimate": estimate,
-                    "estimate_method": "upper-bound characters + role overhead; approximate",
+                    "estimate_method": estimator,
+                    "exact_tokens": False,
                 },
             )
         except (httpx.ConnectError, httpx.ConnectTimeout) as exc:

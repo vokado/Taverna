@@ -298,6 +298,7 @@ class CharacterService:
                     },
                 ],
                 "parameters": {"max_tokens": 2048, "temperature": 0.7},
+                "service_role": "character",
             }
             job = await self.generation.queue.enqueue("llm", request, idempotency_key=idempotency_key)
             return {"generation_id": job["id"]}

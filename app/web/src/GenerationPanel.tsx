@@ -73,7 +73,8 @@ export function GenerationPanel() {
         `/api/v1/generations/${result.generation_id}/stream`,
       );
       stream.current = source;
-      let sequence = 0;
+      let sequence = 0,
+        failures = 0;
       for (const kind of [
         "started",
         "delta",
@@ -88,6 +89,7 @@ export function GenerationPanel() {
           const event = JSON.parse((raw as MessageEvent).data) as StreamEvent;
           if (event.sequence <= sequence) return;
           sequence = event.sequence;
+          failures = 0;
           if (kind === "started") setStatus("Модель отвечает…");
           if (kind === "delta") setText((t) => t + (event.data.text || ""));
           if (kind === "reasoning")
@@ -113,10 +115,18 @@ export function GenerationPanel() {
           }
         });
       }
-      source.onerror = () =>
-        setStatus(
-          "Поток отключён. Восстанавливаем соединение без повторной генерации.",
-        );
+      source.onerror = () => {
+        if (++failures >= 3) {
+          source.close();
+          setBusy(false);
+          setStatus(
+            "Поток недоступен. Ответ и части доступны в сохранённых задачах.",
+          );
+        } else
+          setStatus(
+            "Поток отключён. Восстанавливаем соединение без повторной генерации.",
+          );
+      };
     } catch (e) {
       setStatus((e as Error).message);
       setBusy(false);
@@ -174,8 +184,8 @@ export function GenerationPanel() {
             />
           </label>
           <p>
-            Это проверка соединения. Истории и персонажи добавляются на
-            следующих этапах.
+            Проверочный запрос отправляется выбранному загруженному экземпляру
+            модели.
           </p>
           <button
             onClick={generate}

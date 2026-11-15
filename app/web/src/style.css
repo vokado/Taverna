@@ -480,6 +480,14 @@ footer {
   padding: 20px;
   border-radius: 12px;
 }
+.diagnostic {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 600px;
+  overflow: auto;
+  padding: 16px;
+  background: var(--background);
+}
 @media (max-width: 800px) {
   .comparison {
     grid-template-columns: 1fr;

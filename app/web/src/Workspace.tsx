@@ -10,6 +10,7 @@ import { GenerationPanel } from "./GenerationPanel";
 import { GenerationHistory } from "./GenerationHistory";
 import { Characters } from "./Characters";
 import { Chat } from "./Chat";
+import { Profiles } from "./Profiles";
 
 type Colors = {
   background: string;
@@ -239,6 +240,7 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["connection", "Рабочее пространство"],
           ["characters", "Персонажи"],
           ["chat", "Истории"],
+          ["profiles", "Профили и промпты"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
           <button
@@ -279,7 +281,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                     ? "Персонажи"
                     : page === "chat"
                       ? "Истории"
-                      : "Рабочее пространство"}
+                      : page === "profiles"
+                        ? "Профили и промпты"
+                        : "Рабочее пространство"}
             </h1>
             <p>Локальные истории и персонажи</p>
           </div>
@@ -581,6 +585,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         </div>
         <div hidden={page !== "chat"}>
           <Chat openStory={openStory} />
+        </div>
+        <div hidden={page !== "profiles"}>
+          <Profiles />
         </div>
         <footer>
           Один пользователь · данные в переносимой папке · обновления только
