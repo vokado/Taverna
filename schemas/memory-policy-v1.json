@@ -1,0 +1,52 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "auto_extract": {
+      "default": true,
+      "title": "Auto Extract",
+      "type": "boolean"
+    },
+    "every_messages": {
+      "default": 8,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Every Messages",
+      "type": "integer"
+    },
+    "model_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model Id"
+    },
+    "auto_archive": {
+      "default": true,
+      "title": "Auto Archive",
+      "type": "boolean"
+    },
+    "archive_min_salience": {
+      "default": 0.2,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Archive Min Salience",
+      "type": "number"
+    },
+    "archive_after_messages": {
+      "default": 100,
+      "maximum": 1000000,
+      "minimum": 1,
+      "title": "Archive After Messages",
+      "type": "integer"
+    }
+  },
+  "title": "MemorySettings",
+  "type": "object"
+}

@@ -125,10 +125,19 @@ def router(chat: ChatService):
         return FileResponse(path, media_type="image/png")
 
     @router.post("/{story_id}/messages")
-    def append(story_id: str, body: MessageRequest):
-        return chat.append(
-            story_id, body.text, expected_revision=body.expected_revision, branch_id=body.branch_id
+    async def append(story_id: str, body: MessageRequest):
+        result = await asyncio.to_thread(
+            chat.append,
+            story_id,
+            body.text,
+            expected_revision=body.expected_revision,
+            branch_id=body.branch_id,
         )
+        if chat.after_message:
+            result["memory_background"] = await chat.after_message(
+                story_id, body.branch_id, result["message"]["id"]
+            )
+        return result
 
     @router.get("/{story_id}/branches")
     def branches(story_id: str):

@@ -4,6 +4,7 @@ import copy
 import re
 
 from .core import AppError
+from .knowledge import KnowledgePolicy, relevance
 from .storage import Mutation, digest, document, encoded
 from .tokens import estimate_messages, estimate_text
 
@@ -67,20 +68,33 @@ class PromptBuilder:
         known = []
         pinned_facts = set()
         excluded = []
+        records = {**state["payload"].get("memory", {}), **state["payload"].get("relationships", {})}
+        policy = KnowledgePolicy(story["id"], branch["id"], records, {m["id"]: m for m in history})
+        query = "\n".join(m["text"] for m in visible[-3:])
+        accessible = []
         for key, fact in state["payload"].get("memory", {}).items():
-            if not isinstance(fact, dict):
+            reason = policy.reason(fact, character_id)
+            if reason:
+                excluded.append({"source": "memory", "source_id": key, "reason": reason})
                 continue
-            if (
-                fact.get("branch_id") != branch["id"]
-                or fact.get("story_id") != story["id"]
-                or character_id not in fact.get("knower_ids", [])
-                or fact.get("status") in ("archived", "invalid")
-            ):
-                excluded.append({"source": "memory", "source_id": key, "reason": "scope_or_knowledge"})
-                continue
-            known.append((key, str(fact.get("text", ""))))
-            if fact.get("pinned"):
-                pinned_facts.add(key)
+            accessible.append(fact)
+        accessible.sort(
+            key=lambda fact: (
+                int(fact["pinned"]),
+                relevance(fact["text"], query) + fact["salience"],
+                fact["created_at"],
+                fact["id"],
+            )
+        )
+        for fact in accessible:
+            known.append(
+                (
+                    fact["id"],
+                    f"[{fact['nature']}; уверенность {fact['confidence']:.2f}; {fact['level']}] {fact['text']}",
+                )
+            )
+            if fact["pinned"]:
+                pinned_facts.add(fact["id"])
         scene = state["payload"].get("scene", {})
         # Only public scene coordinates; world truth/state and other NPC private state never serialized.
         scene_text = "\n".join(
@@ -88,13 +102,21 @@ class PromptBuilder:
         )
         relationships = []
         for key, rel in state["payload"].get("relationships", {}).items():
-            if (
-                isinstance(rel, dict)
-                and character_id in rel.get("knower_ids", [])
-                and rel.get("branch_id") == branch["id"]
-                and rel.get("story_id") == story["id"]
-            ):
-                relationships.append((key, str(rel.get("text", ""))))
+            reason = policy.reason(rel, character_id)
+            if reason:
+                excluded.append({"source": "relationships", "source_id": key, "reason": reason})
+                continue
+            metrics = rel.get("relation", {}).get("metrics", {}) if rel.get("relation") else {}
+            relationships.append(
+                (
+                    key,
+                    f"[{rel['nature']}; уверенность {rel['confidence']:.2f}] "
+                    + rel["text"]
+                    + ("\nПоказатели: " + str(metrics) if metrics else ""),
+                )
+            )
+            if rel["pinned"]:
+                pinned_facts.add(key)
         lore = []
         book = fields.get("character_book") or {}
         haystack = "\n".join(m["text"] for m in visible[-20:]).casefold()
@@ -155,7 +177,15 @@ class PromptBuilder:
                 continue
             source = block["source"]
             if source == "history":
-                rows = [(m["id"], m["text"], m["role"]) for m in visible]
+                rows = []
+                for message in visible:
+                    actor = story["payload"]["character_snapshots"].get(message.get("author_id"))
+                    text = (
+                        str(actor["card"]["fields"]["name"]) + ": "
+                        if actor and message["role"] == "assistant"
+                        else ""
+                    ) + message["text"]
+                    rows.append((message["id"], text, message["role"]))
             elif source in ("system", "post_history"):
                 original = block["template"]
                 override = fields.get("system_prompt" if source == "system" else "post_history_instructions")
@@ -183,7 +213,7 @@ class PromptBuilder:
                 index
                 for index, row in enumerate(rows)
                 if block["pinned"]
-                or (source == "memory" and row[0] in pinned_facts)
+                or (source in ("memory", "relationships") and row[0] in pinned_facts)
                 or (source == "history" and index == len(rows) - 1)
             }
             used = sum(

@@ -76,6 +76,8 @@ class GenerationService:
 
         resolved = await asyncio.to_thread(
             self.profiles.resolve,
+            character_id=payload.get("character_id"),
+            story_id=payload.get("story_id"),
             role=payload.get("service_role", "generation"),
             profile_id=payload.get("profile_id"),
             parameters=payload.get("parameters", {}),
@@ -110,6 +112,7 @@ class GenerationService:
                 "parameters": resolved["settings"]["parameters"],
                 "model_id": model_id,
                 "profile": resolved,
+                "source_selection": payload.get("source_selection", {}),
                 "estimate": estimate_messages(payload["messages"], resolved["settings"]["estimator"]),
                 "estimate_method": resolved["settings"]["estimator"],
                 "exact_tokens": False,

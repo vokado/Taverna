@@ -25,6 +25,10 @@ class JobQueue:
         self.guard = asyncio.Lock()
         self.sequence = 0
         self.closed = False
+        self.active = None
+        self.foreground_pending = 0
+        self.preemptible_kinds = {"memory_extract", "memory_search", "memory_index", "memory_maintenance"}
+        self.preempted = set()
 
     @staticmethod
     def key(job_id: str):
@@ -46,6 +50,9 @@ class JobQueue:
                 self.worker.exception()
             self.queue = asyncio.PriorityQueue(maxsize=self.capacity)
             self.cancellations.clear()
+            self.active = None
+            self.foreground_pending = 0
+            self.preempted.clear()
             self.worker = None
         rows, _ = await asyncio.to_thread(self.store.scan, "jobs/records/")
         for row in rows:
@@ -129,7 +136,10 @@ class JobQueue:
                         "idempotency_conflict", "Этот ключ уже использован для другого запроса.", 409
                     )
                 return await self.get(existing["payload"]["job_id"])
-            if self.queue.full():
+            background_limit = max(1, self.queue.maxsize - min(8, self.queue.maxsize // 4))
+            if self.queue.full() or (
+                kind in self.preemptible_kinds and self.queue.qsize() >= background_limit
+            ):
                 raise AppError("queue_full", "Очередь заполнена. Дождитесь завершения текущих задач.", 429)
             job = document(
                 "job",
@@ -155,6 +165,13 @@ class JobQueue:
             self.cancellations[job["id"]] = asyncio.Event()
             self.sequence += 1
             self.queue.put_nowait((priority, self.sequence, job["id"]))
+            if priority == 0:
+                self.foreground_pending += 1
+                if self.active and self.active[2] in self.preemptible_kinds:
+                    active_cancel = self.cancellations.get(self.active[0])
+                    if active_cancel:
+                        self.preempted.add(self.active[0])
+                        active_cancel.set()
             return await self.get(job["id"])
 
     async def get(self, job_id: str) -> dict:
@@ -211,10 +228,21 @@ class JobQueue:
         try:
             while True:
                 priority, _, current = await self.queue.get()
+                if priority == 0:
+                    self.foreground_pending = max(0, self.foreground_pending - 1)
                 job = await self.get(current)
+                self.active = (current, priority, job["payload"]["kind"])
                 cancel = self.cancellations[current]
+                if job["payload"]["kind"] in self.preemptible_kinds and self.foreground_pending:
+                    self.preempted.add(current)
+                    cancel.set()
                 if cancel.is_set():
-                    await self.emit(current, "cancelled", {}, state="cancelled")
+                    await self.emit(
+                        current,
+                        "cancelled",
+                        {"reason": "foreground_priority"} if current in self.preempted else {},
+                        state="cancelled",
+                    )
                 else:
                     await self.emit(current, "started", {}, state="running")
 
@@ -234,7 +262,12 @@ class JobQueue:
                             if waiter in done and cancel.is_set():
                                 handler.cancel()
                                 await asyncio.gather(handler, return_exceptions=True)
-                                await self.emit(current, "cancelled", {}, state="cancelled")
+                                await self.emit(
+                                    current,
+                                    "cancelled",
+                                    {"reason": "foreground_priority"} if current in self.preempted else {},
+                                    state="cancelled",
+                                )
                             else:
                                 result = await handler
                                 await self.emit(current, "completed", {}, state="completed", result=result)
@@ -253,6 +286,8 @@ class JobQueue:
                         }
                         await self.emit(current, "failed", error, state="failed", error=error)
                 self.cancellations.pop(current, None)
+                self.preempted.discard(current)
+                self.active = None
                 self.queue.task_done()
                 current = None
         except asyncio.CancelledError:

@@ -20,6 +20,8 @@ from .chat_api import router as chat_router
 from .chat_import import router as chat_import_router
 from .core import AppError, Config
 from .generation_api import GenerationService
+from .memory import MemoryService
+from .memory_api import router as memory_router
 from .security import LocalSecurity, Sessions
 from .settings import SettingsService
 from .storage import JsonStore
@@ -53,6 +55,8 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.include_router(CharacterService(store, generation).router())
     app.state.chat = ChatService(store, generation)
     app.include_router(chat_router(app.state.chat))
+    app.state.memory = MemoryService(app.state.chat)
+    app.include_router(memory_router(app.state.memory))
     app.include_router(chat_import_router(app.state.chat))
     app.include_router(transfer_router(app.state.chat))
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)

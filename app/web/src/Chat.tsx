@@ -3,6 +3,7 @@ import { request } from "./api";
 import { ChatImportPanel } from "./ChatImportPanel";
 import { EventTransferPanel } from "./EventTransferPanel";
 import { ContextInspector } from "./ContextInspector";
+import { MemoryPanel } from "./MemoryPanel";
 
 type Card = {
   id: string;
@@ -85,6 +86,7 @@ export function Chat({
   const [status, setStatus] = useState("");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<Array<{ id: string; name: string }>>([]);
   const [profileId, setProfileId] = useState("");
   const [model, setModel] = useState("");
@@ -105,6 +107,7 @@ export function Chat({
   const [novelIndex, setNovelIndex] = useState(0);
   const stream = useRef<EventSource | null>(null);
   const loadSequence = useRef(0);
+  const memoryFlush = useRef<(() => Promise<void>) | null>(null);
   async function refresh() {
     try {
       const [s, c] = await Promise.all([
@@ -140,7 +143,9 @@ export function Chat({
   }, [input]);
   async function load(id: string, pageOffset?: number, query = search) {
     const sequence = ++loadSequence.current;
+    setLoading(true);
     try {
+      await memoryFlush.current?.();
       const bundle = await request<Bundle>(`/stories/${id}`);
       const base = `/stories/${id}/messages?branch_id=${bundle.branch.id}&query=${encodeURIComponent(query)}`;
       const first = await request<{ items: Message[]; total: number }>(
@@ -170,6 +175,8 @@ export function Chat({
       );
     } catch (e) {
       setStatus((e as Error).message);
+    } finally {
+      if (sequence === loadSequence.current) setLoading(false);
     }
   }
   async function create() {
@@ -524,10 +531,13 @@ export function Chat({
     }
   }
   async function jump(anchor: Anchor) {
-    if (!current || !anchor.message_id) return;
+    if (anchor.message_id) await jumpMessage(anchor.message_id);
+  }
+  async function jumpMessage(messageId: string) {
+    if (!current) return;
     try {
       const position = await request<{ index: number }>(
-        `/stories/${current.story.id}/messages/${anchor.message_id}/position?branch_id=${current.branch.id}`,
+        `/stories/${current.story.id}/messages/${messageId}/position?branch_id=${current.branch.id}`,
       );
       setSearch("");
       await load(current.story.id, Math.floor(position.index / 100) * 100, "");
@@ -679,6 +689,33 @@ export function Chat({
               }}
               disabled={busy}
               onApplied={() => load(current.story.id)}
+            />
+            <MemoryPanel
+              key={current.story.id + "/" + current.branch.id}
+              storyId={current.story.id}
+              branchId={current.branch.id}
+              revision={current.branch.revision}
+              actors={[
+                ...current.branch.payload.speaker_order,
+                ...Object.keys(
+                  current.story.payload.character_snapshots,
+                ).filter(
+                  (id) => !current.branch.payload.speaker_order.includes(id),
+                ),
+              ].map((id) => ({
+                id,
+                name: String(
+                  current.story.payload.character_snapshots[id].card.fields
+                    .name,
+                ),
+              }))}
+              messages={messages}
+              disabled={busy || loading}
+              onChanged={() => load(current.story.id)}
+              onMessage={jumpMessage}
+              registerFlush={(flush) => {
+                memoryFlush.current = flush;
+              }}
             />
             <h2>{current.story.payload.name}</h2>
             <label>

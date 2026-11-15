@@ -24,6 +24,7 @@ def identifier(value: str) -> str:
 class ChatService:
     def __init__(self, store: JsonStore, generation):
         self.store, self.generation = store, generation
+        self.after_message = None
         self.segments = SegmentStore(store)
         for kind, schema in [
             ("story", STORY_SCHEMA),
@@ -312,12 +313,17 @@ class ChatService:
                 raise AppError("state_missing", "Снимок состояния утрачен.", 503)
             payload = copy.deepcopy(original_state["payload"])
             payload["branch_id"] = bid
-            for fact in payload.get("memory", {}).values():
+            for fact in [*payload.get("memory", {}).values(), *payload.get("relationships", {}).values()]:
                 if isinstance(fact, dict):
                     fact["source_ids"] = [
                         mapping.get(source, source) for source in fact.get("source_ids", [])
                     ]
                     fact["branch_id"] = bid
+                    if isinstance(fact.get("provenance"), dict):
+                        fact["provenance"]["source_hashes"] = {
+                            mapping.get(source, source): checksum
+                            for source, checksum in fact["provenance"].get("source_hashes", {}).items()
+                        }
             state = document("branch_state", payload)
             changes.append(Mutation(self.state_key(story_id, state["id"]), state, 0))
             state_payloads[state["id"]] = state["payload"]
@@ -541,6 +547,8 @@ class ChatService:
                 "source_message_ids": payload.get("source_message_ids", []),
             },
         )
+        if self.after_message:
+            await self.after_message(story["id"], branch["id"], saved["message"]["id"], model_id)
         return {
             "text": answer,
             "reasoning": reasoning,

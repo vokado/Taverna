@@ -89,3 +89,41 @@ test("Профиль, наследование и предпросмотр де�
     page.getByRole("spinbutton", { name: "Резерв ответа", exact: true }),
   ).toHaveValue("512");
 });
+
+test("Некорректные экспертные поля не ломают редактор профиля", async ({
+  page,
+  appUrl,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page
+    .getByRole("button", { name: "Профили и промпты", exact: true })
+    .click();
+  const panel = page.getByRole("region", {
+    name: "Профили генерации",
+    exact: true,
+  });
+  await panel.getByText("Экспертные настройки JSON", { exact: true }).click();
+  await panel
+    .getByRole("textbox", { name: "Переопределения профиля", exact: true })
+    .fill('{"blocks":"не массив"}');
+  await panel
+    .getByRole("button", { name: "Применить JSON к форме", exact: true })
+    .click();
+  await expect(
+    panel.getByText(/Профиль содержит недопустимые поля/),
+  ).toBeVisible();
+  await expect(
+    panel.getByRole("heading", { name: "Профили и промпты", exact: true }),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
+  await panel
+    .getByRole("textbox", { name: "Переопределения профиля", exact: true })
+    .fill('{"parameters":{"max_tokens":512,"seed":42}}');
+  await panel
+    .getByRole("button", { name: "Применить JSON к форме", exact: true })
+    .click();
+  await expect(
+    panel.getByRole("spinbutton", { name: "Резерв ответа", exact: true }),
+  ).toHaveValue("512");
+});

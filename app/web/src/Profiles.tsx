@@ -277,7 +277,7 @@ export function Profiles() {
           >
             <option value="">Наследуется</option>
             <option value="true">Да, для локального инспектора</option>
-            <option value="false">Только метаданные и хеш запроса</option>
+            <option value="false">Не сохранять полный снимок контекста</option>
           </select>
         </label>
         <label>
@@ -537,15 +537,23 @@ export function Profiles() {
         </label>
         <button
           disabled={busy}
-          onClick={() => {
+          onClick={async () => {
+            setBusy(true);
             try {
               const value = JSON.parse(raw);
               if (!value || Array.isArray(value) || typeof value !== "object")
                 throw Error("Нужен JSON-объект.");
-              change(value);
+              const checked = await request<{ patch: Patch }>(
+                "/profiles/validate",
+                "POST",
+                { patch: value },
+              );
+              change(checked.patch);
               setStatus("JSON применён к форме; сохраните профиль.");
             } catch (e) {
               setStatus((e as Error).message);
+            } finally {
+              setBusy(false);
             }
           }}
         >

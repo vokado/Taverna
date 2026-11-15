@@ -13,6 +13,16 @@ from taverna.segments import SegmentStore
 from taverna.storage import JsonStore, Mutation, document, safe_path
 
 
+@pytest.mark.parametrize("invalid", [float("nan"), "\ud800", {1, 2}])
+def test_invalid_json_data_does_not_publish(tmp_path, invalid):
+    store = JsonStore(tmp_path)
+    before = store.snapshot()
+    with pytest.raises(AppError) as error:
+        store.transaction([Mutation("memory/invalid.json", document("test", {"invalid": invalid}), 0)])
+    assert error.value.code == "invalid_json_data" and error.value.status == 422
+    assert store.snapshot() == before
+
+
 def seed(store):
     first, second = document("test", {"n": 0}), document("test", {"n": 0})
     store.transaction([Mutation("characters/a.json", first, 0), Mutation("characters/b.json", second, 0)])

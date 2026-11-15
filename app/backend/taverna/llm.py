@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import json
+import math
 import time
 from urllib.parse import urlsplit
 
@@ -67,14 +68,21 @@ class LmStudioAdapter:
                     )
                 result = []
                 for model in models:
+                    if not isinstance(model, dict):
+                        raise ValueError("model catalog entry")
                     if model.get("type") not in ("llm", "embedding"):
                         continue
-                    for instance in model.get("loaded_instances", []):
+                    instances = model.get("loaded_instances", [])
+                    if not isinstance(instances, list):
+                        raise ValueError("loaded instances")
+                    for instance in instances:
                         if (
                             isinstance(instance, dict)
                             and isinstance(instance.get("id"), str)
                             and instance["id"]
                         ):
+                            if not isinstance(instance.get("config", {}), dict):
+                                raise ValueError("instance config")
                             result.append(
                                 {
                                     "id": instance["id"],
@@ -257,13 +265,18 @@ class LmStudioAdapter:
                 response = await client.post("/v1/embeddings", json={"model": model_id, "input": texts})
                 response.raise_for_status()
                 rows = sorted(response.json()["data"], key=lambda row: row["index"])
-                if len(rows) != len(texts):
+                if len(rows) != len(texts) or [row["index"] for row in rows] != list(range(len(texts))):
                     raise ValueError("length")
                 vectors = [row["embedding"] for row in rows]
                 if any(
-                    not vector or not all(isinstance(x, (int, float)) for x in vector) for vector in vectors
+                    not isinstance(vector, list)
+                    or not 1 <= len(vector) <= 65536
+                    or not all(type(x) in (int, float) and math.isfinite(x) for x in vector)
+                    for vector in vectors
                 ):
                     raise ValueError("vector")
+                if len({len(vector) for vector in vectors}) > 1:
+                    raise ValueError("dimensions")
                 return vectors
         except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
             raise AppError(

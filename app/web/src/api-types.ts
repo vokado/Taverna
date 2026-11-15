@@ -193,6 +193,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/profiles/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Patch */
+        post: operations["validate_patch_api_v1_profiles_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profiles/bindings": {
         parameters: {
             query?: never;
@@ -765,6 +782,352 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stories/{story_id}/memories/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Draft */
+        get: operations["draft_api_v1_stories__story_id__memories_draft_get"];
+        /** Save Draft */
+        put: operations["save_draft_api_v1_stories__story_id__memories_draft_put"];
+        post?: never;
+        /** Delete Draft */
+        delete: operations["delete_draft_api_v1_stories__story_id__memories_draft_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Records */
+        get: operations["records_api_v1_stories__story_id__memories_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_v1_stories__story_id__memories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Record */
+        post: operations["validate_record_api_v1_stories__story_id__memories_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/draft-validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Draft */
+        post: operations["validate_draft_api_v1_stories__story_id__memories_draft_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Find */
+        post: operations["find_api_v1_stories__story_id__memories_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Index */
+        post: operations["index_api_v1_stories__story_id__memories_index_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/semantic-cache/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Vectors */
+        post: operations["reset_vectors_api_v1_stories__story_id__memories_semantic_cache_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Policy */
+        get: operations["policy_api_v1_stories__story_id__memories_settings_get"];
+        /** Set Policy */
+        put: operations["set_policy_api_v1_stories__story_id__memories_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive */
+        post: operations["archive_api_v1_stories__story_id__memories_archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timeline */
+        get: operations["timeline_api_v1_stories__story_id__memories_timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/conflicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conflicts */
+        get: operations["conflicts_api_v1_stories__story_id__memories_conflicts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/conflicts/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Conflict */
+        post: operations["resolve_conflict_api_v1_stories__story_id__memories_conflicts_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract */
+        post: operations["extract_api_v1_stories__story_id__memories_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Proposals */
+        get: operations["proposals_api_v1_stories__story_id__memories_proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/proposals/{proposal_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review */
+        post: operations["review_api_v1_stories__story_id__memories_proposals__proposal_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export */
+        post: operations["export_api_v1_stories__story_id__memories_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/import-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Preview */
+        post: operations["import_preview_api_v1_stories__story_id__memories_import_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Package */
+        post: operations["import_package_api_v1_stories__story_id__memories_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/{record_id}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sources */
+        get: operations["sources_api_v1_stories__story_id__memories__record_id__sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/memories/{record_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Record */
+        get: operations["read_record_api_v1_stories__story_id__memories__record_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete */
+        delete: operations["delete_api_v1_stories__story_id__memories__record_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["update_api_v1_stories__story_id__memories__record_id__patch"];
+        trace?: never;
+    };
     "/api/v1/chat-import": {
         parameters: {
             query?: never;
@@ -1025,6 +1388,26 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** ArchiveRequest */
+        ArchiveRequest: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Min Salience
+             * @default 0.2
+             */
+            min_salience: number;
+            /**
+             * Min Age Messages
+             * @default 100
+             */
+            min_age_messages: number;
+        };
         /** AutosaveRequest */
         AutosaveRequest: {
             /** Expected Revision */
@@ -1123,6 +1506,30 @@ export interface components {
             /** Content */
             content: string;
         };
+        /** ConflictResolution */
+        ConflictResolution: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Record Id
+             * Format: uuid
+             */
+            record_id: string;
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "keep_both" | "supersede";
+            /** Reason */
+            reason: string;
+        };
         /** ConnectionRequest */
         ConnectionRequest: {
             /** Endpoint */
@@ -1142,15 +1549,127 @@ export interface components {
              */
             confirmed: boolean;
         };
-        /** DraftDelete */
-        DraftDelete: {
-            /** Expected Revision */
-            expected_revision: number;
-        };
         /** DraftPreview */
         DraftPreview: {
             /** Text */
             text: string;
+        };
+        /** DraftRecordInput */
+        DraftRecordInput: {
+            /**
+             * Level
+             * @default personal
+             * @enum {string}
+             */
+            level: "operational" | "episodic" | "personal" | "relationship" | "world" | "plot";
+            /**
+             * Nature
+             * @default fact
+             * @enum {string}
+             */
+            nature: "fact" | "observation" | "report" | "rumor" | "belief" | "secret" | "summary";
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+            /** Subject Ids */
+            subject_ids?: string[];
+            /** Knower Ids */
+            knower_ids: string[];
+            /**
+             * Confidence
+             * @default 1
+             */
+            confidence: number;
+            /**
+             * Salience
+             * @default 0.5
+             */
+            salience: number;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "archived" | "superseded" | "deleted";
+            /**
+             * Pinned
+             * @default false
+             */
+            pinned: boolean;
+            /** Source Ids */
+            source_ids?: string[];
+            /** Source Fact Versions */
+            source_fact_versions?: {
+                [key: string]: number;
+            };
+            /**
+             * Claim Key
+             * @default
+             */
+            claim_key: string;
+            /** Location Id */
+            location_id?: string | null;
+            /**
+             * Story Time
+             * @default
+             */
+            story_time: string;
+            /** Cause Ids */
+            cause_ids?: string[];
+            relation?: components["schemas"]["Relation"] | null;
+            /** Extras */
+            extras?: {
+                [key: string]: unknown;
+            };
+        };
+        /** DraftValidation */
+        DraftValidation: {
+            record: components["schemas"]["DraftRecordInput"];
+        };
+        /** DraftWrite */
+        DraftWrite: {
+            /**
+             * Draft Id
+             * Format: uuid
+             */
+            draft_id: string;
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Record Id */
+            record_id?: string | null;
+            /**
+             * Record Version
+             * @default 0
+             */
+            record_version: number;
+            /** Source Revision */
+            source_revision: number;
+            /** Form */
+            form: {
+                [key: string]: unknown;
+            };
+            /** Policy Draft */
+            policy_draft?: {
+                [key: string]: unknown;
+            } | null;
+            /** Raw */
+            raw: string;
+            /**
+             * Applied Raw
+             * @default
+             */
+            applied_raw: string;
+            /** Reason */
+            reason: string;
+            /** Conflict Policy */
+            conflict_policy?: ("keep_both" | "supersede") | null;
         };
         /** EventTransfer */
         EventTransfer: {
@@ -1193,6 +1712,35 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+        };
+        /** ExtractRequest */
+        ExtractRequest: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Character Id
+             * Format: uuid
+             */
+            character_id: string;
+            /** Model Id */
+            model_id?: string | null;
+            /** Profile Id */
+            profile_id?: string | null;
+            /** Source Ids */
+            source_ids?: string[];
+            /** Source Fact Ids */
+            source_fact_ids?: string[];
+            /**
+             * Operation
+             * @default extract
+             * @enum {string}
+             */
+            operation: "extract" | "summarize";
         };
         /** ForkRequest */
         ForkRequest: {
@@ -1285,20 +1833,35 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** ImportRequest */
-        ImportRequest: {
+        /** MemorySettings */
+        MemorySettings: {
             /**
-             * Format
-             * @enum {string}
+             * Auto Extract
+             * @default true
              */
-            format: "json" | "png" | "package";
-            /** Content Base64 */
-            content_base64: string;
+            auto_extract: boolean;
             /**
-             * Confirmed
-             * @default false
+             * Every Messages
+             * @default 8
              */
-            confirmed: boolean;
+            every_messages: number;
+            /** Model Id */
+            model_id?: string | null;
+            /**
+             * Auto Archive
+             * @default true
+             */
+            auto_archive: boolean;
+            /**
+             * Archive Min Salience
+             * @default 0.2
+             */
+            archive_min_salience: number;
+            /**
+             * Archive After Messages
+             * @default 100
+             */
+            archive_after_messages: number;
         };
         /** MessageRequest */
         MessageRequest: {
@@ -1338,6 +1901,24 @@ export interface components {
              */
             greeting_index: number;
         };
+        /** PatchValidation */
+        PatchValidation: {
+            /** Patch */
+            patch: {
+                [key: string]: unknown;
+            };
+        };
+        /** PolicyWrite */
+        PolicyWrite: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            settings: components["schemas"]["MemorySettings"];
+        };
         /** ProfileWrite */
         ProfileWrite: {
             /** Expected Revision */
@@ -1348,6 +1929,147 @@ export interface components {
             patch: {
                 [key: string]: unknown;
             };
+        };
+        /** ProposalReview */
+        ProposalReview: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Proposal Revision */
+            proposal_revision: number;
+            /** Accept */
+            accept: boolean;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /**
+             * Rebase
+             * @default false
+             */
+            rebase: boolean;
+            /** Conflict Policy */
+            conflict_policy?: "keep_both" | null;
+            /** Records */
+            records?: components["schemas"]["RecordInput"][] | null;
+        };
+        /** RecordDelete */
+        RecordDelete: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Expected Version */
+            expected_version: number;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /**
+             * Reason
+             * @default Удалено владельцем
+             */
+            reason: string;
+        };
+        /** RecordInput */
+        RecordInput: {
+            /**
+             * Level
+             * @default personal
+             * @enum {string}
+             */
+            level: "operational" | "episodic" | "personal" | "relationship" | "world" | "plot";
+            /**
+             * Nature
+             * @default fact
+             * @enum {string}
+             */
+            nature: "fact" | "observation" | "report" | "rumor" | "belief" | "secret" | "summary";
+            /** Text */
+            text: string;
+            /** Subject Ids */
+            subject_ids?: string[];
+            /** Knower Ids */
+            knower_ids: string[];
+            /**
+             * Confidence
+             * @default 1
+             */
+            confidence: number;
+            /**
+             * Salience
+             * @default 0.5
+             */
+            salience: number;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "archived" | "superseded" | "deleted";
+            /**
+             * Pinned
+             * @default false
+             */
+            pinned: boolean;
+            /** Source Ids */
+            source_ids?: string[];
+            /** Source Fact Versions */
+            source_fact_versions?: {
+                [key: string]: number;
+            };
+            /**
+             * Claim Key
+             * @default
+             */
+            claim_key: string;
+            /** Location Id */
+            location_id?: string | null;
+            /**
+             * Story Time
+             * @default
+             */
+            story_time: string;
+            /** Cause Ids */
+            cause_ids?: string[];
+            relation?: components["schemas"]["Relation"] | null;
+            /** Extras */
+            extras?: {
+                [key: string]: unknown;
+            };
+        };
+        /** RecordValidation */
+        RecordValidation: {
+            record: components["schemas"]["RecordInput"];
+        };
+        /** RecordWrite */
+        RecordWrite: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Expected Version
+             * @default 0
+             */
+            expected_version: number;
+            record: components["schemas"]["RecordInput"];
+            /** Reason */
+            reason: string;
+            /** Conflict Policy */
+            conflict_policy?: ("keep_both" | "supersede") | null;
         };
         /** Regenerate */
         Regenerate: {
@@ -1378,6 +2100,17 @@ export interface components {
             /** Fragment */
             fragment?: string | null;
         };
+        /** Relation */
+        Relation: {
+            /** Parties */
+            parties: string[];
+            /** Metrics */
+            metrics?: {
+                [key: string]: number;
+            };
+            /** Episode Ids */
+            episode_ids?: string[];
+        };
         /** ResolveRequest */
         ResolveRequest: {
             /** Character Id */
@@ -1400,6 +2133,59 @@ export interface components {
             expected_revision: number;
             /** Branch Id */
             branch_id: string;
+        };
+        /** Scope */
+        Scope: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** SearchRequest */
+        SearchRequest: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Character Id */
+            character_id?: string | null;
+            /**
+             * Query
+             * @default
+             */
+            query: string;
+            /** Level */
+            level?: ("operational" | "episodic" | "personal" | "relationship" | "world" | "plot") | null;
+            /** Nature */
+            nature?: ("fact" | "observation" | "report" | "rumor" | "belief" | "secret" | "summary") | null;
+            /** Subject Id */
+            subject_id?: string | null;
+            /** Source Id */
+            source_id?: string | null;
+            /** Location Id */
+            location_id?: string | null;
+            /** Time From */
+            time_from?: string | null;
+            /** Time To */
+            time_to?: string | null;
+            /**
+             * Include Messages
+             * @default false
+             */
+            include_messages: boolean;
+            /** Embedding Model Id */
+            embedding_model_id?: string | null;
+            /**
+             * Limit
+             * @default 50
+             */
+            limit: number;
         };
         /** SettingsPatch */
         SettingsPatch: {
@@ -1450,6 +2236,73 @@ export interface components {
             workspace: {
                 [key: string]: unknown;
             };
+        };
+        /** DraftDelete */
+        taverna__characters__DraftDelete: {
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** ImportRequest */
+        taverna__characters__ImportRequest: {
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "json" | "png" | "package";
+            /** Content Base64 */
+            content_base64: string;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
+        /** DraftDelete */
+        taverna__memory_api__DraftDelete: {
+            /**
+             * Draft Id
+             * Format: uuid
+             */
+            draft_id: string;
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** ImportRequest */
+        taverna__memory_api__ImportRequest: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Text */
+            text: string;
+            /** Actor Map */
+            actor_map?: {
+                [key: string]: string;
+            };
+            /** Source Map */
+            source_map?: {
+                [key: string]: string;
+            };
+            /**
+             * Allow External Sources
+             * @default false
+             */
+            allow_external_sources: boolean;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            /** Conflict Policy */
+            conflict_policy?: "keep_both" | null;
         };
     };
     responses: never;
@@ -1808,6 +2661,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ProfileWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_patch_api_v1_profiles_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchValidation"];
             };
         };
         responses: {
@@ -2240,7 +3126,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ImportRequest"];
+                "application/json": components["schemas"]["taverna__characters__ImportRequest"];
             };
         };
         responses: {
@@ -2398,7 +3284,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DraftDelete"];
+                "application/json": components["schemas"]["taverna__characters__DraftDelete"];
             };
         };
         responses: {
@@ -3219,6 +4105,917 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draft_api_v1_stories__story_id__memories_draft_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_draft_api_v1_stories__story_id__memories_draft_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_draft_api_v1_stories__story_id__memories_draft_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["taverna__memory_api__DraftDelete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    records_api_v1_stories__story_id__memories_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+                character_id?: string | null;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_v1_stories__story_id__memories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_record_api_v1_stories__story_id__memories_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordValidation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_draft_api_v1_stories__story_id__memories_draft_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftValidation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    find_api_v1_stories__story_id__memories_search_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "idempotency-key": string;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    index_api_v1_stories__story_id__memories_index_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "idempotency-key": string;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Scope"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_vectors_api_v1_stories__story_id__memories_semantic_cache_reset_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "idempotency-key": string;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Scope"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    policy_api_v1_stories__story_id__memories_settings_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_policy_api_v1_stories__story_id__memories_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_api_v1_stories__story_id__memories_archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArchiveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    timeline_api_v1_stories__story_id__memories_timeline_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+                character_id?: string | null;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conflicts_api_v1_stories__story_id__memories_conflicts_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_conflict_api_v1_stories__story_id__memories_conflicts_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConflictResolution"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    extract_api_v1_stories__story_id__memories_extract_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "idempotency-key": string;
+            };
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    proposals_api_v1_stories__story_id__memories_proposals_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_api_v1_stories__story_id__memories_proposals__proposal_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalReview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_api_v1_stories__story_id__memories_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Scope"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_preview_api_v1_stories__story_id__memories_import_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["taverna__memory_api__ImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_package_api_v1_stories__story_id__memories_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["taverna__memory_api__ImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sources_api_v1_stories__story_id__memories__record_id__sources_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+                character_id?: string | null;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_record_api_v1_stories__story_id__memories__record_id__get: {
+        parameters: {
+            query: {
+                branch_id: string;
+                character_id?: string | null;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_api_v1_stories__story_id__memories__record_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordDelete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_api_v1_stories__story_id__memories__record_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                record_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

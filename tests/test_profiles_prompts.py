@@ -7,11 +7,12 @@ import httpx
 import pytest
 from taverna.core import AppError
 from taverna.generation_api import GenerationParameters
+from taverna.knowledge import MemoryRecord
 from taverna.llm import LmStudioAdapter
 from taverna.profiles import BindingWrite, ProfileService, ProfileWrite
 from taverna.prompts import ContextTraces, PromptBuilder, expand
 from taverna.quality import inspect_answer
-from taverna.storage import JsonStore
+from taverna.storage import JsonStore, now
 from test_chat import append, setup_chat
 
 
@@ -86,7 +87,18 @@ def context_fixture(tmp_path):
         ("secret", [ids[1]], bid),
         ("other", [ids[0]], str(uuid4())),
     ]:
-        state["memory"][name] = {"text": name, "knower_ids": knowers, "story_id": sid, "branch_id": branch}
+        rid = str(uuid4())
+        state["memory"][rid] = MemoryRecord(
+            id=rid,
+            text=name,
+            knower_ids=knowers,
+            story_id=sid,
+            branch_id=branch,
+            version=1,
+            created_at=now(),
+            updated_at=now(),
+            provenance={"mode": "manual", "note": "Тестовый факт", "source_hashes": {}},
+        ).model_dump(mode="json")
     chat.update_state(sid, state, chat.branch(sid)["revision"])
     return chat, sid, ids
 
@@ -298,7 +310,7 @@ def test_context_conditions_order_and_pinned_fact(tmp_path):
     assert "ГРУППОВОЙ БЛОК" not in str(result["messages"])
     assert any(row["reason"] == "condition_false" for row in result["excluded"])
     state = chat.state(sid)["payload"]
-    state["memory"]["known"]["pinned"] = True
+    next(fact for fact in state["memory"].values() if fact["text"] == "known")["pinned"] = True
     chat.update_state(sid, state, chat.branch(sid)["revision"])
     resolved["settings"]["budgets"]["memory"] = 0
     with pytest.raises(AppError, match="ручной бюджет"):

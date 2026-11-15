@@ -182,6 +182,15 @@ def merge(base, patch):
     return value
 
 
+def normalize_patch(raw, normalized):
+    return {
+        key: normalize_patch(value, normalized.get(key, {}))
+        if isinstance(value, dict) and isinstance(normalized.get(key), dict)
+        else copy.deepcopy(normalized.get(key, value))
+        for key, value in raw.items()
+    }
+
+
 def validate_settings(raw):
     try:
         parsed = ProfileSettings.model_validate(raw)
@@ -200,6 +209,11 @@ class ProfileWrite(BaseModel):
     model_config = ConfigDict(extra="forbid")
     expected_revision: int = Field(ge=0)
     name: str = Field(min_length=1, max_length=200)
+    patch: dict
+
+
+class PatchValidation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     patch: dict
 
 
@@ -291,9 +305,9 @@ class ProfileService:
         return value
 
     def write(self, body: ProfileWrite, profile_id=None):
-        validate_settings(merge(DEFAULTS, body.patch))
+        settings = validate_settings(merge(DEFAULTS, body.patch))
         value = self.get(profile_id) if profile_id else document("generation_profile", {"builtin": False})
-        value["payload"].update(name=body.name, patch=copy.deepcopy(body.patch))
+        value["payload"].update(name=body.name, patch=normalize_patch(body.patch, settings))
         self.store.transaction([Mutation(self.key(value["id"]), value, body.expected_revision)])
         return self.get(value["id"])
 
@@ -417,6 +431,11 @@ class ProfileService:
         @router.post("/profiles")
         def create(body: ProfileWrite):
             return self.write(body)
+
+        @router.post("/profiles/validate")
+        def validate_patch(body: PatchValidation):
+            settings = validate_settings(merge(DEFAULTS, body.patch))
+            return {"patch": normalize_patch(body.patch, settings), "resolved": settings}
 
         @router.get("/profiles/bindings")
         def bindings():

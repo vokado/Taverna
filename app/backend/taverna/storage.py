@@ -63,9 +63,16 @@ CATEGORIES = (
 
 
 def encoded(value) -> bytes:
-    return json.dumps(
-        value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
+    try:
+        return json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8")
+    except (ValueError, TypeError, UnicodeError) as exc:
+        raise AppError(
+            "invalid_json_data",
+            "Данные должны содержать корректный UTF-8 JSON без нечисловых значений NaN/Infinity.",
+            422,
+        ) from exc
 
 
 def digest(value: bytes) -> str:

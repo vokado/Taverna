@@ -1,0 +1,286 @@
+{
+  "$defs": {
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "manual",
+            "model",
+            "import"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "note": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "source_hashes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "title": "Source Hashes",
+          "type": "object"
+        }
+      },
+      "required": [
+        "mode",
+        "note"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Relation": {
+      "additionalProperties": false,
+      "properties": {
+        "parties": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Parties",
+          "type": "array"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "maxProperties": 32,
+          "title": "Metrics",
+          "type": "object"
+        },
+        "episode_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Episode Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "parties"
+      ],
+      "title": "Relation",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "level": {
+      "default": "personal",
+      "enum": [
+        "operational",
+        "episodic",
+        "personal",
+        "relationship",
+        "world",
+        "plot"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "nature": {
+      "default": "fact",
+      "enum": [
+        "fact",
+        "observation",
+        "report",
+        "rumor",
+        "belief",
+        "secret",
+        "summary"
+      ],
+      "title": "Nature",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 32768,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "subject_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Subject Ids",
+      "type": "array"
+    },
+    "knower_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Knower Ids",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 1,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "salience": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Salience",
+      "type": "number"
+    },
+    "status": {
+      "default": "active",
+      "enum": [
+        "active",
+        "archived",
+        "superseded",
+        "deleted"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "pinned": {
+      "default": false,
+      "title": "Pinned",
+      "type": "boolean"
+    },
+    "source_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "title": "Source Ids",
+      "type": "array"
+    },
+    "source_fact_versions": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "maxProperties": 1000,
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Source Fact Versions",
+      "type": "object"
+    },
+    "claim_key": {
+      "default": "",
+      "maxLength": 200,
+      "title": "Claim Key",
+      "type": "string"
+    },
+    "location_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Location Id"
+    },
+    "story_time": {
+      "default": "",
+      "maxLength": 200,
+      "title": "Story Time",
+      "type": "string"
+    },
+    "cause_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 1000,
+      "title": "Cause Ids",
+      "type": "array"
+    },
+    "relation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Relation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "extras": {
+      "additionalProperties": true,
+      "title": "Extras",
+      "type": "object"
+    },
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "story_id": {
+      "format": "uuid",
+      "title": "Story Id",
+      "type": "string"
+    },
+    "branch_id": {
+      "format": "uuid",
+      "title": "Branch Id",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "history": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "History",
+      "type": "array"
+    }
+  },
+  "required": [
+    "text",
+    "knower_ids",
+    "id",
+    "story_id",
+    "branch_id",
+    "version",
+    "created_at",
+    "updated_at",
+    "provenance"
+  ],
+  "title": "MemoryRecord",
+  "type": "object"
+}
