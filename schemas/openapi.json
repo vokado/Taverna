@@ -1420,6 +1420,63 @@
         }
       }
     },
+    "/api/v1/stories/{story_id}/branches/{branch_id}/revision": {
+      "get": {
+        "summary": "Revision",
+        "operationId": "revision_api_v1_stories__story_id__branches__branch_id__revision_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "known_revision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Known Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/messages": {
       "get": {
         "summary": "Messages",
@@ -2391,7 +2448,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DraftWrite"
+                "$ref": "#/components/schemas/taverna__memory_api__DraftWrite"
               }
             }
           }
@@ -4841,6 +4898,54 @@
         }
       }
     },
+    "/api/v1/stories/{story_id}/director/validate": {
+      "post": {
+        "summary": "Validate",
+        "operationId": "validate_api_v1_stories__story_id__director_validate_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditorValidation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/director/policy": {
       "put": {
         "summary": "Policy",
@@ -5110,6 +5215,54 @@
         }
       }
     },
+    "/api/v1/stories/{story_id}/director/dismiss": {
+      "post": {
+        "summary": "Dismiss",
+        "operationId": "dismiss_api_v1_stories__story_id__director_dismiss_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Dismiss"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/director/initiative": {
       "post": {
         "summary": "Initiative",
@@ -5145,6 +5298,187 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/drafts/{branch_id}": {
+      "get": {
+        "summary": "Read",
+        "operationId": "read_api_v1_stories__story_id__director_drafts__branch_id__get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/director/drafts/{branch_id}/{draft_id}": {
+      "put": {
+        "summary": "Write",
+        "operationId": "write_api_v1_stories__story_id__director_drafts__branch_id___draft_id__put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/taverna__director_drafts__DraftWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete",
+        "operationId": "delete_api_v1_stories__story_id__director_drafts__branch_id___draft_id__delete",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          },
+          {
+            "name": "expected_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Expected Revision"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -5771,6 +6105,50 @@
         ],
         "title": "BranchSettings"
       },
+      "Bundle": {
+        "properties": {
+          "actor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Actor Id"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/DirectorPolicyDraft"
+          },
+          "npc": {
+            "$ref": "#/components/schemas/NPCDraft"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Reason"
+          },
+          "dirty_policy": {
+            "type": "boolean",
+            "title": "Dirty Policy",
+            "default": false
+          },
+          "dirty_npc": {
+            "type": "boolean",
+            "title": "Dirty Npc",
+            "default": false
+          },
+          "dirty_raw": {
+            "type": "boolean",
+            "title": "Dirty Raw",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "actor_id",
+          "policy",
+          "npc",
+          "reason"
+        ],
+        "title": "Bundle"
+      },
       "CharacterRequest": {
         "properties": {
           "expected_revision": {
@@ -5965,6 +6343,56 @@
         ],
         "title": "DeleteMessage"
       },
+      "DirectorEmotionDraft": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "enum": [
+              "спокойствие",
+              "радость",
+              "печаль",
+              "страх",
+              "гнев",
+              "интерес",
+              "удивление",
+              "отвращение",
+              "смущение",
+              "надежда"
+            ],
+            "title": "Label",
+            "default": "спокойствие"
+          },
+          "intensity": {
+            "type": "number",
+            "title": "Intensity",
+            "default": 0.2
+          },
+          "valence": {
+            "type": "number",
+            "title": "Valence",
+            "default": 0
+          },
+          "arousal": {
+            "type": "number",
+            "title": "Arousal",
+            "default": 0.2
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DirectorEmotionDraft"
+      },
       "DirectorPolicy": {
         "properties": {
           "enabled": {
@@ -6075,6 +6503,154 @@
         "additionalProperties": false,
         "type": "object",
         "title": "DirectorPolicy"
+      },
+      "DirectorPolicyDraft": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "before_reply": {
+            "type": "boolean",
+            "title": "Before Reply",
+            "default": true
+          },
+          "after_every_messages": {
+            "type": "integer",
+            "title": "After Every Messages",
+            "default": 4
+          },
+          "pre_timeout_seconds": {
+            "type": "number",
+            "title": "Pre Timeout Seconds",
+            "default": 15
+          },
+          "max_actions": {
+            "type": "integer",
+            "title": "Max Actions",
+            "default": 8
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "title": "Max Output Tokens",
+            "default": 768
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
+          "auto_apply": {
+            "type": "boolean",
+            "title": "Auto Apply",
+            "default": false
+          },
+          "auto_initiative": {
+            "type": "boolean",
+            "title": "Auto Initiative",
+            "default": false
+          },
+          "offscene": {
+            "type": "boolean",
+            "title": "Offscene",
+            "default": true
+          },
+          "actor_entities": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "title": "Actor Entities"
+          },
+          "actor_attribute_keys": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "title": "Actor Attribute Keys"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DirectorPolicyDraft"
+      },
+      "Dismiss": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "character_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Character Id"
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "intention",
+              "arc"
+            ],
+            "title": "Kind"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "character_id",
+          "target_id",
+          "kind",
+          "reason"
+        ],
+        "title": "Dismiss"
       },
       "DraftPreview": {
         "properties": {
@@ -6264,108 +6840,22 @@
         ],
         "title": "DraftValidation"
       },
-      "DraftWrite": {
+      "EditorValidation": {
         "properties": {
-          "draft_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Draft Id"
+          "policy": {
+            "$ref": "#/components/schemas/DirectorPolicy"
           },
-          "branch_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Branch Id"
-          },
-          "expected_revision": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Expected Revision"
-          },
-          "record_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Record Id"
-          },
-          "record_version": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Record Version",
-            "default": 0
-          },
-          "source_revision": {
-            "type": "integer",
-            "minimum": 1.0,
-            "title": "Source Revision"
-          },
-          "form": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Form"
-          },
-          "policy_draft": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Policy Draft"
-          },
-          "raw": {
-            "type": "string",
-            "maxLength": 524288,
-            "title": "Raw"
-          },
-          "applied_raw": {
-            "type": "string",
-            "maxLength": 524288,
-            "title": "Applied Raw",
-            "default": ""
-          },
-          "reason": {
-            "type": "string",
-            "maxLength": 2000,
-            "minLength": 1,
-            "title": "Reason"
-          },
-          "conflict_policy": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "keep_both",
-                  "supersede"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Conflict Policy"
+          "npc": {
+            "$ref": "#/components/schemas/NPCPatch"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "draft_id",
-          "branch_id",
-          "expected_revision",
-          "source_revision",
-          "form",
-          "raw",
-          "reason"
+          "policy",
+          "npc"
         ],
-        "title": "DraftWrite"
+        "title": "EditorValidation"
       },
       "Effect": {
         "properties": {
@@ -7062,6 +7552,50 @@
           "text"
         ],
         "title": "MessageRequest"
+      },
+      "NPCDraft": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "fixed",
+              "flexible",
+              "developing"
+            ],
+            "title": "Mode",
+            "default": "fixed"
+          },
+          "emotions_enabled": {
+            "type": "boolean",
+            "title": "Emotions Enabled",
+            "default": true
+          },
+          "relationships_enabled": {
+            "type": "boolean",
+            "title": "Relationships Enabled",
+            "default": true
+          },
+          "emotion": {
+            "$ref": "#/components/schemas/DirectorEmotionDraft"
+          },
+          "traits": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Traits"
+          },
+          "adaptations": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Adaptations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NPCDraft"
       },
       "NPCPatch": {
         "properties": {
@@ -8500,6 +9034,49 @@
         ],
         "title": "PolicyWrite"
       },
+      "taverna__director_drafts__DraftWrite": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "source_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Source Revision"
+          },
+          "raw": {
+            "type": "string",
+            "maxLength": 1048576,
+            "title": "Raw"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/Bundle"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "source_revision",
+          "raw",
+          "payload"
+        ],
+        "title": "DraftWrite"
+      },
       "taverna__memory_api__DraftDelete": {
         "properties": {
           "draft_id": {
@@ -8526,6 +9103,109 @@
           "expected_revision"
         ],
         "title": "DraftDelete"
+      },
+      "taverna__memory_api__DraftWrite": {
+        "properties": {
+          "draft_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Draft Id"
+          },
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "record_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Record Id"
+          },
+          "record_version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Record Version",
+            "default": 0
+          },
+          "source_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Source Revision"
+          },
+          "form": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Form"
+          },
+          "policy_draft": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Draft"
+          },
+          "raw": {
+            "type": "string",
+            "maxLength": 524288,
+            "title": "Raw"
+          },
+          "applied_raw": {
+            "type": "string",
+            "maxLength": 524288,
+            "title": "Applied Raw",
+            "default": ""
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "conflict_policy": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "keep_both",
+                  "supersede"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Policy"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "draft_id",
+          "branch_id",
+          "expected_revision",
+          "source_revision",
+          "form",
+          "raw",
+          "reason"
+        ],
+        "title": "DraftWrite"
       },
       "taverna__memory_api__ImportRequest": {
         "properties": {

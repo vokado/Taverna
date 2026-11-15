@@ -84,12 +84,24 @@ class SegmentStore:
             head = view.get(self._key(story_id))
             if not head:
                 return {"items": [], "total": 0, "offset": offset}
-            items, skipped = [], 0
-            for key in head["payload"]["segments"]:
+            total = head["payload"]["count"]
+            if offset >= total:
+                return {"items": [], "total": total, "offset": offset}
+            items = []
+            end = min(total, offset + limit)
+            keys = head["payload"]["segments"]
+            # Near the tail, count backwards from the published total. Segment sizes
+            # vary with byte limits, so never infer positions from max_messages.
+            reverse = offset > total // 2
+            cursor = total if reverse else 0
+            for key in reversed(keys) if reverse else keys:
                 messages = view.get(key)["payload"]["messages"]
-                if skipped + len(messages) > offset:
-                    items.extend(messages[max(0, offset - skipped) :][: limit - len(items)])
-                skipped += len(messages)
-                if len(items) >= limit:
+                start = cursor - len(messages) if reverse else cursor
+                stop = start + len(messages)
+                if stop > offset and start < end:
+                    part = messages[max(0, offset - start) : min(len(messages), end - start)]
+                    items = part + items if reverse else items + part
+                cursor = start if reverse else stop
+                if (reverse and start <= offset) or (not reverse and stop >= end):
                     break
-            return {"items": items, "total": head["payload"]["count"], "offset": offset}
+            return {"items": items, "total": total, "offset": offset}

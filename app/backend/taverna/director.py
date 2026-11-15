@@ -27,8 +27,8 @@ class DirectorService:
             raise AppError("unsupported_schema", "Неизвестная версия состояния режиссёра.", 409)
         return value
 
-    def snapshot(self, story_id, branch_id, expected_revision=None):
-        snap = self.memory.snapshot(story_id, branch_id)
+    def snapshot(self, story_id, branch_id, expected_revision=None, *, include_messages=True):
+        snap = self.memory.snapshot(story_id, branch_id, include_messages=include_messages)
         if snap["story"]["payload"]["active_branch"] != branch_id:
             raise AppError("inactive_branch", "Ветвь больше не активна.", 409)
         if expected_revision is not None and snap["branch"]["revision"] != expected_revision:
@@ -45,7 +45,7 @@ class DirectorService:
         return DirectorPolicy.model_validate(raw.get("policy", {})).model_dump(mode="json")
 
     def read(self, story_id, branch_id):
-        snap = self.snapshot(story_id, branch_id)
+        snap = self.snapshot(story_id, branch_id, include_messages=False)
         return {
             "policy": self.policy(snap),
             "characters": {
@@ -56,7 +56,7 @@ class DirectorService:
         }
 
     def write_policy(self, story_id, branch_id, expected_revision, policy, reason):
-        snap = self.snapshot(story_id, branch_id, expected_revision)
+        snap = self.snapshot(story_id, branch_id, expected_revision, include_messages=False)
         policy = DirectorPolicy.model_validate(policy).model_dump(mode="json")
         actors = set(snap["story"]["payload"]["character_snapshots"])
         entities = snap["state"]["payload"]["world"].get("entities", {})
@@ -92,7 +92,7 @@ class DirectorService:
         return {"policy": policy, "branch_revision": expected_revision + 1}
 
     def write_npc(self, story_id, branch_id, actor, expected_revision, patch, reason):
-        snap = self.snapshot(story_id, branch_id, expected_revision)
+        snap = self.snapshot(story_id, branch_id, expected_revision, include_messages=False)
         previous = self.npc(snap, actor)
         if set(patch) - {
             "mode",
@@ -123,6 +123,37 @@ class DirectorService:
         )
         self.commit(snap, data)
         return {"character": npc, "branch_revision": expected_revision + 1}
+
+    def dismiss(self, story_id, branch_id, expected_revision, actor, target_id, kind, reason):
+        snap = self.snapshot(story_id, branch_id, expected_revision, include_messages=False)
+        npc = self.npc(snap, actor)
+        data = copy.deepcopy(snap["state"]["payload"])
+        director = self.director(data)
+        if kind == "intention":
+            target = next((i for i in npc["intentions"] if i["id"] == target_id), None)
+            if not target or target["status"] != "proposed_action":
+                raise AppError("initiative_invalid", "Доступного намерения для отмены нет.", 409)
+            before = copy.deepcopy(npc)
+            target["status"] = "dismissed"
+            self.history(npc, before, reason, "manual", [])
+            data["character_states"][actor] = npc
+        else:
+            target = director["arcs"].get(target_id)
+            if not target or actor not in target["knower_ids"] or target["status"] != "open":
+                raise AppError("arc_missing", "Открытая линия выбранного NPC не найдена.", 409)
+            target.update(status="resolved", resolution=reason)
+        director["audit"].append(
+            {
+                "id": str(uuid4()),
+                "kind": "manual_dismiss_" + kind,
+                "actor_id": actor,
+                "target_id": target_id,
+                "reason": reason,
+                "created_at": now(),
+            }
+        )
+        self.commit(snap, data)
+        return {"branch_revision": expected_revision + 1, "target_id": target_id}
 
     @staticmethod
     def history(npc, before, reason, mode, sources, provenance=None):

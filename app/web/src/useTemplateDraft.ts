@@ -16,6 +16,7 @@ export function useTemplateDraft(
   editor: TemplateEditor,
   dirty: boolean,
   busy: boolean,
+  baseOverride?: string,
 ) {
   const [id, setId] = useState<string>(() => crypto.randomUUID());
   const [items, setItems] = useState<TemplateDraft[]>([]),
@@ -25,7 +26,7 @@ export function useTemplateDraft(
   const writes = useRef<Promise<void>>(Promise.resolve());
   const current = useRef({ id, editor, dirty });
   current.current = { id, editor, dirty };
-  const base = `/template-drafts/${kind}`;
+  const base = baseOverride || `/template-drafts/${kind}`;
   async function refresh() {
     const result = await request<{ items: TemplateDraft[]; errors: unknown[] }>(
       base,
@@ -55,7 +56,9 @@ export function useTemplateDraft(
         setItems((old) => [saved, ...old.filter((d) => d.id !== saved.id)]);
         setStatus(
           JSON.stringify(current.current.editor) === fingerprint
-            ? "Черновик шаблона автосохранён."
+            ? kind === "director"
+              ? "Черновик режиссёра автосохранён."
+              : "Черновик шаблона автосохранён."
             : "Сохраняем следующую редакцию черновика…",
         );
       });
@@ -69,6 +72,16 @@ export function useTemplateDraft(
     const next = crypto.randomUUID();
     current.current = { ...current.current, id: next, dirty: false };
     setId(next);
+  }
+  async function saveSeparate() {
+    const snapshot = {
+      ...current.current,
+      id: crypto.randomUUID(),
+      dirty: true,
+    };
+    current.current = snapshot;
+    setId(snapshot.id);
+    await persist(snapshot);
   }
   function adopt(saved: TemplateDraft) {
     versions.current[saved.id] = saved.revision;
@@ -94,7 +107,11 @@ export function useTemplateDraft(
   }, []);
   useEffect(() => {
     if (!dirty || busy) return;
-    setStatus("Сохраняем черновик шаблона…");
+    setStatus(
+      kind === "director"
+        ? "Сохраняем черновик режиссёра…"
+        : "Сохраняем черновик шаблона…",
+    );
     const snapshot = JSON.parse(JSON.stringify({ id, editor, dirty }));
     const timer = setTimeout(
       () =>
@@ -122,5 +139,15 @@ export function useTemplateDraft(
       void flush().catch(() => {});
     };
   }, []);
-  return { id, items, status, flush, create, adopt, remove, refresh };
+  return {
+    id,
+    items,
+    status,
+    flush,
+    create,
+    adopt,
+    remove,
+    refresh,
+    saveSeparate,
+  };
 }

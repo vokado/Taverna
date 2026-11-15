@@ -32,6 +32,11 @@ jobs:
         working-directory: app/web
       - run: npm run test:e2e
         working-directory: app/web
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Browser-failure-${{ matrix.os }}
+          path: app/web/test-results/
       - if: runner.os == 'Windows'
         run: ./packaging/build_windows.ps1
         shell: pwsh

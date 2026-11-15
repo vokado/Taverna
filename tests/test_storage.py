@@ -215,3 +215,27 @@ def test_cancellation_before_commit_marker_keeps_multi_document_snapshot_and_rec
     assert recovered.integrity()["ok"] and recovered.get("characters/a.json")["revision"] == 1
     recovered.transaction([Mutation("characters/a.json", a, 1), Mutation("characters/b.json", b, 1)])
     assert recovered.get("characters/a.json")["payload"]["n"] == 1
+
+
+def test_segment_pages_read_nearest_end_with_variable_byte_sizes(tmp_path, monkeypatch):
+    from taverna.storage import ReadView
+
+    store = JsonStore(tmp_path)
+    segments = SegmentStore(store, max_messages=128, max_bytes=4096)
+    sid = str(uuid4())
+    messages = [{"id": str(uuid4()), "text": "я" * (50 + i % 200)} for i in range(300)]
+    segments.append(sid, messages)
+    reads = []
+    original = ReadView.get
+
+    def counted(view, key):
+        reads.append(key)
+        return original(view, key)
+
+    monkeypatch.setattr(ReadView, "get", counted)
+    assert segments.page(sid, 290, 10)["items"] == messages[290:]
+    assert len(reads) <= 4  # head and only intersecting tail segments
+    for offset, limit in [(0, 5), (149, 20), (150, 20), (299, 5), (300, 10), (1000, 10)]:
+        assert segments.page(sid, offset, limit)["items"] == messages[offset : offset + limit]
+    # No new index or migration: the original JSON head is sufficient.
+    assert set(store.get(segments._key(sid))["payload"]) == {"count", "segments"}

@@ -93,7 +93,29 @@ def router(chat: ChatService):
 
     @router.get("/{story_id}")
     def story(story_id: str):
-        return {"story": chat.story(story_id), "branch": chat.branch(story_id), "state": chat.state(story_id)}
+        with chat.store.view() as view:
+            story = view.get(chat.story_key(story_id))
+            if not story:
+                raise AppError("story_missing", "История не найдена.", 404)
+            branch = view.get(chat.branch_key(story_id, story["payload"]["active_branch"]))
+            if not branch:
+                raise AppError("branch_missing", "Ветвь не найдена.", 404)
+            state = view.get(chat.state_key(story_id, branch["payload"]["state_id"]))
+            if not state:
+                raise AppError("state_missing", "Снимок состояния отсутствует.", 503)
+            return {"story": story, "branch": branch, "state": state}
+
+    @router.get("/{story_id}/branches/{branch_id}/revision")
+    def revision(story_id: str, branch_id: str, known_revision: int = Query(0, ge=0)):
+        with chat.store.view() as view:
+            branch = view.get(chat.branch_key(story_id, branch_id))
+            if not branch or branch["payload"]["story_id"] != story_id:
+                raise AppError("branch_missing", "Ветвь не найдена.", 404)
+            active = None
+            if branch["revision"] != known_revision:
+                story = view.get(chat.story_key(story_id))
+                active = story["payload"]["active_branch"] if story else None
+            return {"revision": branch["revision"], "active_branch": active}
 
     @router.get("/{story_id}/messages")
     def messages(

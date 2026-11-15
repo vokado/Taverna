@@ -541,6 +541,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stories/{story_id}/branches/{branch_id}/revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Revision */
+        get: operations["revision_api_v1_stories__story_id__branches__branch_id__revision_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stories/{story_id}/messages": {
         parameters: {
             query?: never;
@@ -1506,6 +1523,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stories/{story_id}/director/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate */
+        post: operations["validate_api_v1_stories__story_id__director_validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stories/{story_id}/director/policy": {
         parameters: {
             query?: never;
@@ -1591,6 +1625,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stories/{story_id}/director/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss */
+        post: operations["dismiss_api_v1_stories__story_id__director_dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stories/{story_id}/director/initiative": {
         parameters: {
             query?: never;
@@ -1603,6 +1654,41 @@ export interface paths {
         /** Initiative */
         post: operations["initiative_api_v1_stories__story_id__director_initiative_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/drafts/{branch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_stories__story_id__director_drafts__branch_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/director/drafts/{branch_id}/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Write */
+        put: operations["write_api_v1_stories__story_id__director_drafts__branch_id___draft_id__put"];
+        post?: never;
+        /** Delete */
+        delete: operations["delete_api_v1_stories__story_id__director_drafts__branch_id___draft_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1954,6 +2040,33 @@ export interface components {
             /** Speaker Order */
             speaker_order?: string[] | null;
         };
+        /** Bundle */
+        Bundle: {
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            policy: components["schemas"]["DirectorPolicyDraft"];
+            npc: components["schemas"]["NPCDraft"];
+            /** Reason */
+            reason: string;
+            /**
+             * Dirty Policy
+             * @default false
+             */
+            dirty_policy: boolean;
+            /**
+             * Dirty Npc
+             * @default false
+             */
+            dirty_npc: boolean;
+            /**
+             * Dirty Raw
+             * @default false
+             */
+            dirty_raw: boolean;
+        };
         /** CharacterRequest */
         CharacterRequest: {
             /** Expected Revision */
@@ -2039,6 +2152,32 @@ export interface components {
              */
             confirmed: boolean;
         };
+        /** DirectorEmotionDraft */
+        DirectorEmotionDraft: {
+            /**
+             * Label
+             * @default спокойствие
+             * @enum {string}
+             */
+            label: "спокойствие" | "радость" | "печаль" | "страх" | "гнев" | "интерес" | "удивление" | "отвращение" | "смущение" | "надежда";
+            /**
+             * Intensity
+             * @default 0.2
+             */
+            intensity: number;
+            /**
+             * Valence
+             * @default 0
+             */
+            valence: number;
+            /**
+             * Arousal
+             * @default 0.2
+             */
+            arousal: number;
+            /** Confidence */
+            confidence?: number | null;
+        };
         /** DirectorPolicy */
         DirectorPolicy: {
             /**
@@ -2098,6 +2237,93 @@ export interface components {
             actor_attribute_keys?: {
                 [key: string]: string[];
             };
+        };
+        /** DirectorPolicyDraft */
+        DirectorPolicyDraft: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * Before Reply
+             * @default true
+             */
+            before_reply: boolean;
+            /**
+             * After Every Messages
+             * @default 4
+             */
+            after_every_messages: number;
+            /**
+             * Pre Timeout Seconds
+             * @default 15
+             */
+            pre_timeout_seconds: number;
+            /**
+             * Max Actions
+             * @default 8
+             */
+            max_actions: number;
+            /**
+             * Max Output Tokens
+             * @default 768
+             */
+            max_output_tokens: number;
+            /** Model Id */
+            model_id?: string | null;
+            /** Profile Id */
+            profile_id?: string | null;
+            /**
+             * Auto Apply
+             * @default false
+             */
+            auto_apply: boolean;
+            /**
+             * Auto Initiative
+             * @default false
+             */
+            auto_initiative: boolean;
+            /**
+             * Offscene
+             * @default true
+             */
+            offscene: boolean;
+            /** Actor Entities */
+            actor_entities?: {
+                [key: string]: string;
+            };
+            /** Actor Attribute Keys */
+            actor_attribute_keys?: {
+                [key: string]: string[];
+            };
+        };
+        /** Dismiss */
+        Dismiss: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Character Id
+             * Format: uuid
+             */
+            character_id: string;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "intention" | "arc";
+            /** Reason */
+            reason: string;
         };
         /** DraftPreview */
         DraftPreview: {
@@ -2178,48 +2404,10 @@ export interface components {
         DraftValidation: {
             record: components["schemas"]["DraftRecordInput"];
         };
-        /** DraftWrite */
-        DraftWrite: {
-            /**
-             * Draft Id
-             * Format: uuid
-             */
-            draft_id: string;
-            /**
-             * Branch Id
-             * Format: uuid
-             */
-            branch_id: string;
-            /** Expected Revision */
-            expected_revision: number;
-            /** Record Id */
-            record_id?: string | null;
-            /**
-             * Record Version
-             * @default 0
-             */
-            record_version: number;
-            /** Source Revision */
-            source_revision: number;
-            /** Form */
-            form: {
-                [key: string]: unknown;
-            };
-            /** Policy Draft */
-            policy_draft?: {
-                [key: string]: unknown;
-            } | null;
-            /** Raw */
-            raw: string;
-            /**
-             * Applied Raw
-             * @default
-             */
-            applied_raw: string;
-            /** Reason */
-            reason: string;
-            /** Conflict Policy */
-            conflict_policy?: ("keep_both" | "supersede") | null;
+        /** EditorValidation */
+        EditorValidation: {
+            policy: components["schemas"]["DirectorPolicy"];
+            npc: components["schemas"]["NPCPatch"];
         };
         /** Effect */
         Effect: {
@@ -2519,6 +2707,34 @@ export interface components {
             branch_id: string;
             /** Text */
             text: string;
+        };
+        /** NPCDraft */
+        NPCDraft: {
+            /**
+             * Mode
+             * @default fixed
+             * @enum {string}
+             */
+            mode: "fixed" | "flexible" | "developing";
+            /**
+             * Emotions Enabled
+             * @default true
+             */
+            emotions_enabled: boolean;
+            /**
+             * Relationships Enabled
+             * @default true
+             */
+            relationships_enabled: boolean;
+            emotion?: components["schemas"]["DirectorEmotionDraft"];
+            /** Traits */
+            traits?: {
+                [key: string]: number;
+            };
+            /** Adaptations */
+            adaptations?: {
+                [key: string]: number;
+            };
         };
         /** NPCPatch */
         NPCPatch: {
@@ -3033,6 +3249,18 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** DraftWrite */
+        taverna__director_drafts__DraftWrite: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Template Id */
+            template_id?: string | null;
+            /** Source Revision */
+            source_revision: number;
+            /** Raw */
+            raw: string;
+            payload: components["schemas"]["Bundle"];
+        };
         /** DraftDelete */
         taverna__memory_api__DraftDelete: {
             /**
@@ -3047,6 +3275,49 @@ export interface components {
             branch_id: string;
             /** Expected Revision */
             expected_revision: number;
+        };
+        /** DraftWrite */
+        taverna__memory_api__DraftWrite: {
+            /**
+             * Draft Id
+             * Format: uuid
+             */
+            draft_id: string;
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Record Id */
+            record_id?: string | null;
+            /**
+             * Record Version
+             * @default 0
+             */
+            record_version: number;
+            /** Source Revision */
+            source_revision: number;
+            /** Form */
+            form: {
+                [key: string]: unknown;
+            };
+            /** Policy Draft */
+            policy_draft?: {
+                [key: string]: unknown;
+            } | null;
+            /** Raw */
+            raw: string;
+            /**
+             * Applied Raw
+             * @default
+             */
+            applied_raw: string;
+            /** Reason */
+            reason: string;
+            /** Conflict Policy */
+            conflict_policy?: ("keep_both" | "supersede") | null;
         };
         /** ImportRequest */
         taverna__memory_api__ImportRequest: {
@@ -4357,6 +4628,40 @@ export interface operations {
             };
         };
     };
+    revision_api_v1_stories__story_id__branches__branch_id__revision_get: {
+        parameters: {
+            query?: {
+                known_revision?: number;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     messages_api_v1_stories__story_id__messages_get: {
         parameters: {
             query?: {
@@ -5000,7 +5305,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DraftWrite"];
+                "application/json": components["schemas"]["taverna__memory_api__DraftWrite"];
             };
         };
         responses: {
@@ -6720,6 +7025,41 @@ export interface operations {
             };
         };
     };
+    validate_api_v1_stories__story_id__director_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditorValidation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     policy_api_v1_stories__story_id__director_policy_put: {
         parameters: {
             query?: never;
@@ -6897,6 +7237,41 @@ export interface operations {
             };
         };
     };
+    dismiss_api_v1_stories__story_id__director_dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Dismiss"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     initiative_api_v1_stories__story_id__director_initiative_post: {
         parameters: {
             query?: never;
@@ -6913,6 +7288,110 @@ export interface operations {
                 "application/json": components["schemas"]["Initiative"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_api_v1_stories__story_id__director_drafts__branch_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    write_api_v1_stories__story_id__director_drafts__branch_id___draft_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["taverna__director_drafts__DraftWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_api_v1_stories__story_id__director_drafts__branch_id___draft_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

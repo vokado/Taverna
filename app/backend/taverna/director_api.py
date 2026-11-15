@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Header
@@ -9,7 +10,7 @@ from pydantic import Field
 
 from .core import AppError
 from .director_ai import DirectorAI
-from .director_models import DirectorPolicy, Emotion, Mode, Trait
+from .director_models import DirectorPolicy, Emotion, Mode, NPCState, Trait
 from .world_models import Strict
 
 
@@ -37,6 +38,11 @@ class NPCWrite(Scope):
     reason: str = Field(min_length=1, max_length=2000)
 
 
+class EditorValidation(Strict):
+    policy: DirectorPolicy
+    npc: NPCPatch
+
+
 class Analyze(Scope):
     character_id: UUID
     model_id: str | None = Field(default=None, min_length=1, max_length=256)
@@ -48,6 +54,13 @@ class Review(Scope):
     accept: bool
     confirmed: bool = False
     rebase: bool = False
+
+
+class Dismiss(Scope):
+    character_id: UUID
+    target_id: UUID
+    kind: Literal["intention", "arc"]
+    reason: str = Field(min_length=1, max_length=2000)
 
 
 class Initiative(Analyze):
@@ -63,6 +76,25 @@ def router(service):
     @router.get("")
     def read(story_id: UUID, branch_id: UUID):
         return service.read(str(story_id), str(branch_id))
+
+    @router.post("/validate")
+    def validate(story_id: UUID, body: EditorValidation):
+        try:
+            npc = NPCState.model_validate(
+                {**NPCState().model_dump(mode="json"), **body.npc.model_dump(mode="json", exclude_unset=True)}
+            )
+        except ValueError as exc:
+            raise AppError(
+                "invalid_npc_state", "Состояние NPC выходит за допустимые типы или пределы.", 422
+            ) from exc
+        return {
+            "policy": body.policy.model_dump(mode="json"),
+            "npc": {
+                key: value
+                for key, value in npc.model_dump(mode="json").items()
+                if key in NPCPatch.model_fields
+            },
+        }
 
     @router.put("/policy")
     def policy(story_id: UUID, body: PolicyWrite):
@@ -123,6 +155,18 @@ def router(service):
             accept=body.accept,
             confirmed=body.confirmed,
             rebase=body.rebase,
+        )
+
+    @router.post("/dismiss")
+    def dismiss(story_id: UUID, body: Dismiss):
+        return service.dismiss(
+            str(story_id),
+            str(body.branch_id),
+            body.expected_revision,
+            str(body.character_id),
+            str(body.target_id),
+            body.kind,
+            body.reason,
         )
 
     @router.post("/initiative")

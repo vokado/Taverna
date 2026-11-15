@@ -4,6 +4,7 @@ import { ChatImportPanel } from "./ChatImportPanel";
 import { EventTransferPanel } from "./EventTransferPanel";
 import { ContextInspector } from "./ContextInspector";
 import { MemoryPanel } from "./MemoryPanel";
+import { DirectorPanel } from "./DirectorPanel";
 import { StoryWorld } from "./StoryWorld";
 import { StoryPackagePanel } from "./StoryPackagePanel";
 
@@ -110,6 +111,7 @@ export function Chat({
   const stream = useRef<EventSource | null>(null);
   const loadSequence = useRef(0);
   const memoryFlush = useRef<(() => Promise<void>) | null>(null);
+  const directorFlush = useRef<(() => Promise<void>) | null>(null);
   async function refresh() {
     try {
       const [s, c] = await Promise.all([
@@ -143,11 +145,16 @@ export function Chat({
       delete document.documentElement.dataset.chatDirty;
     };
   }, [input]);
-  async function load(id: string, pageOffset?: number, query = search) {
+  async function load(
+    id: string,
+    pageOffset?: number,
+    query = search,
+    preservePosition = false,
+  ) {
     const sequence = ++loadSequence.current;
     setLoading(true);
     try {
-      await memoryFlush.current?.();
+      await Promise.all([memoryFlush.current?.(), directorFlush.current?.()]);
       const bundle = await request<Bundle>(`/stories/${id}`);
       const base = `/stories/${id}/messages?branch_id=${bundle.branch.id}&query=${encodeURIComponent(query)}`;
       const first = await request<{ items: Message[]; total: number }>(
@@ -169,7 +176,11 @@ export function Chat({
       setMessages(page.items);
       setTotal(page.total);
       setOffset(at);
-      setNovelIndex(Math.max(0, page.items.length - 1));
+      setNovelIndex((old) =>
+        preservePosition
+          ? Math.max(0, Math.min(old, page.items.length - 1))
+          : Math.max(0, page.items.length - 1),
+      );
       setSpeaker((s) =>
         bundle.branch.payload.participants.includes(s)
           ? s
@@ -181,6 +192,57 @@ export function Chat({
       if (sequence === loadSequence.current) setLoading(false);
     }
   }
+  useEffect(() => {
+    if (!current || busy || loading) return;
+    let active = true,
+      inFlight = false;
+    const storyId = current.story.id,
+      branchId = current.branch.id,
+      known = current.branch.revision;
+    const timer = setInterval(() => {
+      if (inFlight || !active) return;
+      inFlight = true;
+      void request<{ revision: number; active_branch: string | null }>(
+        `/stories/${storyId}/branches/${branchId}/revision?known_revision=${known}`,
+      )
+        .then(async (result) => {
+          if (!active || result.revision === known) return;
+          if (result.active_branch !== branchId) {
+            active = false;
+            setStatus(
+              "Активная ветвь изменена в другой вкладке. Черновики сохранены; перечитайте историю.",
+            );
+            return;
+          }
+          const follow =
+            offset + messages.length >= total &&
+            (current.branch.payload.view_mode !== "novel" ||
+              novelIndex >= messages.length - 1);
+          await load(storyId, follow ? undefined : offset, search, !follow);
+        })
+        .catch((error) => {
+          if (active) setStatus((error as Error).message);
+        })
+        .finally(() => {
+          inFlight = false;
+        });
+    }, 1500);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [
+    current?.story.id,
+    current?.branch.id,
+    current?.branch.revision,
+    busy,
+    loading,
+    offset,
+    messages.length,
+    total,
+    novelIndex,
+    search,
+  ]);
   async function create() {
     setBusy(true);
     try {
@@ -708,6 +770,31 @@ export function Chat({
               revision={current.branch.revision}
               disabled={busy || loading}
               onChanged={() => load(current.story.id)}
+            />
+            <DirectorPanel
+              key={"director/" + current.story.id + "/" + current.branch.id}
+              storyId={current.story.id}
+              branchId={current.branch.id}
+              revision={current.branch.revision}
+              actors={[
+                ...current.branch.payload.speaker_order,
+                ...Object.keys(
+                  current.story.payload.character_snapshots,
+                ).filter(
+                  (id) => !current.branch.payload.speaker_order.includes(id),
+                ),
+              ].map((id) => ({
+                id,
+                name: String(
+                  current.story.payload.character_snapshots[id].card.fields
+                    .name,
+                ),
+              }))}
+              disabled={busy || loading}
+              onChanged={() => load(current.story.id)}
+              registerFlush={(flush) => {
+                directorFlush.current = flush;
+              }}
             />
             <MemoryPanel
               key={current.story.id + "/" + current.branch.id}

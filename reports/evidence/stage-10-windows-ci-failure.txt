@@ -1,0 +1,27 @@
+CI run 43710407102; commit 11ece4c8da2ec318228fb058fb113a7137dfcc07
+Ubuntu job 132800514360: SUCCESS.
+Windows job 132800514513: backend 136 PASS in 273.79s; Ruff/build PASS; browser 1 FAIL / 7 PASS in 1.6m. Packaging/frozen checks NOT_RUN for this run.
++1) e2e\long-chat.spec.ts:3:1 › 10 000 импортированных сообщений: страницы и ограниченный DOM ─────
+2026-11-15T11:52:29.0782058Z 
+2026-11-15T11:52:29.0782268Z     Error: expect(locator).toBeVisible() failed
+2026-11-15T11:52:29.0782508Z 
+2026-11-15T11:52:29.0783256Z     Locator: locator('.chat-messages').getByText('Сообщение 9899', { exact: true })
+2026-11-15T11:52:29.0783809Z     Expected: visible
+2026-11-15T11:52:29.0784222Z     Timeout: 5000ms
+2026-11-15T11:52:29.0784517Z     Error: element(s) not found
+2026-11-15T11:52:29.0784911Z 
+2026-11-15T11:52:29.0785015Z     Call log:
+2026-11-15T11:52:29.0786275Z       - Expect "toBeVisible" locator('.chat-messages').getByText('Сообщение 9899', { exact: true }) with timeout 5000ms
+2026-11-15T11:52:29.0787747Z       - waiting for locator('.chat-messages').getByText('Сообщение 9899', { exact: true })
+2026-11-15T11:52:29.0788156Z 
+2026-11-15T11:52:29.0788197Z 
+2026-11-15T11:52:29.0788291Z       56 |   await expect(
+2026-11-15T11:52:29.0788713Z       57 |     page.locator(".chat-messages").getByText("Сообщение 9899", { exact: true }),
+2026-11-15T11:52:29.0789115Z     > 58 |   ).toBeVisible();
+2026-11-15T11:52:29.0789388Z          |     ^
+2026-11-15T11:52:29.0789793Z       59 |   await expect(page.locator(".chat-message")).toHaveCount(100);
+2026-11-15T11:52:29.0790240Z       60 |   await page
+2026-11-15T11:52:29.0790768Z       61 |     .getByRole("textbox", { name: "Поиск по истории", exact: true })
+2026-11-15T11:52:29.0791312Z         at D:\a\Taverna\Taverna\app\web\e2e\long-chat.spec.ts:58:5
+2026-11-15T11:52:29.0791514Z 
+2026-11-15T11:52:29.0791853Z

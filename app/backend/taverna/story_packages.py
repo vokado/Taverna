@@ -211,7 +211,7 @@ class StoryPackages:
                     if actor not in actors:
                         raise ValueError("npc scope")
                     NPCState.model_validate(npc)
-            if payload.get("director"):
+            if "director" in payload:
                 director = DirectorState.model_validate(payload["director"]).model_dump(mode="json")
                 if (
                     not set(director["policy"]["actor_entities"]) <= actors

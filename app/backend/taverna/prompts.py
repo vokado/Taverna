@@ -75,7 +75,11 @@ class PromptBuilder:
         policy = KnowledgePolicy(story["id"], branch["id"], records, {m["id"]: m for m in history})
         query = "\n".join(m["text"] for m in visible[-3:])
         accessible = []
+        actor_state = npc_value(story, state, character_id)
         for key, fact in state["payload"].get("memory", {}).items():
+            if not actor_state["relationships_enabled"] and fact.get("level") == "relationship":
+                excluded.append({"source": "memory", "source_id": key, "reason": "relationships_disabled"})
+                continue
             reason = policy.reason(fact, character_id)
             if reason:
                 excluded.append({"source": "memory", "source_id": key, "reason": reason})

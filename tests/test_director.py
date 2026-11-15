@@ -1003,3 +1003,124 @@ async def test_preparation_deadline_cannot_abandon_committed_apply_receipt(tmp_p
     assert result["status"] == "accepted" and result["branch_revision"] == base + 1
     assert chat.branch(sid)["revision"] == result["branch_revision"]
     assert service.read(sid, chat.branch(sid)["id"])["characters"][ids[0]]["emotion"]["label"] == "радость"
+
+
+def test_director_editor_drafts_keep_invalid_values_without_publishing(tmp_path):
+    from fastapi.testclient import TestClient
+    from taverna.cards import new_card
+    from taverna.core import Config
+    from taverna.main import create_app
+
+    app = create_app(Config(tmp_path))
+    with TestClient(app, base_url="http://127.0.0.1:8765") as client:
+        csrf = client.post(
+            "/api/v1/session/bootstrap", json={"token": app.state.sessions.bootstrap()}
+        ).json()["csrf"]
+        client.headers.update({"X-Taverna-CSRF": csrf})
+        actor = client.post(
+            "/api/v1/characters", json={"expected_revision": 0, "character": new_card("Мира")}
+        ).json()["id"]
+        sid = client.post("/api/v1/stories", json={"name": "Режиссёр", "character_ids": [actor]}).json()["id"]
+        chat = app.state.chat
+        branch = chat.branch(sid)
+        bid, revision = branch["id"], branch["revision"]
+        original_state = chat.state(sid)
+        base = f"/api/v1/stories/{sid}/director"
+        snap = client.get(base, params={"branch_id": bid}).json()
+        npc = {
+            k: v
+            for k, v in snap["characters"][actor].items()
+            if k in ("mode", "emotion", "emotions_enabled", "relationships_enabled", "traits", "adaptations")
+        }
+        npc["emotion"]["intensity"] = 3
+        policy = {**snap["policy"], "after_every_messages": 0}
+        bundle = {
+            "actor_id": actor,
+            "npc": npc,
+            "policy": policy,
+            "reason": "Ещё не закончено",
+            "dirty_npc": True,
+            "dirty_policy": True,
+            "dirty_raw": True,
+        }
+        draft_id = str(uuid4())
+        draft_base = base + f"/drafts/{bid}"
+        body = {
+            "expected_revision": 0,
+            "template_id": actor,
+            "source_revision": revision,
+            "raw": "{незавершённый JSON",
+            "payload": bundle,
+        }
+        saved = client.put(draft_base + "/" + draft_id, json=body)
+        assert saved.status_code == 200, saved.text
+        assert saved.json()["payload"]["payload"]["npc"]["emotion"]["intensity"] == 3
+        assert client.put(draft_base + "/" + draft_id, json=body).status_code == 409
+        assert client.post(base + "/validate", json={"policy": policy, "npc": npc}).status_code == 422
+        npc["emotion"]["intensity"] = 0.5
+        npc["traits"] = {"courage": 2}
+        assert client.post(base + "/validate", json={"policy": snap["policy"], "npc": npc}).status_code == 422
+        npc["traits"] = {"courage": 0.5}
+        assert client.post(base + "/validate", json={"policy": snap["policy"], "npc": npc}).status_code == 200
+        assert client.get(draft_base).json()["items"][0]["payload"]["raw"] == body["raw"]
+        wrong = {**body, "template_id": str(uuid4())}
+        assert client.put(draft_base + "/" + str(uuid4()), json=wrong).status_code == 422
+        assert chat.branch(sid)["revision"] == revision and chat.state(sid) == original_state
+        endpoint = f"/api/v1/stories/{sid}/branches/{bid}/revision"
+        assert client.get(endpoint, params={"known_revision": revision}).json() == {
+            "revision": revision,
+            "active_branch": None,
+        }
+        assert client.get(endpoint).json()["active_branch"] == bid
+        assert client.delete(draft_base + f"/{draft_id}?expected_revision=0").status_code == 409
+        assert client.delete(draft_base + f"/{draft_id}?expected_revision=1").status_code == 200
+        assert not client.get(draft_base).json()["items"]
+
+
+def test_owner_can_refuse_accepted_intention_and_arc_without_new_user_action(tmp_path):
+    service, chat, sid, ids = setup_director(tmp_path)
+    actor = ids[0]
+    value = proposal(
+        service,
+        chat,
+        sid,
+        actor,
+        [
+            {
+                "kind": "initiative",
+                "source_card": True,
+                "intent": "Предложить путь через порт",
+                "reason": "Возможность, не приказ",
+            },
+            {
+                "kind": "arc",
+                "source_card": True,
+                "arc_id": str(uuid4()),
+                "intent": "Поиск корабля",
+                "reason": "Свободная линия",
+            },
+        ],
+    )
+    assert value["payload"]["status"] == "pending", value
+    accept(service, chat, sid, value)
+    bid = chat.branch(sid)["id"]
+    snap = service.read(sid, bid)
+    intent = snap["characters"][actor]["intentions"][0]
+    arc = next(iter(snap["director"]["arcs"].values()))
+    old_messages = chat.messages(sid)
+    reason = "Игрок отказался от порта и выбрал другой путь"
+    service.dismiss(sid, bid, chat.branch(sid)["revision"], actor, intent["id"], "intention", reason)
+    service.dismiss(sid, bid, chat.branch(sid)["revision"], actor, arc["id"], "arc", reason)
+    after = service.read(sid, bid)
+    assert after["characters"][actor]["intentions"][0]["status"] == "dismissed"
+    assert after["director"]["arcs"][arc["id"]]["resolution"] == reason
+    assert chat.messages(sid) == old_messages
+    with pytest.raises(AppError, match="Намерение"):
+        service.intention(service.snapshot(sid, bid), actor, intent["id"])
+    with pytest.raises(AppError):
+        service.dismiss(sid, bid, chat.branch(sid)["revision"], actor, arc["id"], "arc", reason)
+    from taverna.npc_context import npc_prompt
+
+    snap = service.snapshot(sid, bid)
+    text = npc_prompt(snap["story"], snap["state"], actor, service.memory.policy(snap))
+    assert intent["text"] not in text and arc["description"] not in text

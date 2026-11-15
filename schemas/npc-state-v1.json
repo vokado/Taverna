@@ -131,7 +131,8 @@
           "default": "proposed_action",
           "enum": [
             "proposed_action",
-            "turn_generated"
+            "turn_generated",
+            "dismissed"
           ],
           "title": "Status",
           "type": "string"

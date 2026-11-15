@@ -45,7 +45,7 @@ class Intention(DerivedSources):
     text: str = Field(min_length=1, max_length=4000)
     proposal_id: UUID
     scene_id: UUID
-    status: Literal["proposed_action", "turn_generated"] = "proposed_action"
+    status: Literal["proposed_action", "turn_generated", "dismissed"] = "proposed_action"
     result_message_id: UUID | None = None
 
 
