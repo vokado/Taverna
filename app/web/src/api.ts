@@ -104,3 +104,23 @@ export async function upload<T>(
     throw new ApiError(value.code, value.message_ru || "Импорт не выполнен.");
   return value as T;
 }
+
+export async function downloadGet(path: string): Promise<void> {
+  const response = await fetch("/api/v1" + path, {
+    credentials: "same-origin",
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new ApiError(error.code, error.message_ru || "Экспорт не выполнен.");
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const encoded = disposition.match(/filename\*=utf-8''([^;]+)/i)?.[1];
+  link.download = encoded
+    ? decodeURIComponent(encoded)
+    : disposition.match(/filename="([^"]+)"/)?.[1] || "taverna-export";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

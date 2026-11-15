@@ -13,6 +13,9 @@ import { Chat } from "./Chat";
 import { Profiles } from "./Profiles";
 import { Worlds } from "./Worlds";
 import { MediaLibrary } from "./MediaLibrary";
+import { Manuscripts } from "./Manuscripts";
+import { Materials } from "./Materials";
+import { Tools } from "./Tools";
 
 type Colors = {
   background: string;
@@ -245,6 +248,8 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["profiles", "Профили и промпты"],
           ["worlds", "Миры и сценарии"],
           ["media", "Медиабиблиотека"],
+          ["manuscripts", "Литературный редактор"],
+          ["tools", "Материалы и инструменты"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
           <button
@@ -289,9 +294,13 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                         ? "Миры и сценарии"
                         : page === "media"
                           ? "Медиабиблиотека"
-                          : page === "profiles"
-                            ? "Профили и промпты"
-                            : "Рабочее пространство"}
+                          : page === "manuscripts"
+                            ? "Литературный редактор"
+                            : page === "tools"
+                              ? "Материалы и инструменты"
+                              : page === "profiles"
+                                ? "Профили и промпты"
+                                : "Рабочее пространство"}
             </h1>
             <p>Локальные истории и персонажи</p>
           </div>
@@ -596,6 +605,13 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         </div>
         <div hidden={page !== "media"}>
           <MediaLibrary visible={page === "media"} />
+        </div>
+        <div hidden={page !== "manuscripts"}>
+          <Manuscripts visible={page === "manuscripts"} />
+        </div>
+        <div hidden={page !== "tools"}>
+          <Materials visible={page === "tools"} />
+          <Tools visible={page === "tools"} />
         </div>
         <div hidden={page !== "chat"}>
           <Chat openStory={openStory} active={page === "chat"} />

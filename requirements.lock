@@ -40,3 +40,4 @@ pywin32-ctypes==0.2.3; sys_platform == "win32"
 pillow==12.3.0
 
 tinytag==2.3.2
+pypdf==7.1.0

@@ -26,11 +26,16 @@ from .generation_api import GenerationService
 from .image_api import router as image_router
 from .image_drafts import router as image_drafts_router
 from .images import ImageService
+from .manuscript_api import router as manuscript_router
+from .manuscripts import ManuscriptService
+from .material_api import router as material_router
+from .materials import MaterialService
 from .media import MediaService
 from .media_api import router as media_router
 from .media_drafts import router as media_drafts_router
 from .memory import MemoryService
 from .memory_api import router as memory_router
+from .owner_drafts import router as owner_drafts_router
 from .rpg import RpgService
 from .rpg_api import router as rpg_router
 from .rpg_drafts import router as rpg_drafts_router
@@ -38,6 +43,8 @@ from .security import LocalSecurity, Sessions
 from .settings import SettingsService
 from .storage import JsonStore
 from .story_package_api import router as story_package_router
+from .tool_api import router as tool_router
+from .tools_service import ToolService
 from .transfers import router as transfer_router
 from .world_api import router as world_router
 from .worlds import WorldService
@@ -81,6 +88,13 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.media = MediaService(app.state.worlds)
     app.include_router(media_router(app.state.media))
     app.include_router(media_drafts_router(app.state.media))
+    app.state.materials = MaterialService(app.state.media)
+    app.include_router(material_router(app.state.materials))
+    app.state.manuscripts = ManuscriptService(app.state.media)
+    app.include_router(manuscript_router(app.state.manuscripts))
+    app.include_router(owner_drafts_router(store))
+    app.state.tools = ToolService(app.state.materials, app.state.manuscripts)
+    app.include_router(tool_router(app.state.tools))
     app.state.images = ImageService(app.state.media)
     app.include_router(image_router(app.state.images))
     app.include_router(image_drafts_router(app.state.images))
@@ -163,7 +177,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "12",
+            "stage": "13",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 

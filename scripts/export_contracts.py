@@ -16,7 +16,9 @@ from taverna.director_models import (
 )
 from taverna.image_models import ImageLease, ImageRequest, ImageSettings
 from taverna.knowledge import MemoryRecord
+from taverna.library_models import Material
 from taverna.main import create_app
+from taverna.manuscript_models import Manuscript
 from taverna.media_models import Asset, AssetMetadata, Composition, Layer, MediaState, Variant
 from taverna.memory_ai import MemorySettings
 from taverna.profiles import ProfileSettings
@@ -24,6 +26,7 @@ from taverna.prompts import CONTEXT_SCHEMA
 from taverna.rpg_models import ActorSheet, DiceRequest, RandomTable, RpgAction, RpgSettings, RpgState
 from taverna.settings import SETTINGS_SCHEMA, WORKSPACE_SCHEMA
 from taverna.storage import BASE_SCHEMA
+from taverna.tool_models import ToolEntry
 from taverna.world_models import Scenario, World
 
 root = Path(__file__).resolve().parents[1]
@@ -33,6 +36,9 @@ with TemporaryDirectory() as temporary:
     contracts = {
         "openapi.json": create_app(Config(Path(temporary))).openapi(),
         "document-v1.json": BASE_SCHEMA,
+        "manuscript-v1.json": Manuscript.model_json_schema(),
+        "material-v1.json": Material.model_json_schema(),
+        "tool-entry-v1.json": ToolEntry.model_json_schema(),
         "profile-settings-v1.json": ProfileSettings.model_json_schema(),
         "generation-context-v1.json": CONTEXT_SCHEMA,
         "memory-record-v1.json": MemoryRecord.model_json_schema(),

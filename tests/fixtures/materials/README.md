@@ -1,0 +1,1 @@
+Собственные синтетические fixtures. plain.pdf создан pypdf7.1.0 PdfWriter.add_blank_page(100,100), reference.docx — минимальный ZIP с Content_Types и WordprocessingML с текстом «Материал о гавани», reference.txt — собственный UTF-8 текст. Исходные фабрики tests/test_materials_tools.py pdf()/docx(). Не используются внешние документы или макросы.

@@ -30,6 +30,8 @@ jobs:
         working-directory: app/web
       - run: npx playwright install chromium
         working-directory: app/web
+      - name: Prepare development-only EPUB validator and reader
+        run: python scripts/prepare_epub_tools.py
       - run: npm run test:e2e
         working-directory: app/web
       - if: failure()

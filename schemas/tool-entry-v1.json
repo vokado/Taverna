@@ -1,0 +1,269 @@
+{
+  "$defs": {
+    "BookLink": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "target"
+      ],
+      "title": "BookLink",
+      "type": "object"
+    },
+    "NameGenerator": {
+      "additionalProperties": false,
+      "properties": {
+        "prefixes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Prefixes",
+          "type": "array"
+        },
+        "middles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Middles",
+          "type": "array"
+        },
+        "suffixes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Suffixes",
+          "type": "array"
+        }
+      },
+      "title": "NameGenerator",
+      "type": "object"
+    },
+    "OwnerReference": {
+      "additionalProperties": false,
+      "properties": {
+        "world_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "World Id"
+        },
+        "story_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Story Id"
+        },
+        "branch_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch Id"
+        },
+        "scene_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene Id"
+        },
+        "event_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Id"
+        },
+        "message_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Id"
+        }
+      },
+      "title": "OwnerReference",
+      "type": "object"
+    },
+    "ToolTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "default": "note",
+          "enum": [
+            "note",
+            "chapter"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 64000,
+          "title": "Text",
+          "type": "string"
+        },
+        "variables": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Variables",
+          "type": "array"
+        },
+        "grants": {
+          "items": {
+            "enum": [
+              "notes.write",
+              "manuscripts.write"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Grants",
+          "type": "array"
+        }
+      },
+      "title": "ToolTemplate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": 1,
+      "default": 1,
+      "title": "Format",
+      "type": "integer"
+    },
+    "kind": {
+      "enum": [
+        "note",
+        "bookmark",
+        "dictionary",
+        "name_generator",
+        "template"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "text": {
+      "default": "",
+      "maxLength": 262144,
+      "title": "Text",
+      "type": "string"
+    },
+    "references": {
+      "items": {
+        "$ref": "#/$defs/OwnerReference"
+      },
+      "maxItems": 100,
+      "title": "References",
+      "type": "array"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/BookLink"
+      },
+      "maxItems": 100,
+      "title": "Links",
+      "type": "array"
+    },
+    "archived": {
+      "default": false,
+      "title": "Archived",
+      "type": "boolean"
+    },
+    "generator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NameGenerator"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "template": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ToolTemplate"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "kind",
+    "title"
+  ],
+  "title": "ToolEntry",
+  "type": "object"
+}

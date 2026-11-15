@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "BookLink": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "target"
+      ],
+      "title": "BookLink",
+      "type": "object"
+    },
+    "BookMedia": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "format": "uuid",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "caption": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Caption",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "BookMedia",
+      "type": "object"
+    },
+    "Chapter": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 1048576,
+          "title": "Text",
+          "type": "string"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/BookLink"
+          },
+          "maxItems": 100,
+          "title": "Links",
+          "type": "array"
+        },
+        "media": {
+          "items": {
+            "$ref": "#/$defs/BookMedia"
+          },
+          "maxItems": 100,
+          "title": "Media",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "Chapter",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": 1,
+      "default": 1,
+      "title": "Format",
+      "type": "integer"
+    },
+    "title": {
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "author": {
+      "default": "",
+      "maxLength": 300,
+      "title": "Author",
+      "type": "string"
+    },
+    "language": {
+      "default": "ru",
+      "pattern": "^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$",
+      "title": "Language",
+      "type": "string"
+    },
+    "chapters": {
+      "items": {
+        "$ref": "#/$defs/Chapter"
+      },
+      "maxItems": 500,
+      "title": "Chapters",
+      "type": "array"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "title": "Manuscript",
+  "type": "object"
+}

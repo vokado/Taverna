@@ -27,3 +27,7 @@ Tests/test_images.py:17 unit/integration/API случаев, включая ре
 Добавлен воспроизводимый Windows PowerShell комплект docs/testing/Run-ImageTrial.ps1 с инструкцией IMAGE_TRIALS.md, включён в ZIP. Он проверяет реальную генерацию/адресную отмену, loaded instances до/после и короткий ответ той же LLM после изображения. Локально PowerShell отсутствует; parser check включён в Windows CI, аппаратный запуск не выполнялся.
 
 BLOCKED: Windows11/RTX5070/реальный LM Studio/ComfyUI, сравнение CUDA/low-VRAM/CPU, VRAM/качество/скорость/OOM/реальная отмена и продолжение диалога; выбор окончательного engine/configuration D-06, аппаратная AT-09 и подписанная приёмка. Нет доступа к целевым сервисам/GPU. Linux/fake HTTP и Windows runner не заменяют эти испытания. Независимую работу13 можно продолжать без объявления аппаратных критериев выполненными.
+
+## Последующая Windows-проверка адаптера
+
+Коммитe67c4cd: [CI43750969808](https://github.com/vokado/Taverna/actions/runs/43750969808) SUCCESS Ubuntu/Windows, включая190 backend/12 browser, PowerShell parser и frozen smoke обоих EXE. Внутренний Windows ZIP: artifact14176527952,37,139,456bytes. Это подтверждает автоматические проверки на Windows runner, не реальную diffusion/RTX5070/LMStudio или запуск аппаратного PowerShell-сценария. Перечисленные выше аппаратные BLOCKED не закрыты.

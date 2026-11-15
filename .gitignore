@@ -15,3 +15,4 @@ logs/
 work/
 playwright-report/
 test-results/
+.test-tools/

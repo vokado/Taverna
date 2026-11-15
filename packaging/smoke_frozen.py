@@ -76,6 +76,49 @@ def main():
                         if category in ("background", "expression"):
                             thumb = client.get(base + f"/api/v1/media/{asset_id}/thumbnail", timeout=10)
                             assert thumb.status_code == 200 and thumb.content.startswith(b"\x89PNG\r\n\x1a\n")
+                    materials = fixtures.parent / "materials"
+                    for filename in ("plain.pdf", "reference.docx", "reference.txt"):
+                        raw = (materials / filename).read_bytes()
+                        imported = client.post(
+                            base + "/api/v1/library/import",
+                            params={"name": filename, "filename": filename, "confirmed": True},
+                            content=raw,
+                            headers={"X-Taverna-CSRF": csrf},
+                            timeout=10,
+                        )
+                        assert imported.status_code == 200, imported.text
+                        served = client.get(
+                            base + "/api/v1/library/" + imported.json()["id"] + "/file", timeout=10
+                        )
+                        assert served.status_code == 200 and served.content == raw
+                    from uuid import uuid4
+
+                    mid = str(uuid4())
+                    book = client.put(
+                        base + "/api/v1/manuscripts/" + mid,
+                        json={
+                            "expected_revision": 0,
+                            "reason": "Frozen smoke",
+                            "payload": {
+                                "title": "Кириллица",
+                                "chapters": [{"title": "Глава", "text": "Проверка portable"}],
+                            },
+                        },
+                        headers={"X-Taverna-CSRF": csrf},
+                        timeout=10,
+                    )
+                    assert book.status_code == 200, book.text
+                    for fmt in ("txt", "markdown", "html", "epub"):
+                        exported = client.get(
+                            base + f"/api/v1/manuscripts/{mid}/export",
+                            params={"format": fmt, "expected_revision": 1},
+                            timeout=10,
+                        )
+                        assert (
+                            exported.status_code == 200
+                            and exported.content
+                            and "attachment" in exported.headers["content-disposition"]
+                        )
                     assert not list(root.rglob("*.sqlite*"))
                     assert client.get(base + "/api/v1/diagnostics/storage").json()["ok"]
                     assert (
@@ -89,7 +132,7 @@ def main():
                     assert not info.exists()
                 print(
                     executable,
-                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media codecs/shutdown",
+                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/shutdown",
                 )
             finally:
                 if process.poll() is None:
