@@ -1,0 +1,67 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "attributes": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "maxProperties": 100,
+      "title": "Attributes",
+      "type": "object"
+    },
+    "skills": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "maxProperties": 100,
+      "title": "Skills",
+      "type": "object"
+    },
+    "inventory": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "maxProperties": 1000,
+      "title": "Inventory",
+      "type": "object"
+    },
+    "balances": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "maxProperties": 100,
+      "title": "Balances",
+      "type": "object"
+    },
+    "health": {
+      "default": 10,
+      "maximum": 1000000,
+      "minimum": 0,
+      "title": "Health",
+      "type": "integer"
+    },
+    "max_health": {
+      "default": 10,
+      "maximum": 1000000,
+      "minimum": 1,
+      "title": "Max Health",
+      "type": "integer"
+    },
+    "capacity_grams": {
+      "anyOf": [
+        {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Capacity Grams"
+    }
+  },
+  "title": "ActorSheet",
+  "type": "object"
+}

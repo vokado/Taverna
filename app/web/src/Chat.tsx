@@ -4,6 +4,7 @@ import { ChatImportPanel } from "./ChatImportPanel";
 import { EventTransferPanel } from "./EventTransferPanel";
 import { ContextInspector } from "./ContextInspector";
 import { MemoryPanel } from "./MemoryPanel";
+import { RpgPanel } from "./RpgPanel";
 import { DirectorPanel } from "./DirectorPanel";
 import { StoryWorld } from "./StoryWorld";
 import { StoryPackagePanel } from "./StoryPackagePanel";
@@ -111,6 +112,7 @@ export function Chat({
   const stream = useRef<EventSource | null>(null);
   const loadSequence = useRef(0);
   const memoryFlush = useRef<(() => Promise<void>) | null>(null);
+  const rpgFlush = useRef<(() => Promise<void>) | null>(null);
   const directorFlush = useRef<(() => Promise<void>) | null>(null);
   async function refresh() {
     try {
@@ -154,7 +156,11 @@ export function Chat({
     const sequence = ++loadSequence.current;
     setLoading(true);
     try {
-      await Promise.all([memoryFlush.current?.(), directorFlush.current?.()]);
+      await Promise.all([
+        memoryFlush.current?.(),
+        directorFlush.current?.(),
+        rpgFlush.current?.(),
+      ]);
       const bundle = await request<Bundle>(`/stories/${id}`);
       const base = `/stories/${id}/messages?branch_id=${bundle.branch.id}&query=${encodeURIComponent(query)}`;
       const first = await request<{ items: Message[]; total: number }>(
@@ -794,6 +800,17 @@ export function Chat({
               onChanged={() => load(current.story.id)}
               registerFlush={(flush) => {
                 directorFlush.current = flush;
+              }}
+            />
+            <RpgPanel
+              key={"rpg/" + current.story.id + "/" + current.branch.id}
+              storyId={current.story.id}
+              branchId={current.branch.id}
+              revision={current.branch.revision}
+              disabled={busy || loading}
+              onChanged={() => load(current.story.id)}
+              registerFlush={(flush) => {
+                rpgFlush.current = flush;
               }}
             />
             <MemoryPanel

@@ -1,0 +1,201 @@
+{
+  "$defs": {
+    "DiceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "default": 1,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "sides": {
+          "default": 20,
+          "maximum": 1000000,
+          "minimum": 2,
+          "title": "Sides",
+          "type": "integer"
+        },
+        "modifier": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Modifier",
+          "type": "integer"
+        }
+      },
+      "title": "DiceRequest",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "branch_id": {
+      "format": "uuid",
+      "title": "Branch Id",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 1,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "event_id": {
+      "format": "uuid",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "actor_id": {
+      "format": "uuid",
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "set_attribute",
+        "set_skill",
+        "set_health",
+        "set_capacity",
+        "adjust_item",
+        "transfer_item",
+        "adjust_currency",
+        "transfer_currency",
+        "trade",
+        "roll",
+        "check",
+        "start_conflict",
+        "attack",
+        "end_conflict",
+        "random_event"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "target_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Id"
+    },
+    "key": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Key",
+      "type": "string"
+    },
+    "amount": {
+      "default": 0,
+      "maximum": 1000000000000,
+      "minimum": -1000000000000,
+      "title": "Amount",
+      "type": "integer"
+    },
+    "quantity": {
+      "default": 1,
+      "maximum": 1000000,
+      "minimum": 1,
+      "title": "Quantity",
+      "type": "integer"
+    },
+    "currency": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Currency",
+      "type": "string"
+    },
+    "price": {
+      "default": 1,
+      "maximum": 1000000000000,
+      "minimum": 1,
+      "title": "Price",
+      "type": "integer"
+    },
+    "attribute": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Attribute",
+      "type": "string"
+    },
+    "skill": {
+      "default": "",
+      "maxLength": 100,
+      "title": "Skill",
+      "type": "string"
+    },
+    "max_health": {
+      "anyOf": [
+        {
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Health"
+    },
+    "difficulty": {
+      "default": 10,
+      "maximum": 1000000,
+      "minimum": -1000000,
+      "title": "Difficulty",
+      "type": "integer"
+    },
+    "dice": {
+      "$ref": "#/$defs/DiceRequest"
+    },
+    "participants": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Participants",
+      "type": "array"
+    },
+    "conflict_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Conflict Id"
+    },
+    "reason": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "confirmed": {
+      "default": false,
+      "title": "Confirmed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "branch_id",
+    "expected_revision",
+    "event_id",
+    "actor_id",
+    "kind",
+    "reason"
+  ],
+  "title": "RpgAction",
+  "type": "object"
+}

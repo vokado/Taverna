@@ -56,9 +56,11 @@ export function useTemplateDraft(
         setItems((old) => [saved, ...old.filter((d) => d.id !== saved.id)]);
         setStatus(
           JSON.stringify(current.current.editor) === fingerprint
-            ? kind === "director"
-              ? "Черновик режиссёра автосохранён."
-              : "Черновик шаблона автосохранён."
+            ? kind === "rpg"
+              ? "Черновик RPG автосохранён."
+              : kind === "director"
+                ? "Черновик режиссёра автосохранён."
+                : "Черновик шаблона автосохранён."
             : "Сохраняем следующую редакцию черновика…",
         );
       });
@@ -108,9 +110,11 @@ export function useTemplateDraft(
   useEffect(() => {
     if (!dirty || busy) return;
     setStatus(
-      kind === "director"
-        ? "Сохраняем черновик режиссёра…"
-        : "Сохраняем черновик шаблона…",
+      kind === "rpg"
+        ? "Сохраняем черновик RPG…"
+        : kind === "director"
+          ? "Сохраняем черновик режиссёра…"
+          : "Сохраняем черновик шаблона…",
     );
     const snapshot = JSON.parse(JSON.stringify({ id, editor, dirty }));
     const timer = setTimeout(

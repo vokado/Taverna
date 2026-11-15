@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "weight": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Weight",
+          "type": "integer"
+        },
+        "rewards": {
+          "items": {
+            "$ref": "#/$defs/Reward"
+          },
+          "maxItems": 16,
+          "title": "Rewards",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "text"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "Reward": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "item",
+            "currency",
+            "health",
+            "attribute"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "amount": {
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Amount",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "title": "Reward",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "outcomes": {
+      "items": {
+        "$ref": "#/$defs/Outcome"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Outcomes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "name",
+    "outcomes"
+  ],
+  "title": "RandomTable",
+  "type": "object"
+}

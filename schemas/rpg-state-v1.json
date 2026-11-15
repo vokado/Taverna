@@ -1,0 +1,879 @@
+{
+  "$defs": {
+    "ActorSheet": {
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 100,
+          "title": "Attributes",
+          "type": "object"
+        },
+        "skills": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 100,
+          "title": "Skills",
+          "type": "object"
+        },
+        "inventory": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 1000,
+          "title": "Inventory",
+          "type": "object"
+        },
+        "balances": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "maxProperties": 100,
+          "title": "Balances",
+          "type": "object"
+        },
+        "health": {
+          "default": 10,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Health",
+          "type": "integer"
+        },
+        "max_health": {
+          "default": 10,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Health",
+          "type": "integer"
+        },
+        "capacity_grams": {
+          "anyOf": [
+            {
+              "maximum": 1000000000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capacity Grams"
+        }
+      },
+      "title": "ActorSheet",
+      "type": "object"
+    },
+    "Conflict": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "participants": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 2,
+          "title": "Participants",
+          "type": "array"
+        },
+        "order": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 2,
+          "title": "Order",
+          "type": "array"
+        },
+        "turn": {
+          "format": "uuid",
+          "title": "Turn",
+          "type": "string"
+        },
+        "round": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Round",
+          "type": "integer"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "ended"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "participants",
+        "order",
+        "turn"
+      ],
+      "title": "Conflict",
+      "type": "object"
+    },
+    "Currency": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "decimals": {
+          "default": 0,
+          "maximum": 6,
+          "minimum": 0,
+          "title": "Decimals",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Currency",
+      "type": "object"
+    },
+    "DiceRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "default": 1,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "sides": {
+          "default": 20,
+          "maximum": 1000000,
+          "minimum": 2,
+          "title": "Sides",
+          "type": "integer"
+        },
+        "modifier": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Modifier",
+          "type": "integer"
+        }
+      },
+      "title": "DiceRequest",
+      "type": "object"
+    },
+    "Item": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "weight_grams": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Weight Grams",
+          "type": "integer"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Item",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "weight": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Weight",
+          "type": "integer"
+        },
+        "rewards": {
+          "items": {
+            "$ref": "#/$defs/Reward"
+          },
+          "maxItems": 16,
+          "title": "Rewards",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "text"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "RandomDraw": {
+      "additionalProperties": false,
+      "properties": {
+        "counter": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Counter",
+          "type": "integer"
+        },
+        "bound": {
+          "maximum": 1000000000000,
+          "minimum": 1,
+          "title": "Bound",
+          "type": "integer"
+        },
+        "value": {
+          "exclusiveMaximum": 1000000000000,
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "counter",
+        "bound",
+        "value"
+      ],
+      "title": "RandomDraw",
+      "type": "object"
+    },
+    "RandomTable": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/Outcome"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "outcomes"
+      ],
+      "title": "RandomTable",
+      "type": "object"
+    },
+    "Reward": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "item",
+            "currency",
+            "health",
+            "attribute"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "amount": {
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Amount",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "title": "Reward",
+      "type": "object"
+    },
+    "RpgAction": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "format": "uuid",
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "event_id": {
+          "format": "uuid",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "format": "uuid",
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "set_attribute",
+            "set_skill",
+            "set_health",
+            "set_capacity",
+            "adjust_item",
+            "transfer_item",
+            "adjust_currency",
+            "transfer_currency",
+            "trade",
+            "roll",
+            "check",
+            "start_conflict",
+            "attack",
+            "end_conflict",
+            "random_event"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "amount": {
+          "default": 0,
+          "maximum": 1000000000000,
+          "minimum": -1000000000000,
+          "title": "Amount",
+          "type": "integer"
+        },
+        "quantity": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Quantity",
+          "type": "integer"
+        },
+        "currency": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Currency",
+          "type": "string"
+        },
+        "price": {
+          "default": 1,
+          "maximum": 1000000000000,
+          "minimum": 1,
+          "title": "Price",
+          "type": "integer"
+        },
+        "attribute": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Attribute",
+          "type": "string"
+        },
+        "skill": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Skill",
+          "type": "string"
+        },
+        "max_health": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Health"
+        },
+        "difficulty": {
+          "default": 10,
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Difficulty",
+          "type": "integer"
+        },
+        "dice": {
+          "$ref": "#/$defs/DiceRequest"
+        },
+        "participants": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Participants",
+          "type": "array"
+        },
+        "conflict_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conflict Id"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_revision",
+        "event_id",
+        "actor_id",
+        "kind",
+        "reason"
+      ],
+      "title": "RpgAction",
+      "type": "object"
+    },
+    "RpgReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "settings",
+            "set_attribute",
+            "set_skill",
+            "set_health",
+            "set_capacity",
+            "adjust_item",
+            "transfer_item",
+            "adjust_currency",
+            "transfer_currency",
+            "trade",
+            "roll",
+            "check",
+            "start_conflict",
+            "attack",
+            "end_conflict",
+            "random_event"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "branch_id": {
+          "format": "uuid",
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actor Id"
+        },
+        "fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fingerprint"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RpgAction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "before": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Before",
+          "type": "object"
+        },
+        "after": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "After",
+          "type": "object"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        },
+        "counter_before": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Counter Before"
+        },
+        "counter_after": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Counter After"
+        },
+        "draws": {
+          "items": {
+            "$ref": "#/$defs/RandomDraw"
+          },
+          "maxItems": 2048,
+          "title": "Draws",
+          "type": "array"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "created_at": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Created At",
+          "type": "string"
+        },
+        "previous_seed": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Seed"
+        },
+        "previous_counter": {
+          "anyOf": [
+            {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Counter"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "branch_id",
+        "before",
+        "after",
+        "reason",
+        "created_at"
+      ],
+      "title": "RpgReceipt",
+      "type": "object"
+    },
+    "RpgSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "maxProperties": 7,
+          "propertyNames": {
+            "enum": [
+              "inventory",
+              "stats",
+              "skills",
+              "dice",
+              "economy",
+              "conflicts",
+              "random_events"
+            ]
+          },
+          "title": "Enabled",
+          "type": "object"
+        },
+        "world_policy": {
+          "$ref": "#/$defs/WorldRpgPolicy"
+        },
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Item"
+          },
+          "maxProperties": 1000,
+          "title": "Items",
+          "type": "object"
+        },
+        "currencies": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Currency"
+          },
+          "maxProperties": 100,
+          "title": "Currencies",
+          "type": "object"
+        },
+        "tables": {
+          "additionalProperties": {
+            "$ref": "#/$defs/RandomTable"
+          },
+          "maxProperties": 100,
+          "title": "Tables",
+          "type": "object"
+        }
+      },
+      "title": "RpgSettings",
+      "type": "object"
+    },
+    "WorldRpgPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_modules": {
+          "items": {
+            "enum": [
+              "inventory",
+              "stats",
+              "skills",
+              "dice",
+              "economy",
+              "conflicts",
+              "random_events"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "title": "Allowed Modules",
+          "type": "array"
+        },
+        "allowed_locations": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Allowed Locations",
+          "type": "array"
+        },
+        "blocked_actor_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Blocked Actor Ids",
+          "type": "array"
+        },
+        "allow_offscene": {
+          "default": false,
+          "title": "Allow Offscene",
+          "type": "boolean"
+        },
+        "required_flags": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxProperties": 100,
+          "title": "Required Flags",
+          "type": "object"
+        }
+      },
+      "title": "WorldRpgPolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": 1,
+      "default": 1,
+      "title": "Format",
+      "type": "integer"
+    },
+    "rng_algorithm": {
+      "const": "sha256-counter-v1",
+      "default": "sha256-counter-v1",
+      "title": "Rng Algorithm",
+      "type": "string"
+    },
+    "seed": {
+      "default": "",
+      "maxLength": 128,
+      "title": "Seed",
+      "type": "string"
+    },
+    "counter": {
+      "default": 0,
+      "maximum": 9223372036854775807,
+      "minimum": 0,
+      "title": "Counter",
+      "type": "integer"
+    },
+    "settings": {
+      "$ref": "#/$defs/RpgSettings"
+    },
+    "actors": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ActorSheet"
+      },
+      "maxProperties": 100,
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Actors",
+      "type": "object"
+    },
+    "conflicts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Conflict"
+      },
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "title": "Conflicts",
+      "type": "object"
+    },
+    "audit": {
+      "items": {
+        "$ref": "#/$defs/RpgReceipt"
+      },
+      "title": "Audit",
+      "type": "array"
+    }
+  },
+  "title": "RpgState",
+  "type": "object"
+}

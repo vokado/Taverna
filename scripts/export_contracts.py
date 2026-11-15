@@ -19,6 +19,7 @@ from taverna.main import create_app
 from taverna.memory_ai import MemorySettings
 from taverna.profiles import ProfileSettings
 from taverna.prompts import CONTEXT_SCHEMA
+from taverna.rpg_models import ActorSheet, DiceRequest, RandomTable, RpgAction, RpgSettings, RpgState
 from taverna.settings import SETTINGS_SCHEMA, WORKSPACE_SCHEMA
 from taverna.storage import BASE_SCHEMA
 from taverna.world_models import Scenario, World
@@ -33,6 +34,12 @@ with TemporaryDirectory() as temporary:
         "profile-settings-v1.json": ProfileSettings.model_json_schema(),
         "generation-context-v1.json": CONTEXT_SCHEMA,
         "memory-record-v1.json": MemoryRecord.model_json_schema(),
+        "rpg-state-v1.json": RpgState.model_json_schema(),
+        "rpg-settings-v1.json": RpgSettings.model_json_schema(),
+        "rpg-actor-v1.json": ActorSheet.model_json_schema(),
+        "rpg-dice-v1.json": DiceRequest.model_json_schema(),
+        "rpg-action-v1.json": RpgAction.model_json_schema(),
+        "rpg-random-table-v1.json": RandomTable.model_json_schema(),
         "npc-state-v1.json": NPCState.model_json_schema(),
         "director-policy-v1.json": DirectorPolicy.model_json_schema(),
         "director-state-v1.json": DirectorState.model_json_schema(),

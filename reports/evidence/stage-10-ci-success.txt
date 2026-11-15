@@ -1,0 +1,7 @@
+Run: https://github.com/vokado/Taverna/actions/runs/43739668246
+Commit: ad0e711
+Ubuntu job132889809496 SUCCESS; Windows job132889809245 SUCCESS.
+Windows:139 passed,1 warning in210.49s; Ruff/build PASS;9 browser passed1.7m.
+Frozen Taverna.exe and Taverna-Diagnostics.exe PASS: relocated portable, restricted PATH, HTTP/session/storage/shutdown.
+Artifact14172281744 Taverna-Internal-Windows-x64.zip,36817679 bytes.
+This is Windows GitHub runner evidence, not Windows11/RTX5070/LM Studio acceptance.

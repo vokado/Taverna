@@ -11,7 +11,9 @@ from .cards import parse_json, png_chunks
 from .characters import CHARACTER_SCHEMA
 from .core import AppError
 from .director_models import DirectorState, NPCState
+from .knowledge import player_id
 from .profiles import DEFAULTS, merge, validate_settings
+from .rpg import RpgService, rpg_value
 from .storage import Mutation, atomic_write, digest, document, encoded, safe_path
 from .world_models import Scenario, World
 from .world_packages import validate_scenario
@@ -204,6 +206,8 @@ class StoryPackages:
         for state in states.values():
             payload = state["payload"]
             actors = set(story["payload"]["character_snapshots"])
+            rpg = rpg_value(payload)
+            RpgService.validate_sheets(rpg, actors | {player_id(story_id)})
             for actor, npc in payload["character_states"].items():
                 if not isinstance(npc, dict):
                     raise ValueError("npc shape")

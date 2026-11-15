@@ -1,0 +1,260 @@
+{
+  "$defs": {
+    "Currency": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "decimals": {
+          "default": 0,
+          "maximum": 6,
+          "minimum": 0,
+          "title": "Decimals",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Currency",
+      "type": "object"
+    },
+    "Item": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "weight_grams": {
+          "default": 0,
+          "maximum": 1000000000,
+          "minimum": 0,
+          "title": "Weight Grams",
+          "type": "integer"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Item",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "weight": {
+          "default": 1,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Weight",
+          "type": "integer"
+        },
+        "rewards": {
+          "items": {
+            "$ref": "#/$defs/Reward"
+          },
+          "maxItems": 16,
+          "title": "Rewards",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "text"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "RandomTable": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/Outcome"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "outcomes"
+      ],
+      "title": "RandomTable",
+      "type": "object"
+    },
+    "Reward": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "item",
+            "currency",
+            "health",
+            "attribute"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Key",
+          "type": "string"
+        },
+        "amount": {
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Amount",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "amount"
+      ],
+      "title": "Reward",
+      "type": "object"
+    },
+    "WorldRpgPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_modules": {
+          "items": {
+            "enum": [
+              "inventory",
+              "stats",
+              "skills",
+              "dice",
+              "economy",
+              "conflicts",
+              "random_events"
+            ],
+            "type": "string"
+          },
+          "maxItems": 7,
+          "title": "Allowed Modules",
+          "type": "array"
+        },
+        "allowed_locations": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "title": "Allowed Locations",
+          "type": "array"
+        },
+        "blocked_actor_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Blocked Actor Ids",
+          "type": "array"
+        },
+        "allow_offscene": {
+          "default": false,
+          "title": "Allow Offscene",
+          "type": "boolean"
+        },
+        "required_flags": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "maxProperties": 100,
+          "title": "Required Flags",
+          "type": "object"
+        }
+      },
+      "title": "WorldRpgPolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "maxProperties": 7,
+      "propertyNames": {
+        "enum": [
+          "inventory",
+          "stats",
+          "skills",
+          "dice",
+          "economy",
+          "conflicts",
+          "random_events"
+        ]
+      },
+      "title": "Enabled",
+      "type": "object"
+    },
+    "world_policy": {
+      "$ref": "#/$defs/WorldRpgPolicy"
+    },
+    "items": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Item"
+      },
+      "maxProperties": 1000,
+      "title": "Items",
+      "type": "object"
+    },
+    "currencies": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Currency"
+      },
+      "maxProperties": 100,
+      "title": "Currencies",
+      "type": "object"
+    },
+    "tables": {
+      "additionalProperties": {
+        "$ref": "#/$defs/RandomTable"
+      },
+      "maxProperties": 100,
+      "title": "Tables",
+      "type": "object"
+    }
+  },
+  "title": "RpgSettings",
+  "type": "object"
+}

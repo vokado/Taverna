@@ -1506,6 +1506,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stories/{story_id}/rpg": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_stories__story_id__rpg_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/rpg/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Configure */
+        put: operations["configure_api_v1_stories__story_id__rpg_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/rpg/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply */
+        post: operations["apply_api_v1_stories__story_id__rpg_actions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/rpg/drafts/{branch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read */
+        get: operations["read_api_v1_stories__story_id__rpg_drafts__branch_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/rpg/drafts/{branch_id}/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Write */
+        put: operations["write_api_v1_stories__story_id__rpg_drafts__branch_id___draft_id__put"];
+        post?: never;
+        /** Delete */
+        delete: operations["delete_api_v1_stories__story_id__rpg_drafts__branch_id___draft_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stories/{story_id}/rpg/drafts/{branch_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate */
+        post: operations["validate_api_v1_stories__story_id__rpg_drafts__branch_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stories/{story_id}/director": {
         parameters: {
             query?: never;
@@ -2109,6 +2212,21 @@ export interface components {
             /** Content */
             content: string;
         };
+        /** ConfigureRpg */
+        ConfigureRpg: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            settings: components["schemas"]["RpgSettings"];
+            /** Reason */
+            reason: string;
+            /** Seed */
+            seed?: string | null;
+        };
         /** ConflictResolution */
         ConflictResolution: {
             /**
@@ -2140,6 +2258,16 @@ export interface components {
             /** Expected Revision */
             expected_revision: number;
         };
+        /** Currency */
+        Currency: {
+            /** Name */
+            name: string;
+            /**
+             * Decimals
+             * @default 0
+             */
+            decimals: number;
+        };
         /** DeleteMessage */
         DeleteMessage: {
             /** Expected Revision */
@@ -2151,6 +2279,24 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+        };
+        /** DiceRequest */
+        DiceRequest: {
+            /**
+             * Count
+             * @default 1
+             */
+            count: number;
+            /**
+             * Sides
+             * @default 20
+             */
+            sides: number;
+            /**
+             * Modifier
+             * @default 0
+             */
+            modifier: number;
         };
         /** DirectorEmotionDraft */
         DirectorEmotionDraft: {
@@ -2325,10 +2471,68 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** Draft */
+        Draft: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Template Id */
+            template_id?: string | null;
+            /** Source Revision */
+            source_revision: number;
+            /** Raw */
+            raw: string;
+            payload: components["schemas"]["Editor"];
+        };
+        /** DraftCurrency */
+        DraftCurrency: {
+            /** Name */
+            name: string;
+            /**
+             * Decimals
+             * @default 0
+             */
+            decimals: number;
+        };
+        /** DraftItem */
+        DraftItem: {
+            /** Name */
+            name: string;
+            /**
+             * Weight Grams
+             * @default 0
+             */
+            weight_grams: number;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+        };
+        /** DraftOutcome */
+        DraftOutcome: {
+            /** Name */
+            name: string;
+            /** Text */
+            text: string;
+            /**
+             * Weight
+             * @default 1
+             */
+            weight: number;
+            /** Rewards */
+            rewards?: components["schemas"]["DraftReward"][];
+        };
         /** DraftPreview */
         DraftPreview: {
             /** Text */
             text: string;
+        };
+        /** DraftRandomTable */
+        DraftRandomTable: {
+            /** Name */
+            name: string;
+            /** Outcomes */
+            outcomes: components["schemas"]["DraftOutcome"][];
         };
         /** DraftRecordInput */
         DraftRecordInput: {
@@ -2400,9 +2604,70 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** DraftReward */
+        DraftReward: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "item" | "currency" | "health" | "attribute";
+            /**
+             * Key
+             * @default
+             */
+            key: string;
+            /** Amount */
+            amount: number;
+        };
+        /** DraftRpgSettings */
+        DraftRpgSettings: {
+            /** Enabled */
+            enabled?: {
+                [key: string]: boolean;
+            };
+            world_policy?: components["schemas"]["DraftWorldRpgPolicy"];
+            /** Items */
+            items?: {
+                [key: string]: components["schemas"]["DraftItem"];
+            };
+            /** Currencies */
+            currencies?: {
+                [key: string]: components["schemas"]["DraftCurrency"];
+            };
+            /** Tables */
+            tables?: {
+                [key: string]: components["schemas"]["DraftRandomTable"];
+            };
+        };
         /** DraftValidation */
         DraftValidation: {
             record: components["schemas"]["DraftRecordInput"];
+        };
+        /** DraftWorldRpgPolicy */
+        DraftWorldRpgPolicy: {
+            /** Allowed Modules */
+            allowed_modules?: ("inventory" | "stats" | "skills" | "dice" | "economy" | "conflicts" | "random_events")[];
+            /** Allowed Locations */
+            allowed_locations?: string[];
+            /** Blocked Actor Ids */
+            blocked_actor_ids?: string[];
+            /**
+             * Allow Offscene
+             * @default false
+             */
+            allow_offscene: boolean;
+            /** Required Flags */
+            required_flags?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+        };
+        /** Editor */
+        Editor: {
+            settings: components["schemas"]["DraftRpgSettings"];
+            /** Reason */
+            reason: string;
+            /** Seed */
+            seed: string;
         };
         /** EditorValidation */
         EditorValidation: {
@@ -2648,6 +2913,21 @@ export interface components {
              */
             confirmed: boolean;
         };
+        /** Item */
+        Item: {
+            /** Name */
+            name: string;
+            /**
+             * Weight Grams
+             * @default 0
+             */
+            weight_grams: number;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+        };
         JsonValue: unknown;
         /** LoreImport */
         LoreImport: {
@@ -2796,6 +3076,20 @@ export interface components {
              */
             greeting_index: number;
         };
+        /** Outcome */
+        Outcome: {
+            /** Name */
+            name: string;
+            /** Text */
+            text: string;
+            /**
+             * Weight
+             * @default 1
+             */
+            weight: number;
+            /** Rewards */
+            rewards?: components["schemas"]["Reward"][];
+        };
         /** PackageImport */
         PackageImport: {
             /** Text */
@@ -2823,6 +3117,13 @@ export interface components {
             patch: {
                 [key: string]: unknown;
             };
+        };
+        /** RandomTable */
+        RandomTable: {
+            /** Name */
+            name: string;
+            /** Outcomes */
+            outcomes: components["schemas"]["Outcome"][];
         };
         /** RecordDelete */
         RecordDelete: {
@@ -3024,6 +3325,122 @@ export interface components {
             /** Branch Id */
             branch_id: string;
         };
+        /** Reward */
+        Reward: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "item" | "currency" | "health" | "attribute";
+            /**
+             * Key
+             * @default
+             */
+            key: string;
+            /** Amount */
+            amount: number;
+        };
+        /** RpgAction */
+        RpgAction: {
+            /**
+             * Branch Id
+             * Format: uuid
+             */
+            branch_id: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "set_attribute" | "set_skill" | "set_health" | "set_capacity" | "adjust_item" | "transfer_item" | "adjust_currency" | "transfer_currency" | "trade" | "roll" | "check" | "start_conflict" | "attack" | "end_conflict" | "random_event";
+            /** Target Id */
+            target_id?: string | null;
+            /**
+             * Key
+             * @default
+             */
+            key: string;
+            /**
+             * Amount
+             * @default 0
+             */
+            amount: number;
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number;
+            /**
+             * Currency
+             * @default
+             */
+            currency: string;
+            /**
+             * Price
+             * @default 1
+             */
+            price: number;
+            /**
+             * Attribute
+             * @default
+             */
+            attribute: string;
+            /**
+             * Skill
+             * @default
+             */
+            skill: string;
+            /** Max Health */
+            max_health?: number | null;
+            /**
+             * Difficulty
+             * @default 10
+             */
+            difficulty: number;
+            dice?: components["schemas"]["DiceRequest"];
+            /** Participants */
+            participants?: string[];
+            /** Conflict Id */
+            conflict_id?: string | null;
+            /** Reason */
+            reason: string;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
+        /** RpgSettings */
+        RpgSettings: {
+            /** Enabled */
+            enabled?: {
+                [key: string]: boolean;
+            };
+            world_policy?: components["schemas"]["WorldRpgPolicy"];
+            /** Items */
+            items?: {
+                [key: string]: components["schemas"]["Item"];
+            };
+            /** Currencies */
+            currencies?: {
+                [key: string]: components["schemas"]["Currency"];
+            };
+            /** Tables */
+            tables?: {
+                [key: string]: components["schemas"]["RandomTable"];
+            };
+        };
         /** Scope */
         Scope: {
             /**
@@ -3215,6 +3632,24 @@ export interface components {
              * @default false
              */
             confirmed: boolean;
+        };
+        /** WorldRpgPolicy */
+        WorldRpgPolicy: {
+            /** Allowed Modules */
+            allowed_modules?: ("inventory" | "stats" | "skills" | "dice" | "economy" | "conflicts" | "random_events")[];
+            /** Allowed Locations */
+            allowed_locations?: string[];
+            /** Blocked Actor Ids */
+            blocked_actor_ids?: string[];
+            /**
+             * Allow Offscene
+             * @default false
+             */
+            allow_offscene: boolean;
+            /** Required Flags */
+            required_flags?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
         };
         /** DraftDelete */
         taverna__characters__DraftDelete: {
@@ -6969,6 +7404,249 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["WorldEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_api_v1_stories__story_id__rpg_get: {
+        parameters: {
+            query: {
+                branch_id: string;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    configure_api_v1_stories__story_id__rpg_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfigureRpg"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_api_v1_stories__story_id__rpg_actions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RpgAction"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_api_v1_stories__story_id__rpg_drafts__branch_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    write_api_v1_stories__story_id__rpg_drafts__branch_id___draft_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Draft"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_api_v1_stories__story_id__rpg_drafts__branch_id___draft_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_api_v1_stories__story_id__rpg_drafts__branch_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                story_id: string;
+                branch_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RpgSettings"];
             };
         };
         responses: {

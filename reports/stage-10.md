@@ -23,3 +23,7 @@ CI43737950596/c16c726: Ubuntu SUCCESS; Windows backend139 PASS, browser2FAIL/7PA
 DEF-10-002 дополнен: закрытые панели памяти/режиссёра не загружают основное состояние до раскрытия; draft-discovery сохранён. Memory.snapshot читает story/branch/state одним ReadView; без сообщений дополнительного reread нет. JsonStore._recover возвращает уже проверенный манифест под той же блокировкой, get/view/scan не читают и не валидируют его второй раз. Проверки путей/хешей/схем/журналов сохранены, кэширование не введено.
 
 DEF-10-003: revision для чтения/поиска отслеживается отдельно и сразу обновляется точным receipt собственной мутации. Старый load не может уменьшить текущую revision; восстановленный черновик сохраняет source_revision для записи. Это не молчаливая перепривязка формы. После исправления Linux59 target PASS47.35s,9 browser PASS1.3m, Ruff/build PASS; raw stage-10-ci-read-fix-*.txt. Это промежуточный source snapshot во время независимой работы11, новый CI коммита исправлений нужен для Windows. Этап11 не объявлен завершённым.
+
+## Windows CI подтверждён после исправлений
+
+CI43739668246/ad0e711 — SUCCESS на Ubuntu и Windows. Windows job132889809245:139 backend PASS210.49s, Ruff/build PASS,9 browser PASS1.7m; portable ZIP собран; Taverna.exe и Taverna-Diagnostics.exe PASS на перенесённом пути с ограниченным PATH (HTTP/session/storage/shutdown). Артефакт14172281744,36 817 679 байт — внутренняя сборка, не релиз1.0. DEF-10-001/002/003 закрыты для доступной runner-регрессии. Windows11/реальный LM Studio/RTX5070/human semantic kit остаются BLOCKED.

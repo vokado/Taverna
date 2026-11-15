@@ -4850,6 +4850,389 @@
         }
       }
     },
+    "/api/v1/stories/{story_id}/rpg": {
+      "get": {
+        "summary": "Read",
+        "operationId": "read_api_v1_stories__story_id__rpg_get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/rpg/settings": {
+      "put": {
+        "summary": "Configure",
+        "operationId": "configure_api_v1_stories__story_id__rpg_settings_put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigureRpg"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/rpg/actions": {
+      "post": {
+        "summary": "Apply",
+        "operationId": "apply_api_v1_stories__story_id__rpg_actions_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RpgAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/rpg/drafts/{branch_id}": {
+      "get": {
+        "summary": "Read",
+        "operationId": "read_api_v1_stories__story_id__rpg_drafts__branch_id__get",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/rpg/drafts/{branch_id}/{draft_id}": {
+      "put": {
+        "summary": "Write",
+        "operationId": "write_api_v1_stories__story_id__rpg_drafts__branch_id___draft_id__put",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Draft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete",
+        "operationId": "delete_api_v1_stories__story_id__rpg_drafts__branch_id___draft_id__delete",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          },
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          },
+          {
+            "name": "expected_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Expected Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stories/{story_id}/rpg/drafts/{branch_id}/validate": {
+      "post": {
+        "summary": "Validate",
+        "operationId": "validate_api_v1_stories__story_id__rpg_drafts__branch_id__validate_post",
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Story Id"
+            }
+          },
+          {
+            "name": "branch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Branch Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RpgSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/stories/{story_id}/director": {
       "get": {
         "summary": "Read",
@@ -6248,6 +6631,51 @@
         ],
         "title": "ChatMessage"
       },
+      "ConfigureRpg": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/RpgSettings"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "seed": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "settings",
+          "reason"
+        ],
+        "title": "ConfigureRpg"
+      },
       "ConflictResolution": {
         "properties": {
           "branch_id": {
@@ -6318,6 +6746,29 @@
         ],
         "title": "ConnectionRequest"
       },
+      "Currency": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "decimals": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Decimals",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "Currency"
+      },
       "DeleteMessage": {
         "properties": {
           "expected_revision": {
@@ -6342,6 +6793,34 @@
           "branch_id"
         ],
         "title": "DeleteMessage"
+      },
+      "DiceRequest": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "default": 1
+          },
+          "sides": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 2.0,
+            "title": "Sides",
+            "default": 20
+          },
+          "modifier": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Modifier",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DiceRequest"
       },
       "DirectorEmotionDraft": {
         "properties": {
@@ -6652,6 +7131,123 @@
         ],
         "title": "Dismiss"
       },
+      "Draft": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "source_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Source Revision"
+          },
+          "raw": {
+            "type": "string",
+            "maxLength": 1048576,
+            "title": "Raw"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/Editor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "source_revision",
+          "raw",
+          "payload"
+        ],
+        "title": "Draft"
+      },
+      "DraftCurrency": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "decimals": {
+            "type": "integer",
+            "title": "Decimals",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DraftCurrency"
+      },
+      "DraftItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "weight_grams": {
+            "type": "integer",
+            "title": "Weight Grams",
+            "default": 0
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DraftItem"
+      },
+      "DraftOutcome": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "weight": {
+            "type": "integer",
+            "title": "Weight",
+            "default": 1
+          },
+          "rewards": {
+            "items": {
+              "$ref": "#/components/schemas/DraftReward"
+            },
+            "type": "array",
+            "title": "Rewards"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "text"
+        ],
+        "title": "DraftOutcome"
+      },
       "DraftPreview": {
         "properties": {
           "text": {
@@ -6666,6 +7262,28 @@
           "text"
         ],
         "title": "DraftPreview"
+      },
+      "DraftRandomTable": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/DraftOutcome"
+            },
+            "type": "array",
+            "title": "Outcomes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "outcomes"
+        ],
+        "title": "DraftRandomTable"
       },
       "DraftRecordInput": {
         "properties": {
@@ -6827,6 +7445,85 @@
         ],
         "title": "DraftRecordInput"
       },
+      "DraftReward": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "item",
+              "currency",
+              "health",
+              "attribute"
+            ],
+            "title": "Kind"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "default": ""
+          },
+          "amount": {
+            "type": "integer",
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "amount"
+        ],
+        "title": "DraftReward"
+      },
+      "DraftRpgSettings": {
+        "properties": {
+          "enabled": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "inventory",
+                "stats",
+                "skills",
+                "dice",
+                "economy",
+                "conflicts",
+                "random_events"
+              ]
+            },
+            "type": "object",
+            "title": "Enabled"
+          },
+          "world_policy": {
+            "$ref": "#/components/schemas/DraftWorldRpgPolicy"
+          },
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DraftItem"
+            },
+            "type": "object",
+            "title": "Items"
+          },
+          "currencies": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DraftCurrency"
+            },
+            "type": "object",
+            "title": "Currencies"
+          },
+          "tables": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DraftRandomTable"
+            },
+            "type": "object",
+            "title": "Tables"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftRpgSettings"
+      },
       "DraftValidation": {
         "properties": {
           "record": {
@@ -6839,6 +7536,82 @@
           "record"
         ],
         "title": "DraftValidation"
+      },
+      "DraftWorldRpgPolicy": {
+        "properties": {
+          "allowed_modules": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "inventory",
+                "stats",
+                "skills",
+                "dice",
+                "economy",
+                "conflicts",
+                "random_events"
+              ]
+            },
+            "type": "array",
+            "title": "Allowed Modules"
+          },
+          "allowed_locations": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Allowed Locations"
+          },
+          "blocked_actor_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Blocked Actor Ids"
+          },
+          "allow_offscene": {
+            "type": "boolean",
+            "title": "Allow Offscene",
+            "default": false
+          },
+          "required_flags": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "title": "Required Flags"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftWorldRpgPolicy"
+      },
+      "Editor": {
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/DraftRpgSettings"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Reason"
+          },
+          "seed": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Seed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "settings",
+          "reason",
+          "seed"
+        ],
+        "title": "Editor"
       },
       "EditorValidation": {
         "properties": {
@@ -7443,6 +8216,35 @@
         ],
         "title": "Initiative"
       },
+      "Item": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "weight_grams": {
+            "type": "integer",
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Weight Grams",
+            "default": 0
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "Item"
+      },
       "JsonValue": {},
       "LoreImport": {
         "properties": {
@@ -7816,6 +8618,44 @@
         ],
         "title": "NewStory"
       },
+      "Outcome": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "weight": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Weight",
+            "default": 1
+          },
+          "rewards": {
+            "items": {
+              "$ref": "#/components/schemas/Reward"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "title": "Rewards"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "text"
+        ],
+        "title": "Outcome"
+      },
       "PackageImport": {
         "properties": {
           "text": {
@@ -7878,6 +8718,32 @@
           "patch"
         ],
         "title": "ProfileWrite"
+      },
+      "RandomTable": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "outcomes": {
+            "items": {
+              "$ref": "#/components/schemas/Outcome"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Outcomes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "outcomes"
+        ],
+        "title": "RandomTable"
       },
       "RecordDelete": {
         "properties": {
@@ -8392,6 +9258,260 @@
           "branch_id"
         ],
         "title": "RevisionRequest"
+      },
+      "Reward": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "item",
+              "currency",
+              "health",
+              "attribute"
+            ],
+            "title": "Kind"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Key",
+            "default": ""
+          },
+          "amount": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "amount"
+        ],
+        "title": "Reward"
+      },
+      "RpgAction": {
+        "properties": {
+          "branch_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Branch Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "actor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Actor Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "set_attribute",
+              "set_skill",
+              "set_health",
+              "set_capacity",
+              "adjust_item",
+              "transfer_item",
+              "adjust_currency",
+              "transfer_currency",
+              "trade",
+              "roll",
+              "check",
+              "start_conflict",
+              "attack",
+              "end_conflict",
+              "random_event"
+            ],
+            "title": "Kind"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Key",
+            "default": ""
+          },
+          "amount": {
+            "type": "integer",
+            "maximum": 1000000000000.0,
+            "minimum": -1000000000000.0,
+            "title": "Amount",
+            "default": 0
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "default": 1
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Currency",
+            "default": ""
+          },
+          "price": {
+            "type": "integer",
+            "maximum": 1000000000000.0,
+            "minimum": 1.0,
+            "title": "Price",
+            "default": 1
+          },
+          "attribute": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Attribute",
+            "default": ""
+          },
+          "skill": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Skill",
+            "default": ""
+          },
+          "max_health": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Health"
+          },
+          "difficulty": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Difficulty",
+            "default": 10
+          },
+          "dice": {
+            "$ref": "#/components/schemas/DiceRequest"
+          },
+          "participants": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Participants"
+          },
+          "conflict_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Id"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "branch_id",
+          "expected_revision",
+          "event_id",
+          "actor_id",
+          "kind",
+          "reason"
+        ],
+        "title": "RpgAction"
+      },
+      "RpgSettings": {
+        "properties": {
+          "enabled": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "inventory",
+                "stats",
+                "skills",
+                "dice",
+                "economy",
+                "conflicts",
+                "random_events"
+              ]
+            },
+            "type": "object",
+            "maxProperties": 7,
+            "title": "Enabled"
+          },
+          "world_policy": {
+            "$ref": "#/components/schemas/WorldRpgPolicy"
+          },
+          "items": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "object",
+            "maxProperties": 1000,
+            "title": "Items"
+          },
+          "currencies": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Currency"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Currencies"
+          },
+          "tables": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RandomTable"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Tables"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RpgSettings"
       },
       "Scope": {
         "properties": {
@@ -8956,6 +10076,61 @@
           "reason"
         ],
         "title": "WorldEvent"
+      },
+      "WorldRpgPolicy": {
+        "properties": {
+          "allowed_modules": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "inventory",
+                "stats",
+                "skills",
+                "dice",
+                "economy",
+                "conflicts",
+                "random_events"
+              ]
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Allowed Modules"
+          },
+          "allowed_locations": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Allowed Locations"
+          },
+          "blocked_actor_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Blocked Actor Ids"
+          },
+          "allow_offscene": {
+            "type": "boolean",
+            "title": "Allow Offscene",
+            "default": false
+          },
+          "required_flags": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Required Flags"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "WorldRpgPolicy"
       },
       "taverna__characters__DraftDelete": {
         "properties": {

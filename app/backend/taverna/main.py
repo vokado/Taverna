@@ -25,6 +25,9 @@ from .director_drafts import router as director_drafts_router
 from .generation_api import GenerationService
 from .memory import MemoryService
 from .memory_api import router as memory_router
+from .rpg import RpgService
+from .rpg_api import router as rpg_router
+from .rpg_drafts import router as rpg_drafts_router
 from .security import LocalSecurity, Sessions
 from .settings import SettingsService
 from .storage import JsonStore
@@ -69,6 +72,9 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.worlds = WorldService(app.state.chat)
     app.state.chat.state_reducer = app.state.worlds.message_state
     app.include_router(world_router(app.state.worlds))
+    app.state.rpg = RpgService(app.state.worlds)
+    app.include_router(rpg_router(app.state.rpg))
+    app.include_router(rpg_drafts_router(app.state.rpg))
     app.state.director = DirectorService(app.state.memory, app.state.worlds)
     app.include_router(director_router(app.state.director))
     app.include_router(director_drafts_router(app.state.director))

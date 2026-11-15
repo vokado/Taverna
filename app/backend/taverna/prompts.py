@@ -6,6 +6,7 @@ import re
 from .core import AppError
 from .knowledge import KnowledgePolicy, relevance
 from .npc_context import npc_prompt, npc_value
+from .rpg import rpg_prompt
 from .storage import Mutation, digest, document, encoded
 from .tokens import estimate_messages, estimate_text
 from .world_lore import select_lore
@@ -170,6 +171,9 @@ class PromptBuilder:
             "relationships": relationships,
             "lore": lore,
         }
+        game_context = rpg_prompt(state, character_id)
+        if game_context:
+            sources["character"].append(("rpg-state", game_context))
         env = {
             "group": len(branch["payload"]["participants"]) > 1,
             "has_world": bool(state["payload"].get("world")),
