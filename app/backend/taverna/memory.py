@@ -30,13 +30,16 @@ class MemoryService:
             }
 
     def snapshot(self, story_id, branch_id, *, include_messages=True):
-        story = self.chat.story(story_id)
-        branch = self.chat.branch(story_id, branch_id)
-        state = self.store.get(self.chat.state_key(story_id, branch["payload"]["state_id"]))
-        if state is None:
-            raise AppError("state_missing", "Состояние памяти отсутствует.", 503)
+        with self.store.view() as view:
+            story = view.get(self.chat.story_key(story_id))
+            branch = view.get(self.chat.branch_key(story_id, branch_id))
+            if not story or not branch:
+                raise AppError("branch_missing", "История или ветвь не найдены.", 404)
+            state = view.get(self.chat.state_key(story_id, branch["payload"]["state_id"]))
+            if state is None:
+                raise AppError("state_missing", "Состояние памяти отсутствует.", 503)
         messages = {m["id"]: m for m in self.chat._prefix(story_id, branch_id)} if include_messages else {}
-        if self.chat.branch(story_id, branch_id)["revision"] != branch["revision"]:
+        if include_messages and self.chat.branch(story_id, branch_id)["revision"] != branch["revision"]:
             raise AppError("branch_conflict", "Ветвь изменилась при чтении памяти.", 409)
         records = {**state["payload"]["memory"], **state["payload"]["relationships"]}
         return {"story": story, "branch": branch, "state": state, "messages": messages, "records": records}

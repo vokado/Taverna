@@ -288,25 +288,27 @@ class JsonStore:
                     "transaction_recovery_required", "Незавершённая транзакция требует восстановления.", 503
                 ) from exc
 
+        return current
+
     def get(self, key: str) -> dict | None:
         self._logical(key)
         with self.locked():
-            self._recover()
-            entry = self._manifest()["entries"].get(key)
+            manifest = self._recover()
+            entry = manifest["entries"].get(key)
             return self._read(entry) if entry else None
 
     @contextmanager
     def view(self):
         """A bounded, consistent read view. Callers must not mutate within this scope."""
         with self.locked():
-            self._recover()
-            yield ReadView(self, self._manifest())
+            manifest = self._recover()
+            yield ReadView(self, manifest)
 
     def scan(self, prefix: str, *, tolerate_corrupt=False) -> tuple[list[dict], list[str]]:
         with self.locked():
-            self._recover()
+            manifest = self._recover()
             result, errors = [], []
-            for key, entry in self._manifest()["entries"].items():
+            for key, entry in manifest["entries"].items():
                 if key.startswith(prefix):
                     try:
                         result.append({"key": key, "value": self._read(entry)})

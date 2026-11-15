@@ -13,7 +13,7 @@
 | 07 | Реализована основа профилей/контекста/качества/инспектора; 75 backend PASS, 4 E2E PASS, build/Ruff PASS; CI43676823740 для8e2e180 Ubuntu/Windows/frozen SUCCESS; live LM Studio/RTX5070 BLOCKED; продолжение memory/retrieval в 08–10 |
 | 08 | Память/знания/отношения/поиск/редактор/обмен реализованы; 98 backend PASS, 7 E2E PASS, build/Ruff PASS; CI43698689482 для31a403a Ubuntu/Windows/frozen SUCCESS; live LLM/embeddings/RTX5070 BLOCKED; календарь/режиссёр в09–10 |
 | 09 | Миры/сценарии/snapshots/calendar/events/AST/lore/пакеты/editor реализованы;119 backend PASS,8 E2E PASS, build/Ruff PASS; CI43702010767 дляa12e6ee Ubuntu/Windows/frozen SUCCESS; live AI/corpus/целевая среда BLOCKED; NPC/director в10 |
-| 10 | Реализованы NPC/director/API/UI/drafts/источники/ручной отказ;139 backend и9 E2E PASS, Ruff/types/build PASS; предыдущий Windows CI136 backend PASS,10k browser FAIL исправлен, повтор ожидается; live/target BLOCKED |
+| 10 | Реализованы NPC/director/API/UI/drafts/источники/ручной отказ;139 backend и9 E2E PASS, Ruff/types/build PASS; CI43737950596 Windows139 backend PASS,2 browser FAIL; по trace исправлены избыточные чтения и поиск со старой ревизией,59 target/9 browser Linux PASS, повтор CI ожидается; live/target BLOCKED |
 | 11–16 | NOT_STARTED |
 
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.

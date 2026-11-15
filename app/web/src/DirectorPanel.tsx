@@ -152,6 +152,7 @@ export function DirectorPanel({
   onChanged: () => Promise<void>;
   registerFlush: (flush: () => Promise<void>) => void;
 }) {
+  const [opened, setOpened] = useState(false);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null),
     [editor, setEditor] = useState<Editor | null>(null),
     [baseRevision, setBaseRevision] = useState(revision),
@@ -257,11 +258,11 @@ export function DirectorPanel({
       );
   }
   useEffect(() => {
-    void load().catch((e) => setStatus((e as Error).message));
+    if (opened) void load().catch((e) => setStatus((e as Error).message));
     return () => {
       epoch.current++;
     };
-  }, [storyId, branchId, revision]);
+  }, [storyId, branchId, revision, opened]);
   useEffect(() => {
     registerFlush(draft.flush);
     return () => {
@@ -440,7 +441,12 @@ export function DirectorPanel({
   }
   const current = snapshot?.characters[editor?.actor_id || ""];
   return (
-    <details aria-label="Режиссёр и состояния NPC">
+    <details
+      aria-label="Режиссёр и состояния NPC"
+      onToggle={(e) => {
+        if (e.target === e.currentTarget) setOpened(e.currentTarget.open);
+      }}
+    >
       <summary>Режиссёр, характер и эмоции</summary>
       <p role="status">{[status, draft.status].filter(Boolean).join(" ")}</p>
       {job && (

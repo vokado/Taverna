@@ -108,6 +108,9 @@ export function MemoryPanel(p: Props) {
     scopeKey = p.storyId + "/" + p.branchId;
   const scope = useRef(scopeKey);
   scope.current = scopeKey;
+  const [opened, setOpened] = useState(false);
+  const liveRevision = useRef(p.revision);
+  liveRevision.current = Math.max(liveRevision.current, p.revision);
   const [player, setPlayer] = useState("");
   const [rows, setRows] = useState<Row[]>([]),
     [proposals, setProposals] = useState<Proposal[]>([]),
@@ -266,7 +269,10 @@ export function MemoryPanel(p: Props) {
   }
   const locked = busy || p.disabled,
     ready = !locked && raw === applied;
-  const body = () => ({ branch_id: p.branchId, expected_revision: revision });
+  const body = () => ({
+    branch_id: p.branchId,
+    expected_revision: liveRevision.current,
+  });
   function change(value: Data) {
     setDirty(true);
     setDraft(value);
@@ -316,12 +322,14 @@ export function MemoryPanel(p: Props) {
       if (
         key !== scope.current ||
         epoch !== loadEpoch.current ||
-        actorFilter !== view.current
+        actorFilter !== view.current ||
+        r.branch_revision < liveRevision.current
       )
         return;
       setPlayer(r.player_id);
       setRows(r.records);
       setLegacy(r.legacy_records);
+      liveRevision.current = r.branch_revision;
       setRevision(r.branch_revision);
       setProposals(a.proposals);
       if (!policyDirtyRef.current) setPolicy(s.settings);
@@ -345,8 +353,8 @@ export function MemoryPanel(p: Props) {
     setSummaryFacts([]);
   }, [scopeKey]);
   useEffect(() => {
-    void load();
-  }, [scopeKey, p.revision, viewActor]);
+    if (opened) void load();
+  }, [scopeKey, p.revision, viewActor, opened]);
   async function changed() {
     await p.onChanged();
     await load();
@@ -369,6 +377,13 @@ export function MemoryPanel(p: Props) {
         already_imported?: boolean;
       }>(base + path, method, value);
       if (key !== scope.current) return;
+      if (r.branch_revision) {
+        liveRevision.current = Math.max(
+          liveRevision.current,
+          r.branch_revision,
+        );
+        setRevision(liveRevision.current);
+      }
       setOutput("");
       if (r.record) {
         try {
@@ -480,7 +495,13 @@ export function MemoryPanel(p: Props) {
       </option>
     ));
   return (
-    <details className="panel" aria-label="Память истории">
+    <details
+      className="panel"
+      aria-label="Память истории"
+      onToggle={(e) => {
+        if (e.target === e.currentTarget) setOpened(e.currentTarget.open);
+      }}
+    >
       <summary>Память, знания и отношения</summary>
       <button
         onClick={() =>
@@ -905,6 +926,7 @@ export function MemoryPanel(p: Props) {
             selected ? "PATCH" : "POST",
             {
               ...body(),
+              expected_revision: sourceRevision,
               record: draft,
               expected_version: selected?.version || 0,
               reason,
