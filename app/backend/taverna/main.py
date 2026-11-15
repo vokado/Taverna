@@ -15,11 +15,15 @@ from starlette.staticfiles import StaticFiles
 
 from . import __version__
 from .characters import CharacterService
+from .chat import ChatService
+from .chat_api import router as chat_router
+from .chat_import import router as chat_import_router
 from .core import AppError, Config
 from .generation_api import GenerationService
 from .security import LocalSecurity, Sessions
 from .settings import SettingsService
 from .storage import JsonStore
+from .transfers import router as transfer_router
 
 
 class BootstrapRequest(BaseModel):
@@ -46,6 +50,10 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.include_router(generation.router())
     app.include_router(SettingsService(store).router())
     app.include_router(CharacterService(store, generation).router())
+    app.state.chat = ChatService(store, generation)
+    app.include_router(chat_router(app.state.chat))
+    app.include_router(chat_import_router(app.state.chat))
+    app.include_router(transfer_router(app.state.chat))
     app.add_middleware(LocalSecurity, config=config, sessions=sessions)
 
     def error(code: str, message: str, status: int, details=None):
@@ -119,7 +127,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "name": "Таверна",
             "version": __version__,
             "release_ready": False,
-            "stage": "05",
+            "stage": "06",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
 
@@ -161,6 +169,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             raise AppError(
                 "shutdown_unavailable", "Управление завершением доступно только в приложении.", 409
             )
+        await generation.queue.close()
         asyncio.get_running_loop().call_later(0.3, shutdown)
         return {"message_ru": "Приложение завершает работу. Сохранённые данные останутся на диске."}
 

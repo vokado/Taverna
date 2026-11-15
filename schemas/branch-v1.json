@@ -1,0 +1,84 @@
+{
+  "type": "object",
+  "required": [
+    "story_id",
+    "name",
+    "state_id",
+    "initial_state_id",
+    "participants",
+    "speaker_order",
+    "view_mode",
+    "head_message_id"
+  ],
+  "properties": {
+    "story_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "initial_state_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "head_message_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "parent_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "fork_message_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "speaker_order": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true
+    },
+    "view_mode": {
+      "enum": [
+        "messenger",
+        "literary",
+        "novel"
+      ]
+    },
+    "chapters": {
+      "type": "array"
+    },
+    "bookmarks": {
+      "type": "array"
+    },
+    "checkpoints": {
+      "type": "array"
+    }
+  }
+}

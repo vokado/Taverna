@@ -251,7 +251,10 @@ export function Characters() {
     setBusy(true);
     setStatus("Сохраняем карточку…");
     try {
-      const body: components['schemas']['CharacterRequest'] = {expected_revision:current?.revision || 0,character:draft};
+      const body: components["schemas"]["CharacterRequest"] = {
+        expected_revision: current?.revision || 0,
+        character: draft,
+      };
       const saved = await request<Character>(
         current ? `/characters/${current.id}` : "/characters",
         current ? "PATCH" : "POST",

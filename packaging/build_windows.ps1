@@ -11,5 +11,8 @@ Copy-Item app/web/dist dist/Taverna/app/web/ -Recurse -Force
 Copy-Item README.md dist/Taverna/
 New-Item dist/Taverna/docs -ItemType Directory -Force | Out-Null
 Copy-Item docs/ARCHITECTURE.md dist/Taverna/docs/
+python scripts/collect_licenses.py
+if ($LASTEXITCODE -ne 0) { throw 'Неполный комплект лицензий' }
+Copy-Item dist/licenses dist/Taverna/LICENSES -Recurse -Force
 Compress-Archive -Path dist/Taverna/* -DestinationPath dist/Taverna-Internal-Windows-x64.zip -Force
 Get-FileHash dist/Taverna-Internal-Windows-x64.zip -Algorithm SHA256 | Format-List

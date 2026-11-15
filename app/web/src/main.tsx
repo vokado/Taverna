@@ -23,8 +23,9 @@ function App() {
   async function shutdown() {
     if (
       !confirm(
-        (document.documentElement.dataset.characterDirty === "true"
-          ? "В карточке есть несохранённые изменения. "
+        (document.documentElement.dataset.characterDirty === "true" ||
+        document.documentElement.dataset.chatDirty === "true"
+          ? "Есть несохранённые правки или неотправленное сообщение. "
           : "") + "Завершить работу Таверны? Другие вкладки также отключатся.",
       )
     )

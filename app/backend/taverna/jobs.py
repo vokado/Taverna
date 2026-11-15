@@ -35,8 +35,18 @@ class JobQueue:
         return f"jobs/records/{job_id}.json"
 
     async def start(self):
-        if self.worker is not None:
+        if self.closed:
+            raise AppError("job_unavailable", "Очередь завершает работу.", 409)
+        if self.worker is not None and not self.worker.done():
             return
+        if self.worker is not None:
+            # Observe a failed worker and discard its in-memory queue. Durable pending jobs
+            # are interrupted below; replaying stale in-memory entries would duplicate effects.
+            if not self.worker.cancelled():
+                self.worker.exception()
+            self.queue = asyncio.PriorityQueue(maxsize=self.capacity)
+            self.cancellations.clear()
+            self.worker = None
         rows, _ = await asyncio.to_thread(self.store.scan, "jobs/records/")
         for row in rows:
             value = row["value"]
@@ -68,6 +78,8 @@ class JobQueue:
         self.worker = asyncio.create_task(self._work())
 
     async def close(self):
+        if self.closed:
+            return
         self.closed = True
         for event in self.cancellations.values():
             event.set()
@@ -77,9 +89,24 @@ class JobQueue:
                 await self.worker
             except asyncio.CancelledError:
                 pass
+            except AppError:
+                pass
+        for job_id in list(self.cancellations):
+            try:
+                job = await self.get(job_id)
+                if job["payload"]["state"] not in TERMINAL:
+                    await self.emit(
+                        job_id,
+                        "interrupted",
+                        {"message_ru": "Приложение завершает работу."},
+                        state="interrupted",
+                    )
+            except AppError:
+                pass
+        self.cancellations.clear()
 
     async def enqueue(
-        self, kind: str, payload: dict, *, priority=0, idempotency_key: str, scope=None
+        self, kind: str, payload: dict, *, priority=0, idempotency_key: str, scope=None, identity=None
     ) -> dict:
         if kind not in self.handlers or self.closed:
             raise AppError("job_unavailable", "Обработчик задачи недоступен.", 409)
@@ -89,7 +116,11 @@ class JobQueue:
             await self.start()
             key = "jobs/keys/" + hashlib.sha256(idempotency_key.encode()).hexdigest() + ".json"
             fingerprint = hashlib.sha256(
-                encoded({"kind": kind, "payload": payload, "scope": scope})
+                encoded(
+                    {"kind": kind, "identity": identity}
+                    if identity is not None
+                    else {"kind": kind, "payload": payload, "scope": scope}
+                )
             ).hexdigest()
             existing = await asyncio.to_thread(self.store.get, key)
             if existing:
@@ -231,12 +262,17 @@ class JobQueue:
 
     async def sse(self, job_id: str, after=0):
         while True:
+            if not self.closed and (self.worker is None or self.worker.done()):
+                async with self.guard:
+                    await self.start()
             events = await self.events(job_id, after)
             for event in events:
                 after = event["sequence"]
                 yield f"id: {event['event_id']}\nevent: {event['type']}\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
             job = await self.get(job_id)
             if job["payload"]["state"] in TERMINAL and after >= job["payload"]["event_count"]:
+                break
+            if self.closed and not events:
                 break
             if not events:
                 yield ": ожидание\n\n"

@@ -194,6 +194,63 @@ async def test_cancel_interrupts_blocked_handler(tmp_path):
     await queue.close()
 
 
+@pytest.mark.asyncio
+async def test_storage_failure_does_not_replay_stale_in_memory_jobs(tmp_path):
+    store = JsonStore(tmp_path)
+    queue = JobQueue(store)
+    executed = []
+
+    async def handler(payload, cancel, emit):
+        executed.append(payload["name"])
+        return {"text": payload["name"]}
+
+    queue.handlers["test"] = handler
+    original = store.transaction
+
+    def fail_events(changes, **kwargs):
+        if any(change.key.startswith("jobs/events/") for change in changes):
+            raise AppError("storage_full", "Тест: нет места.", 507)
+        return original(changes, **kwargs)
+
+    store.transaction = fail_events
+    first = await queue.enqueue("test", {"name": "must-not-replay"}, idempotency_key="old")
+    for _ in range(100):
+        if queue.worker.done():
+            break
+        await asyncio.sleep(0.01)
+    assert queue.worker.done()
+    store.transaction = original
+    second = await queue.enqueue("test", {"name": "new"}, idempotency_key="new")
+    assert (await terminal(queue, second["id"]))["payload"]["state"] == "completed"
+    assert executed == ["new"]
+    assert (await queue.get(first["id"]))["payload"]["state"] == "interrupted"
+    await queue.close()
+
+
+@pytest.mark.asyncio
+async def test_shutdown_interrupts_active_and_pending_jobs_and_sse_does_not_restart_worker(tmp_path):
+    queue = JobQueue(JsonStore(tmp_path))
+    entered = asyncio.Event()
+
+    async def handler(payload, cancel, emit):
+        entered.set()
+        await asyncio.sleep(60)
+
+    queue.handlers["test"] = handler
+    active = await queue.enqueue("test", {}, idempotency_key="active")
+    await entered.wait()
+    pending = await queue.enqueue("test", {}, idempotency_key="pending")
+    await queue.close()
+    await queue.close()
+    for job in [active, pending]:
+        assert (await queue.get(job["id"]))["payload"]["state"] == "interrupted"
+        events = [event async for event in queue.sse(job["id"])]
+        assert any("generation.interrupted" in event for event in events)
+    assert queue.worker.done()
+    with pytest.raises(AppError):
+        await queue.enqueue("test", {}, idempotency_key="after-shutdown")
+
+
 @pytest.mark.parametrize("broken", [False, True])
 def test_api_stream_replay_and_partial(tmp_path, broken):
     app = create_app(Config(tmp_path))

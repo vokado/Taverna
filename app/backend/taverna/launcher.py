@@ -63,7 +63,14 @@ def main(diagnostic: bool = False):
                 launcher_token = app.state.sessions.bootstrap()
                 # Bootstrap URLs never enter logs or runtime metadata.
                 server = uvicorn.Server(
-                    uvicorn.Config(app, host="127.0.0.1", port=config.port, log_config=None, access_log=False)
+                    uvicorn.Config(
+                        app,
+                        host="127.0.0.1",
+                        port=config.port,
+                        log_config=None,
+                        access_log=False,
+                        timeout_graceful_shutdown=10,
+                    )
                 )
                 atomic_runtime_info(root / "data/config/instance.json", {"port": config.port})
 

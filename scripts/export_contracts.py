@@ -5,6 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from taverna.characters import CHARACTER_SCHEMA
+from taverna.chat_schemas import BRANCH_SCHEMA, MESSAGE_SCHEMA, STATE_SCHEMA, STORY_SCHEMA
 from taverna.core import Config
 from taverna.main import create_app
 from taverna.settings import SETTINGS_SCHEMA, WORKSPACE_SCHEMA
@@ -21,6 +22,14 @@ with TemporaryDirectory() as temporary:
         "settings-v1.json": SETTINGS_SCHEMA,
         "workspace-v1.json": WORKSPACE_SCHEMA,
     }
+    contracts.update(
+        {
+            "story-v1.json": STORY_SCHEMA,
+            "branch-v1.json": BRANCH_SCHEMA,
+            "branch-state-v1.json": STATE_SCHEMA,
+            "message-v1.json": MESSAGE_SCHEMA,
+        }
+    )
     for name, value in contracts.items():
         (schemas / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"Exported {len(contracts)} contracts")

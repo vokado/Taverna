@@ -20,6 +20,11 @@ class SegmentStore:
         return f"chats/{story_id}/segments.json"
 
     def append(self, story_id: str, messages: list[dict]):
+        changes = self.plan_append(story_id, messages)
+        self.store.transaction(changes)
+        return self.store.get(self._key(story_id))
+
+    def plan_append(self, story_id: str, messages: list[dict], *, seal_tail_state=None) -> list[Mutation]:
         key = self._key(story_id)
         if not messages:
             raise AppError("empty_messages", "Нет сообщений для добавления.")
@@ -51,6 +56,8 @@ class SegmentStore:
         tail_key = segments[-1] if segments else None
         tail = self.store.get(tail_key) if tail_key else None
         tail_expected = tail["revision"] if tail else 0
+        if tail is not None and seal_tail_state is not None:
+            tail["payload"]["messages"][-1]["state_id"] = seal_tail_state
         for message in messages:
             if (
                 tail is None
@@ -68,8 +75,7 @@ class SegmentStore:
         head["payload"]["count"] += len(messages)
         head["refs"] = list(segments)
         changes.append(Mutation(key, head, expected))
-        self.store.transaction(changes)
-        return self.store.get(key)
+        return changes
 
     def page(self, story_id: str, offset=0, limit=100) -> dict:
         if offset < 0 or not 1 <= limit <= 500:

@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "required": [
+    "story_id",
+    "branch_id",
+    "memory",
+    "relationships",
+    "world",
+    "rpg",
+    "character_states",
+    "events",
+    "scene"
+  ],
+  "properties": {
+    "story_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "branch_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "memory": {
+      "type": "object"
+    },
+    "relationships": {
+      "type": "object"
+    },
+    "world": {
+      "type": "object"
+    },
+    "rpg": {
+      "type": "object"
+    },
+    "character_states": {
+      "type": "object"
+    },
+    "events": {
+      "type": "array"
+    },
+    "scene": {
+      "type": "object",
+      "required": [
+        "id",
+        "participants",
+        "speaker_order"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true
+        },
+        "speaker_order": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

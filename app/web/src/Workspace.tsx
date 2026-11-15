@@ -9,6 +9,7 @@ import { request } from "./api";
 import { GenerationPanel } from "./GenerationPanel";
 import { GenerationHistory } from "./GenerationHistory";
 import { Characters } from "./Characters";
+import { Chat } from "./Chat";
 
 type Colors = {
   background: string;
@@ -106,6 +107,10 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
   const record = useRef<WorkspaceRecord | null>(null);
   const [layout, setLayout] = useState<Layout>(initial);
   const [page, setPage] = useState("home");
+  const [openStory, setOpenStory] = useState<{
+    id: string;
+    nonce: number;
+  } | null>(null);
   const [saveState, setSaveState] = useState("Все изменения сохранены.");
   const [busy, setBusy] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -233,12 +238,19 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["home", "Главная"],
           ["connection", "Рабочее пространство"],
           ["characters", "Персонажи"],
+          ["chat", "Истории"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
           <button
             key={id}
             className={page === id ? "active" : ""}
-            onClick={() => setPage(id)}
+            onClick={() => {
+              setPage(id);
+              if (id === "home")
+                void request<Summary>("/home/summary")
+                  .then(setSummary)
+                  .catch((e) => setSaveState(e.message));
+            }}
           >
             {label}
           </button>
@@ -265,7 +277,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                   ? "Настройки"
                   : page === "characters"
                     ? "Персонажи"
-                    : "Рабочее пространство"}
+                    : page === "chat"
+                      ? "Истории"
+                      : "Рабочее пространство"}
             </h1>
             <p>Локальные истории и персонажи</p>
           </div>
@@ -282,12 +296,19 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                 <ul>
                   {summary.recent_stories.map((s) => (
                     <li key={s.id}>
-                      {s.payload.name || "История без названия"}
+                      <button
+                        onClick={() => {
+                          setOpenStory({ id: s.id, nonce: Date.now() });
+                          setPage("chat");
+                        }}
+                      >
+                        {s.payload.name || "История без названия"}
+                      </button>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p>Историй пока нет. Модуль историй ещё не реализован.</p>
+                <p>Историй пока нет. Создайте историю на странице «Истории».</p>
               )}
             </section>
             <div className="summary-grid">
@@ -557,6 +578,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         )}
         <div hidden={page !== "characters"}>
           <Characters />
+        </div>
+        <div hidden={page !== "chat"}>
+          <Chat openStory={openStory} />
         </div>
         <footer>
           Один пользователь · данные в переносимой папке · обновления только

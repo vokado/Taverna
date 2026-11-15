@@ -9,6 +9,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import httpx
+import pefile
 
 
 def main():
@@ -24,6 +25,8 @@ def main():
         env.pop("PYTHONHOME", None)
         env["PATH"] = os.environ.get("SystemRoot", "C:\\Windows") + "\\System32"
         for executable in ("Taverna.exe", "Taverna-Diagnostics.exe"):
+            with pefile.PE(str(root / executable), fast_load=True) as image:
+                assert image.OPTIONAL_HEADER.Subsystem == (2 if executable == "Taverna.exe" else 3)
             process = subprocess.Popen([str(root / executable), "--no-browser"], cwd=root, env=env)
             try:
                 info = root / "data/config/instance.json"

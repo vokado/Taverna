@@ -309,9 +309,15 @@ class JsonStore:
                         errors.append(key)
             return result, errors
 
-    def transaction(self, changes: list[Mutation], *, transaction_id: str | None = None) -> dict:
+    def transaction(
+        self,
+        changes: list[Mutation],
+        *,
+        transaction_id: str | None = None,
+        guards: dict[str, int] | None = None,
+    ) -> dict:
         try:
-            return self._transaction(changes, transaction_id=transaction_id)
+            return self._transaction(changes, transaction_id=transaction_id, guards=guards)
         except OSError as exc:
             if exc.errno == errno.ENOSPC:
                 raise AppError(
@@ -325,7 +331,13 @@ class JsonStore:
                 "storage_io_error", "Ошибка диска. Проверьте носитель и журнал восстановления.", 503
             ) from exc
 
-    def _transaction(self, changes: list[Mutation], *, transaction_id: str | None = None) -> dict:
+    def _transaction(
+        self,
+        changes: list[Mutation],
+        *,
+        transaction_id: str | None = None,
+        guards: dict[str, int] | None = None,
+    ) -> dict:
         if not changes or len({c.key for c in changes}) != len(changes):
             raise AppError("invalid_transaction", "Транзакция пуста или содержит повторные пути.")
         txid = transaction_id or str(uuid4())
@@ -336,6 +348,8 @@ class JsonStore:
         fingerprint = digest(
             encoded([{"key": c.key, "value": c.value, "expected": c.expected_revision} for c in changes])
         )
+        if guards:
+            fingerprint = digest(encoded({"changes": fingerprint, "guards": guards}))
         with self.locked():
             self._recover()
             before = self._manifest()
@@ -348,6 +362,17 @@ class JsonStore:
                     )
                 if (directory / "commit.json").exists():
                     return intent["after"]
+            for key, expected in (guards or {}).items():
+                self._logical(key)
+                actual = before["entries"].get(key, {}).get("revision", 0)
+                if actual != expected:
+                    raise AppError(
+                        "storage_conflict",
+                        "Источник операции изменился. Обновите предпросмотр.",
+                        409,
+                        key=key,
+                        current_revision=actual,
+                    )
             after = json.loads(encoded(before))
             after.update(generation=before["generation"] + 1, transaction_id=txid)
             for change in changes:

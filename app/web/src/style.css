@@ -265,7 +265,7 @@ footer {
   border-bottom: 1px solid #61697655;
 }
 .immersive .navigation .brand,
-.immersive .navigation button:nth-of-type(-n + 4) {
+.immersive .navigation button:nth-of-type(-n + 5) {
   display: none;
 }
 .immersive .navigation button:last-child {
@@ -388,4 +388,106 @@ footer {
 }
 .editor-fields:disabled {
   opacity: 0.75;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0;
+}
+.chat-message {
+  border: 1px solid #70778466;
+  background: var(--background);
+  padding: 18px;
+  border-radius: 14px;
+  max-width: 92%;
+}
+.chat-message.user {
+  align-self: flex-end;
+  border-color: var(--accent);
+}
+.chat-message header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.chat-message time {
+  font-size: 0.7rem;
+  opacity: 0.65;
+}
+.message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.message-actions button {
+  font-size: 0.75rem;
+  padding: 6px 9px;
+  margin: 0;
+}
+.chat-messages.literary .chat-message {
+  border: 0;
+  max-width: 100%;
+  width: 100%;
+  align-self: stretch;
+  font-family: Georgia, serif;
+}
+.chat-messages.novel .chat-message {
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, var(--background), var(--surface));
+}
+.novel-portrait {
+  max-width: 300px;
+  max-height: 360px;
+  object-fit: contain;
+  margin: 20px auto;
+}
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.comparison > div {
+  min-width: 0;
+}
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #000a;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.dialog-backdrop section {
+  width: min(800px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+}
+.partial-answer {
+  border: 1px dashed var(--accent);
+  padding: 20px;
+  border-radius: 12px;
+}
+@media (max-width: 800px) {
+  .comparison {
+    grid-template-columns: 1fr;
+  }
+  .chat-message {
+    max-width: 100%;
+  }
+  .chat-message header {
+    flex-wrap: wrap;
+  }
 }

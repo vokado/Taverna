@@ -1,0 +1,101 @@
+UUID = {"type": "string", "format": "uuid"}
+NULL_UUID = {"type": ["string", "null"], "format": "uuid"}
+UUID_LIST = {"type": "array", "items": UUID, "uniqueItems": True}
+STORY_SCHEMA = {
+    "type": "object",
+    "required": ["name", "character_snapshots", "active_branch"],
+    "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 200},
+        "active_branch": UUID,
+        "character_snapshots": {"type": "object", "minProperties": 1},
+        "world_id": NULL_UUID,
+        "scenario_id": NULL_UUID,
+    },
+}
+BRANCH_SCHEMA = {
+    "type": "object",
+    "required": [
+        "story_id",
+        "name",
+        "state_id",
+        "initial_state_id",
+        "participants",
+        "speaker_order",
+        "view_mode",
+        "head_message_id",
+    ],
+    "properties": {
+        "story_id": UUID,
+        "name": {"type": "string", "minLength": 1},
+        "state_id": UUID,
+        "initial_state_id": UUID,
+        "head_message_id": NULL_UUID,
+        "parent_id": NULL_UUID,
+        "fork_message_id": NULL_UUID,
+        "participants": UUID_LIST,
+        "speaker_order": UUID_LIST,
+        "view_mode": {"enum": ["messenger", "literary", "novel"]},
+        "chapters": {"type": "array"},
+        "bookmarks": {"type": "array"},
+        "checkpoints": {"type": "array"},
+    },
+}
+STATE_SCHEMA = {
+    "type": "object",
+    "required": [
+        "story_id",
+        "branch_id",
+        "memory",
+        "relationships",
+        "world",
+        "rpg",
+        "character_states",
+        "events",
+        "scene",
+    ],
+    "properties": {
+        "story_id": UUID,
+        "branch_id": UUID,
+        "memory": {"type": "object"},
+        "relationships": {"type": "object"},
+        "world": {"type": "object"},
+        "rpg": {"type": "object"},
+        "character_states": {"type": "object"},
+        "events": {"type": "array"},
+        "scene": {
+            "type": "object",
+            "required": ["id", "participants", "speaker_order"],
+            "properties": {"id": UUID, "participants": UUID_LIST, "speaker_order": UUID_LIST},
+        },
+    },
+}
+MESSAGE_SCHEMA = {
+    "type": "object",
+    "required": [
+        "id",
+        "story_id",
+        "branch_id",
+        "role",
+        "author_id",
+        "text",
+        "created_at",
+        "version",
+        "state_id",
+    ],
+    "properties": {
+        "id": UUID,
+        "story_id": UUID,
+        "branch_id": UUID,
+        "role": {"enum": ["user", "assistant"]},
+        "author_id": NULL_UUID,
+        "text": {"type": "string", "minLength": 1, "maxLength": 262144},
+        "created_at": {"type": "string", "format": "date-time"},
+        "version": {"type": "integer", "minimum": 1},
+        "state_id": UUID,
+        "model_id": {"type": ["string", "null"]},
+        "prompt_profile_id": NULL_UUID,
+        "source_message_ids": UUID_LIST,
+        "event_ids": UUID_LIST,
+        "file_ids": UUID_LIST,
+    },
+}
