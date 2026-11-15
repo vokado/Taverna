@@ -276,3 +276,47 @@ def test_api_stream_replay_and_partial(tmp_path, broken):
         assert len([p for m, p in calls if m == "POST"]) == 1
         replay = client.get(f"/api/v1/generations/{job_id}/stream", headers={"Last-Event-ID": f"{job_id}:1"})
         assert "generation.started" not in replay.text
+
+
+@pytest.mark.asyncio
+async def test_plain_loopback_adapters_work_when_system_ca_bundle_is_unavailable(monkeypatch):
+    import ssl
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    from taverna.image_engine import ComfyAdapter
+    from taverna.llm import LOOPBACK_HTTP_CONTEXT
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            raw = b'{"status":"ok"}'
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    def unavailable(*args, **kwargs):
+        raise AssertionError("HTTP loopback must not load a CA bundle")
+
+    monkeypatch.setattr(ssl, "create_default_context", unavailable)
+    try:
+        endpoint = "http://127.0.0.1:" + str(server.server_port)
+        for adapter in (LmStudioAdapter(endpoint), ComfyAdapter(endpoint)):
+            async with adapter.client() as client:
+                response = await client.get("/health")
+                assert response.json() == {"status": "ok"}
+        assert (
+            LOOPBACK_HTTP_CONTEXT.verify_mode == ssl.CERT_REQUIRED
+            and LOOPBACK_HTTP_CONTEXT.check_hostname is True
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

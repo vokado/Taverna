@@ -580,3 +580,53 @@ async def test_pending_external_job_dequeue_404_is_confirmed_only_with_prior_pen
         await service.resource_guard("llm", {})
     finally:
         await service.generation.queue.close()
+
+
+@pytest.mark.asyncio
+async def test_cancellation_during_error_cleanup_waits_for_external_terminal(tmp_path):
+    service, chat, sid, ids, engine, lm = setup_images(tmp_path, "running")
+    entered, release = asyncio.Event(), asyncio.Event()
+    original = service.recover_cancel
+
+    async def delayed_cleanup(*args):
+        entered.set()
+        await release.wait()
+        return await original(*args)
+
+    service.recover_cancel = delayed_cleanup
+
+    def error_once():
+        engine.on_status = None
+        raise AppError("test_transport_abort", "Тестовый разрыв после отправки", 502)
+
+    engine.on_status = error_once
+    config = service.settings()
+    payload = {
+        "prompt_id": str(uuid4()),
+        "job_id": str(uuid4()),
+        "endpoint": config["payload"]["endpoint"],
+        "settings": config["payload"],
+        "request": body().model_dump(mode="json"),
+    }
+
+    async def emit(*args):
+        pass
+
+    task = asyncio.create_task(service.run(payload, asyncio.Event(), emit))
+    try:
+        await asyncio.wait_for(entered.wait(), 5)
+        task.cancel()
+        await asyncio.sleep(0.05)
+        assert not task.done(), "Handler must finish addressed cleanup before giving the queue to inference"
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert service.lease()["payload"]["state"] == "terminal"
+        assert service.lease()["payload"]["external_status"] == "cancelled"
+        assert all(status == "cancelled" for status in engine.jobs.values())
+    finally:
+        release.set()
+        if not task.done():
+            task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+        await service.generation.queue.close()

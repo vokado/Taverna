@@ -4,6 +4,7 @@ import asyncio
 import ipaddress
 import json
 import math
+import ssl
 import time
 from urllib.parse import urlsplit
 
@@ -33,6 +34,11 @@ def local_endpoint(url: str) -> str:
     return url.rstrip("/")
 
 
+# Endpoints are strictly HTTP loopback. Avoid loading CA bundles on every local
+# request; retain CERT_REQUIRED/hostname checks if an internal caller misuses TLS.
+LOOPBACK_HTTP_CONTEXT = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+
 class LmStudioAdapter:
     """No model lifecycle endpoints. Every inference rechecks native loaded instances."""
 
@@ -44,6 +50,7 @@ class LmStudioAdapter:
     def client(self):
         return httpx.AsyncClient(
             base_url=self.endpoint,
+            verify=LOOPBACK_HTTP_CONTEXT,
             trust_env=False,
             follow_redirects=False,
             transport=self.transport,

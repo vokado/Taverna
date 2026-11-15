@@ -1,0 +1,9 @@
+{
+  "environment": "Linux/Python3.12.14/httpx0.28.1",
+  "setup_count": 20,
+  "default_ca_setup_seconds": 0.14768,
+  "reused_http_context_setup_seconds": 0.00146,
+  "tls_verify_mode": "CERT_REQUIRED",
+  "check_hostname": true,
+  "scope": "strictly numeric HTTP loopback; no Windows latency SLA inferred"
+}

@@ -8,7 +8,7 @@ from uuid import UUID, uuid4
 import httpx
 
 from .core import AppError
-from .llm import local_endpoint
+from .llm import LOOPBACK_HTTP_CONTEXT, local_endpoint
 from .media_probe import MAX_MEDIA_BYTES, probe_media
 
 NODES = ("CheckpointLoaderSimple", "CLIPTextEncode", "EmptyLatentImage", "KSampler", "VAEDecode", "SaveImage")
@@ -25,6 +25,7 @@ class ComfyAdapter:
     def client(self):
         return httpx.AsyncClient(
             base_url=self.endpoint,
+            verify=LOOPBACK_HTTP_CONTEXT,
             transport=self.transport,
             trust_env=False,
             follow_redirects=False,

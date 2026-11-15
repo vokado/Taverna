@@ -25,6 +25,23 @@ HEAVY_KINDS = {
 }
 
 
+async def finish_before_handoff(operation):
+    """A second cancellation cannot detach GPU cleanup from its queue handler."""
+    owned = asyncio.create_task(operation)
+    cancelled = False
+    while True:
+        try:
+            result = await asyncio.shield(owned)
+            break
+        except asyncio.CancelledError:
+            if owned.cancelled():
+                raise
+            cancelled = True
+    if cancelled:
+        raise asyncio.CancelledError
+    return result
+
+
 class ImageService:
     def __init__(self, media, *, transport=None):
         self.media, self.chat, self.store = media, media.chat, media.store
@@ -424,36 +441,33 @@ class ImageService:
             )
         except asyncio.CancelledError:
             if not terminal:
-                if not external_started:
-                    await asyncio.shield(
-                        asyncio.to_thread(
-                            self.update_lease, pid, {"state": "terminal", "external_status": "not_submitted"}
-                        )
-                    )
-                elif submitted:
-                    await asyncio.shield(self.recover_cancel(adapter, pid, settings["cancel_wait_seconds"]))
-                else:
-                    await asyncio.shield(self.uncertain(pid, "image_submission_unknown"))
+                await finish_before_handoff(
+                    self.cleanup_failed(adapter, pid, settings, external_started, submitted)
+                )
             raise
         except AppError as exc:
             if not terminal:
-                if not external_started:
-                    await asyncio.to_thread(
-                        self.update_lease, pid, {"state": "terminal", "external_status": "not_submitted"}
-                    )
-                elif (
+                rejected = (
                     not submitted
                     and exc.code == "image_engine_rejected"
                     and exc.details.get("http_status") in (400, 401, 403, 405, 422)
-                ):
-                    await asyncio.to_thread(
-                        self.update_lease, pid, {"state": "terminal", "external_status": "rejected"}
-                    )
-                elif submitted:
-                    await self.recover_cancel(adapter, pid, settings["cancel_wait_seconds"])
-                else:
-                    await self.uncertain(pid, "image_submission_unknown")
+                )
+                await finish_before_handoff(
+                    self.cleanup_failed(adapter, pid, settings, external_started, submitted, rejected)
+                )
             raise
+
+    async def cleanup_failed(self, adapter, pid, settings, external_started, submitted, rejected=False):
+        if not external_started or rejected:
+            await asyncio.to_thread(
+                self.update_lease,
+                pid,
+                {"state": "terminal", "external_status": "rejected" if rejected else "not_submitted"},
+            )
+        elif submitted:
+            await self.recover_cancel(adapter, pid, settings["cancel_wait_seconds"])
+        else:
+            await self.uncertain(pid, "image_submission_unknown")
 
     def manual_release(self, expected_revision, reason, confirmed):
         lease = self.lease()
