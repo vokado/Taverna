@@ -9,6 +9,14 @@ type BackupVerification = {
   files: number;
   generation: number;
 };
+type AutomaticStatus = {
+  enabled: boolean;
+  interval_hours: number;
+  last_checked_at: string | null;
+  last_created: string | null;
+  last_error_code: string | null;
+  only_while_running: boolean;
+};
 
 function size(bytes: number) {
   return (
@@ -21,11 +29,16 @@ function size(bytes: number) {
 export function Backups({ visible }: { visible: boolean }) {
   const [items, setItems] = useState<BackupItem[]>([]);
   const [busy, setBusy] = useState(false);
+  const [automatic, setAutomatic] = useState<AutomaticStatus | null>(null);
   const [message, setMessage] = useState("Список резервных копий не загружен.");
 
   async function refresh() {
-    const result = await request<BackupList>("/backups");
+    const [result, status] = await Promise.all([
+      request<BackupList>("/backups"),
+      request<AutomaticStatus>("/backups/automatic/status"),
+    ]);
     setItems(result.items);
+    setAutomatic(status);
   }
 
   useEffect(() => {
@@ -101,6 +114,16 @@ export function Backups({ visible }: { visible: boolean }) {
         библиотечные материалы и файлы установленных расширений. Архив
         проверяется до выдачи.
       </p>
+      <p>
+        Автоматическое резервирование: раз в сутки, пока приложение запущено.
+        {automatic?.last_error_code
+          ? " Последняя попытка завершилась ошибкой (" +
+            automatic.last_error_code +
+            ")."
+          : automatic?.last_created
+            ? " Последний созданный архив: " + automatic.last_created
+            : " Проверка расписания выполняется при запуске и далее каждый час."}
+      </p>
       <button disabled={busy} onClick={() => void createBackup()}>
         Создать резервную копию
       </button>
@@ -139,8 +162,9 @@ export function Backups({ visible }: { visible: boolean }) {
         </ul>
       )}
       <p>
-        Автоматическое расписание и мастер восстановления в текущую работающую
-        установку ещё разрабатываются. Для безопасности восстановление пока
+        Автоматические копии создаются только при запущенной «Таверне». Если
+        приложение было выключено, проверка пропущенного резервирования произойдёт
+        при следующем запуске. Для безопасности восстановление пока
         предусмотрено только в новый каталог при закрытом приложении.
       </p>
     </section>
