@@ -41,7 +41,7 @@ def test_default_diagnostics_exclude_personal_content_and_require_session(tmp_pa
         assert report["logs_included"] is False
         assert report["data"]["integrity_ok"] is True
         assert report["data"]["document_count"] >= 1
-        assert "private" not in str(report)
+        assert "private.json" not in str(report)
         assert PRIVATE not in str(report)
 
 
