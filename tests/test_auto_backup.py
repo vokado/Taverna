@@ -81,9 +81,7 @@ def test_status_is_authenticated_and_automatic_backup_runs_in_lifespan(tmp_path)
         assert result.json()["only_while_running"] is True
         assert result.json()["interval_hours"] == 24
     # Scheduling never requires a network service, and published archives are valid.
-    from pathlib import Path
-
-    archives = list(Path(tmp_path / "backups").glob("taverna-automatic-*.zip"))
+    archives = list((tmp_path / "backups").glob("taverna-automatic-*.zip"))
     assert len(archives) <= 1
     for path in archives:
         verify_full_backup(path)
