@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import UUID, uuid4
+from datetime import datetime, timezone
 
 from .core import AppError
 from .plugin_actions import PluginPlan, PluginRun
@@ -416,6 +417,58 @@ class PluginService:
                     self.store.transaction([Mutation(key, current, current["revision"])])
             await asyncio.shield(asyncio.to_thread(save))
         return return_value
+
+    def recover_external(self):
+        """Turn interrupted started receipts into unknown; never re-run commands."""
+        rows, _ = self.store.scan("automations/plugin-previews/", tolerate_corrupt=True)
+        recovered = 0
+        for item in rows:
+            preview = item["value"]
+            if preview["payload"].get("status") != "started":
+                continue
+            job_id = preview["payload"].get("external_job_id")
+            job = self.store.get(self.queue.key(job_id)) if job_id else None
+            # Active jobs are never considered interrupted during an ordinary
+            # browser refresh; recovery runs only once at application startup.
+            if job and job["payload"]["state"] in ("queued", "running"):
+                continue
+            preview["payload"]["status"] = "unknown"
+            preview["payload"]["recovery_reason"] = "application_restarted"
+            self.store.transaction(
+                [Mutation(item["key"], preview, preview["revision"])]
+            )
+            recovered += 1
+        return recovered
+
+    def reconcile_external(self, preview_id, decision):
+        if not decision.confirmed:
+            raise AppError("confirmation_required", "Подтвердите ручную сверку результата.", 422)
+        key = self.proposal_key(preview_id)
+        preview = self.store.get(key)
+        if not preview or preview["kind"] != "plugin_preview":
+            raise AppError("plugin_preview_missing", "План расширения не найден.", 404)
+        self.external_payload(preview)
+        if preview["revision"] != decision.expected_revision:
+            raise AppError("plugin_preview_conflict", "Результат изменился. Обновите сведения.", 409)
+        if preview["payload"]["status"] not in ("unknown", "started"):
+            raise AppError("plugin_command_not_unknown", "Сверка разрешена только для неясного исхода.", 409)
+        job_id = preview["payload"].get("external_job_id")
+        job = self.store.get(self.queue.key(job_id)) if job_id else None
+        if job and job["payload"]["state"] in ("queued", "running"):
+            raise AppError(
+                "plugin_command_running",
+                "Нельзя сверять результат, пока исходная команда ещё выполняется.", 409
+            )
+        preview["payload"]["status"] = "reconciled"
+        preview["payload"]["reconciliation"] = {
+            "outcome": decision.outcome,
+            "reason": decision.reason,
+            "at": datetime.now(timezone.utc).isoformat(),
+            "by": "local_owner",
+            "manually_reported": True,
+        }
+        self.store.transaction([Mutation(key, preview, decision.expected_revision)])
+        return self.store.get(key)
 
     @staticmethod
     def _before_command(cancel):
