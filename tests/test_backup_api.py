@@ -2,7 +2,6 @@ from io import BytesIO
 from zipfile import ZipFile
 
 from fastapi.testclient import TestClient
-
 from taverna.core import Config
 from taverna.main import create_app
 from taverna.storage import Mutation, document
