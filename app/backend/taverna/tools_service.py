@@ -53,6 +53,14 @@ class ToolService:
         return self.get(tid)
 
     def names(self, tid, request):
+        run, guards = self.names_plan(tid, request)
+        self.store.transaction(
+            [Mutation("manuscripts/tool-runs/" + run["id"] + ".json", run, 0)], guards=guards
+        )
+        return run
+
+    def names_plan(self, tid, request):
+        """Compute deterministic names without publishing a result record."""
         value = self.get(tid)
         if value["revision"] != request.expected_revision:
             raise AppError("tool_conflict", "Генератор изменился.", 409)
@@ -77,11 +85,7 @@ class ToolService:
                 "names": result,
             },
         )
-        self.store.transaction(
-            [Mutation("manuscripts/tool-runs/" + run["id"] + ".json", run, 0)],
-            guards={self.key(tid): value["revision"]},
-        )
-        return run
+        return run, {self.key(tid): value["revision"]}
 
     def preview(self, tid, request):
         result, guards = self.preview_plan(tid, request)

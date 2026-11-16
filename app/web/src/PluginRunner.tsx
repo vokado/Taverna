@@ -606,13 +606,19 @@ export function PluginRunner({
           {(p.payload.metadata.tool_previews || []).map((t) => (
             <section
               key={t.result_id}
-              aria-label="Результат шаблона расширения"
+              aria-label={
+                t.action === "names"
+                  ? "Результат генератора расширения"
+                  : "Результат шаблона расширения"
+              }
             >
               <h5>{t.title}</h5>
               <p>
-                {t.action === "note"
-                  ? "Будет создана заметка"
-                  : "Будет добавлена глава в рукопись"}
+                {t.action === "names"
+                  ? "Будет сохранён результат генератора имён"
+                  : t.action === "note"
+                    ? "Будет создана заметка"
+                    : "Будет добавлена глава в рукопись"}
                 {t.manuscript_id ? ` · ${t.manuscript_id}` : ""}
               </p>
               <pre>{t.text}</pre>

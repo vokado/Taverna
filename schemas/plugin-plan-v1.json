@@ -195,6 +195,53 @@
       "title": "NameGenerator",
       "type": "object"
     },
+    "NamesRun": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "seed": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Seed",
+          "type": "string"
+        },
+        "count": {
+          "default": 10,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "type": {
+          "const": "tool.names",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "format": "uuid",
+          "title": "Target",
+          "type": "string"
+        },
+        "result_id": {
+          "format": "uuid",
+          "title": "Result Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "seed",
+        "type",
+        "target",
+        "result_id"
+      ],
+      "title": "NamesRun",
+      "type": "object"
+    },
     "NoteSave": {
       "additionalProperties": false,
       "properties": {
@@ -585,6 +632,7 @@
             "note.save": "#/$defs/NoteSave",
             "own.delete": "#/$defs/OwnDelete",
             "own.set": "#/$defs/OwnSet",
+            "tool.names": "#/$defs/NamesRun",
             "tool.template": "#/$defs/TemplateRun"
           },
           "propertyName": "type"
@@ -604,6 +652,9 @@
           },
           {
             "$ref": "#/$defs/TemplateRun"
+          },
+          {
+            "$ref": "#/$defs/NamesRun"
           }
         ]
       },

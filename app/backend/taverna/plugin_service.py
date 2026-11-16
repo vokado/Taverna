@@ -18,7 +18,7 @@ from .plugin_compute import compute
 from .plugin_files import PluginFiles
 from .plugin_registry import CATALOG
 from .storage import Mutation, document, encoded, safe_path
-from .tool_models import TemplatePreview
+from .tool_models import NameRun, TemplatePreview
 
 
 class PluginService:
@@ -292,7 +292,7 @@ class PluginService:
     def plan_effects(self, row, plan, rendered_tools=None):
         changes, guards, targets = [], {}, set()
         for action in plan["actions"]:
-            if action["type"] == "tool.template":
+            if action["type"].startswith("tool."):
                 if not any(
                     g["capability"] == "tools.run" and action["target"] in g["scopes"]
                     for g in row["payload"]["grants"]
@@ -300,6 +300,30 @@ class PluginService:
                     raise AppError(
                         "plugin_scope_denied", "Выберите отдельное разрешение на точный инструмент.", 403
                     )
+                if action["type"] == "tool.names":
+                    body = NameRun.model_validate({k: action[k] for k in NameRun.model_fields})
+                    result, extra = self.tools.names_plan(action["target"], body)
+                    result["id"] = action["result_id"]
+                    key = "manuscripts/tool-runs/" + result["id"] + ".json"
+                    if key in targets:
+                        raise AppError("plugin_duplicate_effect", "План повторяет результат генератора.", 422)
+                    targets.add(key)
+                    changes.append(Mutation(key, result, 0))
+                    self.merge_guards(guards, {**extra, key: 0})
+                    if rendered_tools is not None:
+                        rendered_tools.append(
+                            {
+                                "tool_id": action["target"],
+                                "tool_revision": body.expected_revision,
+                                "action": "names",
+                                "title": "Результат генератора имён",
+                                "text": "\n".join(result["payload"]["names"]),
+                                "manuscript_id": None,
+                                "manuscript_revision": None,
+                                "result_id": result["id"],
+                            }
+                        )
+                    continue
                 body = TemplatePreview.model_validate({k: action[k] for k in TemplatePreview.model_fields})
                 preview, extra = self.tools.preview_plan(action["target"], body)
                 data = preview["payload"]

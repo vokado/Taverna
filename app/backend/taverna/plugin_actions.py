@@ -8,7 +8,7 @@ from uuid import UUID
 from pydantic import Field, JsonValue, model_validator
 
 from .manuscript_models import Manuscript
-from .tool_models import TemplatePreview, ToolEntry
+from .tool_models import NameRun, TemplatePreview, ToolEntry
 from .world_models import Strict
 
 
@@ -102,7 +102,16 @@ class TemplateRun(TemplatePreview):
     result_id: UUID
 
 
-PluginAction = Annotated[OwnSet | OwnDelete | NoteSave | BookSave | TemplateRun, Field(discriminator="type")]
+class NamesRun(NameRun):
+    type: Literal["tool.names"]
+    target: UUID
+    result_id: UUID
+
+
+PluginAction = Annotated[
+    OwnSet | OwnDelete | NoteSave | BookSave | TemplateRun | NamesRun,
+    Field(discriminator="type"),
+]
 
 
 class PluginPlan(Strict):

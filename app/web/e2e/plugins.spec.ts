@@ -560,6 +560,8 @@ test("Шаблон расширения: выбранный инструмент
 }) => {
   const toolId = crypto.randomUUID(),
     resultId = crypto.randomUUID(),
+    generatorId = crypto.randomUUID(),
+    namesId = crypto.randomUUID(),
     id = crypto.randomUUID();
   const csrf = (
     await (await page.request.get(appUrl + "/api/v1/session")).json()
@@ -582,6 +584,21 @@ test("Шаблон расширения: выбранный инструмент
     },
   });
   expect(template.ok()).toBe(true);
+  const generator = await page.request.put(
+    appUrl + `/api/v1/tools/${generatorId}`,
+    {
+      headers,
+      data: {
+        expected_revision: 0,
+        payload: {
+          kind: "name_generator",
+          title: "Имена выбранного генератора",
+          generator: { prefixes: ["Аль"], middles: [""], suffixes: ["ма"] },
+        },
+      },
+    },
+  );
+  expect(generator.ok()).toBe(true);
   const manifest = {
     format: 1,
     id,
@@ -591,7 +608,11 @@ test("Шаблон расширения: выбранный инструмент
     runtime: "declarative",
     entry: "main.json",
     requests: [
-      { capability: "tools.run", reason: "Один шаблон", scopes: [toolId] },
+      {
+        capability: "tools.run",
+        reason: "Выбранные инструменты",
+        scopes: [toolId, generatorId],
+      },
       { capability: "notes.write", reason: "Новая заметка", scopes: ["new"] },
     ],
   };
@@ -607,6 +628,14 @@ test("Шаблон расширения: выбранный инструмент
         inputs: {
           hero: "Альма <script id='template-injection'>не выполнять</script>",
         },
+      },
+      {
+        type: "tool.names",
+        target: generatorId,
+        expected_revision: 1,
+        result_id: namesId,
+        seed: "Таверна",
+        count: 3,
       },
     ],
   });
@@ -667,6 +696,11 @@ test("Шаблон расширения: выбранный инструмент
   });
   await expect(rendered).toContainText("Будет создана заметка");
   await expect(rendered.locator("script")).toHaveCount(0);
+  const names = runner.getByLabel("Результат генератора расширения", {
+    exact: true,
+  });
+  await expect(names).toContainText("Будет сохранён результат генератора имён");
+  await expect(names.locator("pre")).toHaveText("Альма\nАльма\nАльма");
   expect(
     (await page.request.get(appUrl + `/api/v1/tools/${resultId}`)).status(),
   ).toBe(404);
@@ -691,4 +725,14 @@ test("Шаблон расширения: выбранный инструмент
   ).json();
   expect(saved.revision).toBe(1);
   expect(saved.payload.text).toContain("Проверенный текст: Альма <script");
+  const proposals = await (
+    await page.request.get(appUrl + `/api/v1/plugins/${id}/previews`)
+  ).json();
+  const applied = proposals.items.find(
+    (p: any) => p.payload.status === "applied",
+  );
+  const namesEffect = applied.payload.effects.find(
+    (e: any) => e.key === `manuscripts/tool-runs/${namesId}.json`,
+  );
+  expect(namesEffect.value.payload.names).toEqual(["Альма", "Альма", "Альма"]);
 });

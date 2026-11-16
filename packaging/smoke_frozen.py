@@ -210,7 +210,7 @@ def main():
                         result["host_limits"]["process_count"] == 8
                         and result["host_limits"]["process_commit_bytes"] == 512 * 1024 * 1024
                     )
-                    pid, template_id, note_id = (str(uuid4()) for _ in range(3))
+                    pid, template_id, note_id, generator_id, names_id = (str(uuid4()) for _ in range(5))
                     template = client.put(
                         base + f"/api/v1/tools/{template_id}",
                         json={
@@ -230,6 +230,24 @@ def main():
                         timeout=10,
                     )
                     assert template.status_code == 200, template.text
+                    generator = client.put(
+                        base + f"/api/v1/tools/{generator_id}",
+                        json={
+                            "expected_revision": 0,
+                            "payload": {
+                                "kind": "name_generator",
+                                "title": "Native names",
+                                "generator": {
+                                    "prefixes": ["Аль"],
+                                    "middles": [""],
+                                    "suffixes": ["ма"],
+                                },
+                            },
+                        },
+                        headers={"X-Taverna-CSRF": csrf},
+                        timeout=10,
+                    )
+                    assert generator.status_code == 200, generator.text
                     out = io.BytesIO()
                     with ZipFile(out, "w") as package:
                         package.writestr(
@@ -258,7 +276,7 @@ def main():
                                         {
                                             "capability": "tools.run",
                                             "reason": "Native selected template",
-                                            "scopes": [template_id],
+                                            "scopes": [template_id, generator_id],
                                         },
                                         {
                                             "capability": "notes.write",
@@ -285,6 +303,14 @@ def main():
                                         "expected_revision": 1,
                                         "result_id": note_id,
                                         "inputs": {"name": "Альма"},
+                                    },
+                                    {
+                                        "type": "tool.names",
+                                        "target": generator_id,
+                                        "expected_revision": 1,
+                                        "result_id": names_id,
+                                        "seed": "native",
+                                        "count": 3,
                                     },
                                 ],
                                 "message": "Native broker smoke",
@@ -332,7 +358,7 @@ def main():
                             ]
                             + [
                                 {"capability": "filesystem.read", "scopes": [outside]},
-                                {"capability": "tools.run", "scopes": [template_id]},
+                                {"capability": "tools.run", "scopes": [template_id, generator_id]},
                                 {"capability": "notes.write", "scopes": ["new"]},
                             ],
                             "trusted_full_access_ack": False,
@@ -404,6 +430,7 @@ def main():
                     saved = next(p for p in pending if p["id"] == proposal_id)
                     assert saved["payload"]["metadata"]["external_sources"][0]["sha256"] == selected["sha256"]
                     assert saved["payload"]["metadata"]["tool_previews"][0]["text"] == "Герой: Альма"
+                    assert saved["payload"]["metadata"]["tool_previews"][1]["text"] == "Альма\nАльма\nАльма"
                     assert client.get(base + f"/api/v1/tools/{note_id}", timeout=10).status_code == 404
                     for _attempt in range(2):
                         applied = client.post(
