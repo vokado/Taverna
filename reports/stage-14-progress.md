@@ -91,3 +91,15 @@ PLG-003/SEC-006/AUTO-005, статус этапа14 IN_PROGRESS. Реально�
 Полная Linux backend регрессия после watchdog:349 PASS/3 Windows SKIP81.69s, Ruff PASS. Evidence: stage-14-host-deadline-backend.txt и source SHA256 в stage-14-host-deadline-build.json. Windows/PyInstaller self-deadline пока не подтверждён.
 
 Browser plugin regression после watchdog:3 PASS18.3s, evidence/stage-14-host-deadline-browser.txt. Последний полный browser прогон19 PASS2.4m относится к66c0569 (до host изменения); новый CI проверит весь набор с watchdog.
+
+## Native подтверждение9972ad5
+
+CI43833545176 SUCCESS Ubuntu/Windows; Windows job133184447066:352 backend PASS234.94s,19 browser PASS2.9m, frozen main/diagnostic/PluginHost PASS после переноса и с restricted PATH. Новый прямой self-deadline smoke вернул124 при живом родителе, source parent-death cases прошли на Windows. Artifact14210152375 (58142926байт). Это подтверждение механизма на Windows runner, не clean Windows11/RTX5070/реальных LLM/GPU.
+
+## Интеграция инструментов-шаблонов
+
+PLG-003–005/TOOLS-002–003/AUTO-001/005 (подпункты), статус14 IN_PROGRESS. Новый типизированный action tool.template; используются прежние безопасные rendering и текущие проверки ToolService, выделенные в две функции подготовки без записи. Нет нового runtime, очереди, storage facade или универсального workflow engine. Отдельный tools.run на точный UUID + отдельные destination grants + nested template grant. Guards источника/назначения входят в публикацию plugin preview и окончательную атомарную транзакцию, вместе с версиями рукописи и receipt. Raw action и фактический текст/назначение доступны до подтверждения в UI; HTML не исполняется. Старые данные/JSON/API v1 совместимы, миграции отсутствуют; plugin-plan-v1 schema расширена новым вариантом.
+
+Полная Linux backend регрессия:368 PASS/3 Windows-only SKIP111.01s (включая19 новых template cases). Target49 PASS19.97s до трёх дополнительных scope/race cases; полный прогон покрывает их. Target browser4 PASS21.2s; build/types/41 contract export/Ruff PASS. Frozen smoke расширен real WASM→template→note + own effect в одном плане, double accept→одна заметка; native этого изменения пока NOT_RUN. Полный browser прогон выполняется отдельно. Evidence: stage-14-tool-templates-*.txt; исходный неуспешный target сохранён: тестовый declarative input ошибочно содержал необъявленный placeholder, а book fixture пропускал обязательный reason; fixtures исправлены без обхода production validation. External broker/name generators/rules/scheduler/backup15 остаются обязательными, не объявляются завершёнными.
+
+Полная browser регрессия templates:20 PASS2.7m (evidence/stage-14-tool-templates-browser.txt), Ruff PASS; точные SHA256 и среда в stage-14-tool-templates-build.json. Расширенный native frozen smoke пока NOT_RUN.

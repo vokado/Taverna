@@ -1,0 +1,32 @@
+{
+  "base_commit": "9972ad59fcc390894360dd05cd782159ee6dcb54",
+  "source_sha256": {
+    "app/backend/taverna/plugin_actions.py": "db42be26c9548c87473909f047744452c3ffb71d6b797fb7c97dadb5208102d7",
+    "app/backend/taverna/plugin_service.py": "8e967ac5c00d4ffd8dadc7dc6d59f8ee6f91f7885b7264534dd29fc0b612fc71",
+    "app/backend/taverna/tools_service.py": "e05390a3743523444b23278661b40c9e01fd72392cfcb35a9dc2103d7444b1b7",
+    "app/web/src/PluginRunner.tsx": "12feedbc1846f8eb9015d44cc405794b2f263031991902bf88129cb35d029d2a",
+    "app/web/e2e/plugins.spec.ts": "04ab9ab619f13ce571c9cd9f4fcbbc64473c569792d9df5cf142249c0e1b5179",
+    "tests/test_plugin_tools.py": "bddb844bd00e9ab4b1c1ee9a7786eddee9d929f3d8dd17c28b3ecf985cd3d880",
+    "packaging/smoke_frozen.py": "591d9aeb6924d554f9f4c055f406a1ecb1072f650541fccad197532ec4d6b3f8",
+    "schemas/plugin-plan-v1.json": "680df3917d3768acea55da879e27469f021ffd868d763f8ef86e85be947db5b2"
+  },
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "backend": {
+    "result": "PASS",
+    "passed": 368,
+    "skipped_windows_only": 3,
+    "seconds": 111.01,
+    "command": ".venv/bin/pytest -q"
+  },
+  "browser": {
+    "result": "PASS",
+    "passed": 20,
+    "duration_reported": "2.7m",
+    "command": "TAVERNA_PYTHON=/workspace/work/Taverna/.venv/bin/python npm run test:e2e"
+  },
+  "ruff": "PASS",
+  "contracts": 41,
+  "web_types_build": "PASS",
+  "native_expanded_smoke": "NOT_RUN; next CI required"
+}

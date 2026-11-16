@@ -37,6 +37,14 @@ type Preview = {
     plan: { message: string; actions: unknown[] };
     metadata: {
       runtime: string;
+      tool_previews?: {
+        tool_id: string;
+        action: string;
+        title: string;
+        text: string;
+        manuscript_id: string | null;
+        result_id: string;
+      }[];
       external_sources?: {
         scope: string;
         path: string;
@@ -595,6 +603,21 @@ export function PluginRunner({
             {p.payload.identity.package_sha256}
           </p>
           <pre>{JSON.stringify(p.payload.plan.actions, null, 2)}</pre>
+          {(p.payload.metadata.tool_previews || []).map((t) => (
+            <section
+              key={t.result_id}
+              aria-label="Результат шаблона расширения"
+            >
+              <h5>{t.title}</h5>
+              <p>
+                {t.action === "note"
+                  ? "Будет создана заметка"
+                  : "Будет добавлена глава в рукопись"}
+                {t.manuscript_id ? ` · ${t.manuscript_id}` : ""}
+              </p>
+              <pre>{t.text}</pre>
+            </section>
+          ))}
           {(p.payload.metadata.external_sources || []).map((f) => (
             <p key={f.scope + f.path}>
               Снимок внешнего источника: {f.scope} / {f.path} · {f.bytes} байт ·

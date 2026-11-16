@@ -210,7 +210,26 @@ def main():
                         result["host_limits"]["process_count"] == 8
                         and result["host_limits"]["process_commit_bytes"] == 512 * 1024 * 1024
                     )
-                    pid = str(uuid4())
+                    pid, template_id, note_id = (str(uuid4()) for _ in range(3))
+                    template = client.put(
+                        base + f"/api/v1/tools/{template_id}",
+                        json={
+                            "expected_revision": 0,
+                            "payload": {
+                                "kind": "template",
+                                "title": "Native template",
+                                "template": {
+                                    "action": "note",
+                                    "text": "Герой: {{name}}",
+                                    "variables": ["name"],
+                                    "grants": ["notes.write"],
+                                },
+                            },
+                        },
+                        headers={"X-Taverna-CSRF": csrf},
+                        timeout=10,
+                    )
+                    assert template.status_code == 200, template.text
                     out = io.BytesIO()
                     with ZipFile(out, "w") as package:
                         package.writestr(
@@ -235,7 +254,17 @@ def main():
                                             "capability": "filesystem.read",
                                             "reason": "Native selected-file smoke",
                                             "scopes": [outside],
-                                        }
+                                        },
+                                        {
+                                            "capability": "tools.run",
+                                            "reason": "Native selected template",
+                                            "scopes": [template_id],
+                                        },
+                                        {
+                                            "capability": "notes.write",
+                                            "reason": "Native template note",
+                                            "scopes": ["new"],
+                                        },
                                     ],
                                 }
                             ),
@@ -249,7 +278,14 @@ def main():
                                         "target": "smoke",
                                         "expected_revision": 0,
                                         "value": {"portable": True},
-                                    }
+                                    },
+                                    {
+                                        "type": "tool.template",
+                                        "target": template_id,
+                                        "expected_revision": 1,
+                                        "result_id": note_id,
+                                        "inputs": {"name": "Альма"},
+                                    },
                                 ],
                                 "message": "Native broker smoke",
                             }
@@ -294,7 +330,11 @@ def main():
                             "grants": [
                                 {"capability": cap, "scopes": ["smoke"]} for cap in ("own.read", "own.write")
                             ]
-                            + [{"capability": "filesystem.read", "scopes": [outside]}],
+                            + [
+                                {"capability": "filesystem.read", "scopes": [outside]},
+                                {"capability": "tools.run", "scopes": [template_id]},
+                                {"capability": "notes.write", "scopes": ["new"]},
+                            ],
                             "trusted_full_access_ack": False,
                             "confirmed": True,
                         },
@@ -363,6 +403,8 @@ def main():
                     pending = client.get(base + f"/api/v1/plugins/{pid}/previews", timeout=10).json()["items"]
                     saved = next(p for p in pending if p["id"] == proposal_id)
                     assert saved["payload"]["metadata"]["external_sources"][0]["sha256"] == selected["sha256"]
+                    assert saved["payload"]["metadata"]["tool_previews"][0]["text"] == "Герой: Альма"
+                    assert client.get(base + f"/api/v1/tools/{note_id}", timeout=10).status_code == 404
                     for _attempt in range(2):
                         applied = client.post(
                             base + f"/api/v1/plugins/previews/{proposal_id}/accept",
@@ -375,6 +417,8 @@ def main():
                         ), applied.text
                     own = client.get(data_url, timeout=10).json()
                     assert own["revision"] == 1 and own["value"] == {"portable": True}, own
+                    note = client.get(base + f"/api/v1/tools/{note_id}", timeout=10).json()
+                    assert note["revision"] == 1 and note["payload"]["text"] == "Герой: Альма"
                     assert not list(root.rglob("*.sqlite*"))
                     assert client.get(base + "/api/v1/diagnostics/storage").json()["ok"]
                     assert (

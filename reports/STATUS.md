@@ -2,7 +2,7 @@
 
 Допуск на 01–16: получен 2026-11-15. D-01–15: APPROVED.
 
-Независимая ревизия: исходный Windows plugins failure исправлен/подтверждён CI; I/O/index/fork/journal исправлены и измерены до/после. bfc6c3c CI43825606858 Ubuntu/Windows/frozen SUCCESS (342/19);340/19 локальная регрессия после дополнительной Unicode guard, её новый native rerun ожидается. Полные доказательства/оставшиеся расходы — REVISION_AUDIT.md. Релиз1.0 не принят. Обязательные14–16 остаются в работе.
+Независимая ревизия: I/O/index/fork/journal исправлены и измерены до/после. CI43832734245/66c0569 Ubuntu/Windows/frozen SUCCESS (343/19), host self-deadline CI43833545176/9972ad5 SUCCESS (352/19). Шаблоны tools.run: Linux368 backend PASS/3 Windows SKIP, target browser4 PASS; новый native expanded smoke ожидается. Доказательства — REVISION_AUDIT.md и stage-14-progress.md. Релиз1.0 не принят; обязательные14–16 остаются в работе.
 
 | Этап | Реализация / проверки |
 |---|---|
@@ -19,7 +19,7 @@
 | 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;CI43740639796/2ab1475 Ubuntu/Windows/frozen SUCCESS,целевая среда BLOCKED |
 | 12 | Библиотека/слои/варианты/аудио/drafts/ZIP и Comfy image adapter/lease/cancel реализованы;190 backend/12 browser Linux PASS;CI43750969808/e67c4cd Ubuntu/Windows/frozen SUCCESS; окончательный выбор движка/RTX5070/LM Studio BLOCKED |
 | 13 | Рукописи/AI previews/4формата экспорта/materials/tools реализованы; после исправлений CI43777643165/9c4a672 Ubuntu/Windows/frozen SUCCESS,221 backend/16 browser; target/live AI BLOCKED |
-| 14 | IN_PROGRESS: manager/grants/Wasmtime host/shared queue/atomic own-note-book plans и выбранные external read snapshots/API/UI. Linux317 backend PASS/2 Windows SKIP,19 browser PASS. CI43813841312/31abb4a Ubuntu/Windows/frozen SUCCESS (315/18, новый read primitive на Windows проверен); последующая files→guest/UI/frozen интеграция ожидает CI. Внешняя запись/сеть/команды/tools/rules/scheduler ещё не завершены |
+| 14 | IN_PROGRESS: manager/grants/WASM/trusted host/shared queue/atomic own-note-book plans, selected external reads, host self-deadline и tools.run templates с owner preview. Последний подтверждённый Windows CI9972ad5 SUCCESS (352/19/frozen); новые templates Linux368/3skip и target4 browser PASS, native повтор ожидается. External write/network/commands/name generators/rules/scheduler ещё не завершены |
 | 15 | Полная упаковка/backup/manual update/documentation NOT_STARTED; базовый Windows portable pipeline с01 уже действует |
 | 16 | Финальная приёмка NOT_STARTED; обязательные hardware/clean Windows11/live LM Studio критерии BLOCKED |
 

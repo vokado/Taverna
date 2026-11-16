@@ -84,6 +84,15 @@ class ToolService:
         return run
 
     def preview(self, tid, request):
+        result, guards = self.preview_plan(tid, request)
+        self.store.transaction(
+            [Mutation("manuscripts/tool-previews/" + result["id"] + ".json", result, 0)],
+            guards=guards,
+        )
+        return result
+
+    def preview_plan(self, tid, request):
+        """Render without publishing; plugin plans use the same validated template."""
         value = self.get(tid)
         data = value["payload"]
         template = data["template"]
@@ -123,11 +132,10 @@ class ToolService:
                 "result_id": str(uuid4()),
             },
         )
-        self.store.transaction(
-            [Mutation("manuscripts/tool-previews/" + result["id"] + ".json", result, 0)],
-            guards={self.key(tid): value["revision"]},
-        )
-        return result
+        guards = {self.key(tid): value["revision"]}
+        if book:
+            guards[self.manuscripts.key(book["id"])] = book["revision"]
+        return result, guards
 
     def execute(self, pid, revision, confirmed):
         if not confirmed:
@@ -139,6 +147,14 @@ class ToolService:
         p = value["payload"]
         if p["status"] != "pending":
             raise AppError("preview_used", "Действие уже выполнено.", 409)
+        changes, guards, result_id = self.plan_preview_effects(p)
+        p["status"] = "executed"
+        changes.append(Mutation(key, value, revision))
+        self.store.transaction(changes, guards=guards)
+        return {"preview": self.store.get(key), "result_id": result_id}
+
+    def plan_preview_effects(self, p):
+        """Validate current nested permission and prepare atomic internal effects."""
         tool = self.get(p["tool_id"])
         if (
             tool["revision"] != p["tool_revision"]
@@ -170,7 +186,6 @@ class ToolService:
                 "Пользовательский шаблон " + tool["id"],
             )
             guards.update(more)
-        p["status"] = "executed"
-        changes.append(Mutation(key, value, revision))
-        self.store.transaction(changes, guards=guards)
-        return {"preview": self.store.get(key), "result_id": result["id"]}
+        for change in changes:
+            guards[change.key] = change.expected_revision
+        return changes, guards, result["id"]

@@ -553,3 +553,142 @@ test("Внешний файл расширения: отдельный scope, п
     rmSync(folder, { recursive: true, force: true });
   }
 });
+
+test("Шаблон расширения: выбранный инструмент, фактический текст до подтверждения и одна атомарная заметка", async ({
+  page,
+  appUrl,
+}) => {
+  const toolId = crypto.randomUUID(),
+    resultId = crypto.randomUUID(),
+    id = crypto.randomUUID();
+  const csrf = (
+    await (await page.request.get(appUrl + "/api/v1/session")).json()
+  ).csrf;
+  const headers = { "X-Taverna-CSRF": csrf };
+  const template = await page.request.put(appUrl + `/api/v1/tools/${toolId}`, {
+    headers,
+    data: {
+      expected_revision: 0,
+      payload: {
+        kind: "template",
+        title: "Шаблон для заметки",
+        template: {
+          action: "note",
+          text: "Проверенный текст: {{hero}}",
+          variables: ["hero"],
+          grants: ["notes.write"],
+        },
+      },
+    },
+  });
+  expect(template.ok()).toBe(true);
+  const manifest = {
+    format: 1,
+    id,
+    name: "Запуск выбранного шаблона",
+    version: "1.0.0",
+    api_version: 1,
+    runtime: "declarative",
+    entry: "main.json",
+    requests: [
+      { capability: "tools.run", reason: "Один шаблон", scopes: [toolId] },
+      { capability: "notes.write", reason: "Новая заметка", scopes: ["new"] },
+    ],
+  };
+  const source = JSON.stringify({
+    format: 1,
+    message: "Шаблон ожидает подтверждения",
+    actions: [
+      {
+        type: "tool.template",
+        target: toolId,
+        expected_revision: 1,
+        result_id: resultId,
+        inputs: {
+          hero: "Альма <script id='template-injection'>не выполнять</script>",
+        },
+      },
+    ],
+  });
+  const zip = execFileSync(
+    process.env.TAVERNA_PYTHON || "python",
+    [resolve("e2e/support/plugin_fixture.py")],
+    {
+      input: JSON.stringify({ manifest, source }),
+    },
+  );
+  const previewResponse = await page.request.post(
+    appUrl + "/api/v1/plugins/import-preview",
+    { headers, data: zip },
+  );
+  expect(previewResponse.ok()).toBe(true);
+  const preview = await previewResponse.json();
+  const installed = await page.request.post(
+    appUrl +
+      `/api/v1/plugins/import?expected_revision=0&catalog_revision=0&approved_sha256=${preview.sha256}&confirmed=true`,
+    { headers, data: zip },
+  );
+  expect(installed.ok()).toBe(true);
+  const row = await installed.json();
+  const enabled = await page.request.put(appUrl + `/api/v1/plugins/${id}`, {
+    headers,
+    data: {
+      expected_revision: row.revision,
+      catalog_revision: 1,
+      approved_sha256: preview.sha256,
+      enabled: true,
+      confirmed: true,
+      grants: manifest.requests.map((r) => ({
+        capability: r.capability,
+        scopes: r.scopes,
+      })),
+      trusted_full_access_ack: false,
+    },
+  });
+  expect(enabled.ok()).toBe(true);
+  await page.getByRole("button", { name: "Расширения", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: "Запуск выбранного шаблона · 1.0.0",
+      exact: true,
+    })
+    .click();
+  const runner = page.getByLabel("Запуск выбранного расширения", {
+    exact: true,
+  });
+  await runner
+    .getByRole("button", { name: "Вычислить план расширения", exact: true })
+    .click();
+  const rendered = runner.getByLabel("Результат шаблона расширения", {
+    exact: true,
+  });
+  await expect(rendered).toContainText("Проверенный текст: Альма <script", {
+    timeout: 20000,
+  });
+  await expect(rendered).toContainText("Будет создана заметка");
+  await expect(rendered.locator("script")).toHaveCount(0);
+  expect(
+    (await page.request.get(appUrl + `/api/v1/tools/${resultId}`)).status(),
+  ).toBe(404);
+  const plan = runner.getByRole("article");
+  await expect(
+    plan.getByRole("button", {
+      name: "Применить план расширения",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await plan
+    .getByLabel("Подтверждаю перечисленные изменения JSON этого плана", {
+      exact: true,
+    })
+    .check();
+  await plan
+    .getByRole("button", { name: "Применить план расширения", exact: true })
+    .click();
+  await expect(plan).toContainText("Применён");
+  const saved = await (
+    await page.request.get(appUrl + `/api/v1/tools/${resultId}`)
+  ).json();
+  expect(saved.revision).toBe(1);
+  expect(saved.payload.text).toContain("Проверенный текст: Альма <script");
+});

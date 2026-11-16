@@ -1,0 +1,667 @@
+FF.FFFFFFFFF.FFF.................................                        [100%]
+=================================== FAILURES ===================================
+_ test_template_render_preview_then_atomic_apply_and_restart_receipt[declarative-note] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_template_render_preview_t0')
+kind = 'note', runtime = 'declarative'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["note", "chapter"])
+    @pytest.mark.parametrize("runtime", ["declarative", "wasm"])
+    async def test_template_render_preview_then_atomic_apply_and_restart_receipt(tmp_path, kind, runtime):
+        service, row, tid, bid, rid = fixture(tmp_path, kind=kind, runtime=runtime)
+        try:
+>           p = proposal(service, await run(service, row))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <taverna.plugin_service.PluginService object at 0x7f08f3fb9a90>
+job = {'created_at': '2026-11-16T08:50:01.024898+00:00', 'id': 'f8872dcb-505d-4068-beab-47ca3ae6be82', 'kind': 'job', 'paylo... плане использована незаполненная переменная.'}, 'event_count': 2, 'kind': 'plugin_compute', 'priority': 20, ...}, ...}
+
+    def proposal(service, job):
+>       assert job["payload"]["state"] == "completed", job["payload"]
+E       AssertionError: {'error': {'code': 'plugin_parameters', 'message_ru': 'В плане использована незаполненная переменная.'}, 'event_count': 2, 'kind': 'plugin_compute', 'priority': 20, ...}
+E       assert 'failed' == 'completed'
+E         
+E         - completed
+E         + failed
+
+tests/test_plugin_service.py:68: AssertionError
+_ test_template_render_preview_then_atomic_apply_and_restart_receipt[declarative-chapter] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_template_render_preview_t1')
+kind = 'chapter', runtime = 'declarative'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["note", "chapter"])
+    @pytest.mark.parametrize("runtime", ["declarative", "wasm"])
+    async def test_template_render_preview_then_atomic_apply_and_restart_receipt(tmp_path, kind, runtime):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind=kind, runtime=runtime)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_template_render_preview_t1')
+kind = 'chapter', runtime = 'declarative', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+_ test_template_render_preview_then_atomic_apply_and_restart_receipt[wasm-chapter] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_template_render_preview_t3')
+kind = 'chapter', runtime = 'wasm'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("kind", ["note", "chapter"])
+    @pytest.mark.parametrize("runtime", ["declarative", "wasm"])
+    async def test_template_render_preview_then_atomic_apply_and_restart_receipt(tmp_path, kind, runtime):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind=kind, runtime=runtime)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_template_render_preview_t3')
+kind = 'chapter', runtime = 'wasm', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+_ test_each_plugin_permission_required_without_publishing_tool_side_effects[note-tools.run] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_each_plugin_permission_re0')
+kind = 'note', missing = 'tools.run'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "kind,missing", [("note", "tools.run"), ("note", "notes.write"), ("chapter", "books.write")]
+    )
+    async def test_each_plugin_permission_required_without_publishing_tool_side_effects(tmp_path, kind, missing):
+        service, row, _, bid, rid = fixture(tmp_path, kind=kind, missing=missing)
+        try:
+            job = await run(service, row)
+            assert job["payload"]["state"] == "failed"
+>           assert job["payload"]["error"]["code"] == "plugin_scope_denied"
+E           AssertionError: assert 'plugin_parameters' == 'plugin_scope_denied'
+E             
+E             - plugin_scope_denied
+E             + plugin_parameters
+
+tests/test_plugin_tools.py:99: AssertionError
+_ test_each_plugin_permission_required_without_publishing_tool_side_effects[note-notes.write] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_each_plugin_permission_re1')
+kind = 'note', missing = 'notes.write'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "kind,missing", [("note", "tools.run"), ("note", "notes.write"), ("chapter", "books.write")]
+    )
+    async def test_each_plugin_permission_required_without_publishing_tool_side_effects(tmp_path, kind, missing):
+        service, row, _, bid, rid = fixture(tmp_path, kind=kind, missing=missing)
+        try:
+            job = await run(service, row)
+            assert job["payload"]["state"] == "failed"
+>           assert job["payload"]["error"]["code"] == "plugin_scope_denied"
+E           AssertionError: assert 'plugin_parameters' == 'plugin_scope_denied'
+E             
+E             - plugin_scope_denied
+E             + plugin_parameters
+
+tests/test_plugin_tools.py:99: AssertionError
+_ test_each_plugin_permission_required_without_publishing_tool_side_effects[chapter-books.write] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_each_plugin_permission_re2')
+kind = 'chapter', missing = 'books.write'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "kind,missing", [("note", "tools.run"), ("note", "notes.write"), ("chapter", "books.write")]
+    )
+    async def test_each_plugin_permission_required_without_publishing_tool_side_effects(tmp_path, kind, missing):
+>       service, row, _, bid, rid = fixture(tmp_path, kind=kind, missing=missing)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_each_plugin_permission_re2')
+kind = 'chapter', runtime = 'declarative', missing = 'books.write'
+actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+_ test_revalidation_before_accept_never_applies_stale_template[nested_revoke] __
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep0')
+change = 'nested_revoke'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("change", ["nested_revoke", "archive", "source", "destination", "plugin_revoke"])
+    async def test_revalidation_before_accept_never_applies_stale_template(tmp_path, change):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind="chapter")
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep0')
+kind = 'chapter', runtime = 'declarative', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+____ test_revalidation_before_accept_never_applies_stale_template[archive] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep1')
+change = 'archive'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("change", ["nested_revoke", "archive", "source", "destination", "plugin_revoke"])
+    async def test_revalidation_before_accept_never_applies_stale_template(tmp_path, change):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind="chapter")
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep1')
+kind = 'chapter', runtime = 'declarative', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+_____ test_revalidation_before_accept_never_applies_stale_template[source] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep2')
+change = 'source'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("change", ["nested_revoke", "archive", "source", "destination", "plugin_revoke"])
+    async def test_revalidation_before_accept_never_applies_stale_template(tmp_path, change):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind="chapter")
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep2')
+kind = 'chapter', runtime = 'declarative', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+__ test_revalidation_before_accept_never_applies_stale_template[destination] ___
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep3')
+change = 'destination'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("change", ["nested_revoke", "archive", "source", "destination", "plugin_revoke"])
+    async def test_revalidation_before_accept_never_applies_stale_template(tmp_path, change):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind="chapter")
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep3')
+kind = 'chapter', runtime = 'declarative', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+_ test_revalidation_before_accept_never_applies_stale_template[plugin_revoke] __
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep4')
+change = 'plugin_revoke'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("change", ["nested_revoke", "archive", "source", "destination", "plugin_revoke"])
+    async def test_revalidation_before_accept_never_applies_stale_template(tmp_path, change):
+>       service, row, tid, bid, rid = fixture(tmp_path, kind="chapter")
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_plugin_tools.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_revalidation_before_accep4')
+kind = 'chapter', runtime = 'declarative', missing = None, actions = None
+
+    def fixture(tmp_path, *, kind="note", runtime="declarative", missing=None, actions=None):
+        tid, bid, rid = (str(uuid4()) for _ in range(3))
+        action = {
+            "type": "tool.template",
+            "target": tid,
+            "expected_revision": 1,
+            "result_id": rid,
+            "inputs": {"hero": "Альма {{hero}} <script>не выполнять</script>"},
+            **(
+                {"manuscript_id": bid, "manuscript_revision": 1, "chapter_title": "Шаблонная глава"}
+                if kind == "chapter"
+                else {}
+            ),
+        }
+        requests = [
+            {"capability": "tools.run", "reason": "Точный шаблон", "scopes": [tid]},
+            {
+                "capability": "notes.write" if kind == "note" else "books.write",
+                "reason": "Результат",
+                "scopes": ["new" if kind == "note" else bid],
+            },
+        ]
+        if missing:
+            requests = [r for r in requests if r["capability"] != missing]
+        service, row = setup(
+            tmp_path, {"actions": actions(action) if actions else [action]}, runtime=runtime, requests=requests
+        )
+        template = ToolEntry(
+            kind="template",
+            title="Избранный шаблон",
+            template={
+                "action": kind,
+                "text": "Герой: {{hero}}",
+                "variables": ["hero"],
+                "grants": ["notes.write" if kind == "note" else "manuscripts.write"],
+            },
+        ).model_dump(mode="json")
+        service.tools.save(tid, 0, template)
+        if kind == "chapter":
+>           service.books.save(bid, 0, {"title": "Книга", "chapters": []})
+E           TypeError: ManuscriptService.save() missing 1 required positional argument: 'reason'
+
+tests/test_plugin_tools.py:53: TypeError
+_ test_duplicate_effect_rejected_across_template_and_direct_actions[tool_first] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_duplicate_effect_rejected0')
+order = 'tool_first'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("order", ["tool_first", "note_first", "two_tools"])
+    async def test_duplicate_effect_rejected_across_template_and_direct_actions(tmp_path, order):
+        def actions(action):
+            direct = {
+                "type": "note.save",
+                "target": action["result_id"],
+                "expected_revision": 0,
+                "payload": {"kind": "note", "title": "Дубликат"},
+            }
+            if order == "two_tools":
+                return [action, copy.deepcopy(action)]
+            return [action, direct] if order == "tool_first" else [direct, action]
+    
+        service, row, _, _, rid = fixture(tmp_path, actions=actions)
+        try:
+            job = await run(service, row)
+>           assert job["payload"]["error"]["code"] == "plugin_duplicate_effect"
+E           AssertionError: assert 'plugin_parameters' == 'plugin_duplicate_effect'
+E             
+E             - plugin_duplicate_effect
+E             + plugin_parameters
+
+tests/test_plugin_tools.py:185: AssertionError
+_ test_duplicate_effect_rejected_across_template_and_direct_actions[note_first] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_duplicate_effect_rejected1')
+order = 'note_first'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("order", ["tool_first", "note_first", "two_tools"])
+    async def test_duplicate_effect_rejected_across_template_and_direct_actions(tmp_path, order):
+        def actions(action):
+            direct = {
+                "type": "note.save",
+                "target": action["result_id"],
+                "expected_revision": 0,
+                "payload": {"kind": "note", "title": "Дубликат"},
+            }
+            if order == "two_tools":
+                return [action, copy.deepcopy(action)]
+            return [action, direct] if order == "tool_first" else [direct, action]
+    
+        service, row, _, _, rid = fixture(tmp_path, actions=actions)
+        try:
+            job = await run(service, row)
+>           assert job["payload"]["error"]["code"] == "plugin_duplicate_effect"
+E           AssertionError: assert 'plugin_parameters' == 'plugin_duplicate_effect'
+E             
+E             - plugin_duplicate_effect
+E             + plugin_parameters
+
+tests/test_plugin_tools.py:185: AssertionError
+_ test_duplicate_effect_rejected_across_template_and_direct_actions[two_tools] _
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-177/test_duplicate_effect_rejected2')
+order = 'two_tools'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("order", ["tool_first", "note_first", "two_tools"])
+    async def test_duplicate_effect_rejected_across_template_and_direct_actions(tmp_path, order):
+        def actions(action):
+            direct = {
+                "type": "note.save",
+                "target": action["result_id"],
+                "expected_revision": 0,
+                "payload": {"kind": "note", "title": "Дубликат"},
+            }
+            if order == "two_tools":
+                return [action, copy.deepcopy(action)]
+            return [action, direct] if order == "tool_first" else [direct, action]
+    
+        service, row, _, _, rid = fixture(tmp_path, actions=actions)
+        try:
+            job = await run(service, row)
+>           assert job["payload"]["error"]["code"] == "plugin_duplicate_effect"
+E           AssertionError: assert 'plugin_parameters' == 'plugin_duplicate_effect'
+E             
+E             - plugin_duplicate_effect
+E             + plugin_parameters
+
+tests/test_plugin_tools.py:185: AssertionError
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspace/work/Taverna/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_plugin_tools.py::test_template_render_preview_then_atomic_apply_and_restart_receipt[declarative-note]
+FAILED tests/test_plugin_tools.py::test_template_render_preview_then_atomic_apply_and_restart_receipt[declarative-chapter]
+FAILED tests/test_plugin_tools.py::test_template_render_preview_then_atomic_apply_and_restart_receipt[wasm-chapter]
+FAILED tests/test_plugin_tools.py::test_each_plugin_permission_required_without_publishing_tool_side_effects[note-tools.run]
+FAILED tests/test_plugin_tools.py::test_each_plugin_permission_required_without_publishing_tool_side_effects[note-notes.write]
+FAILED tests/test_plugin_tools.py::test_each_plugin_permission_required_without_publishing_tool_side_effects[chapter-books.write]
+FAILED tests/test_plugin_tools.py::test_revalidation_before_accept_never_applies_stale_template[nested_revoke]
+FAILED tests/test_plugin_tools.py::test_revalidation_before_accept_never_applies_stale_template[archive]
+FAILED tests/test_plugin_tools.py::test_revalidation_before_accept_never_applies_stale_template[source]
+FAILED tests/test_plugin_tools.py::test_revalidation_before_accept_never_applies_stale_template[destination]
+FAILED tests/test_plugin_tools.py::test_revalidation_before_accept_never_applies_stale_template[plugin_revoke]
+FAILED tests/test_plugin_tools.py::test_duplicate_effect_rejected_across_template_and_direct_actions[tool_first]
+FAILED tests/test_plugin_tools.py::test_duplicate_effect_rejected_across_template_and_direct_actions[note_first]
+FAILED tests/test_plugin_tools.py::test_duplicate_effect_rejected_across_template_and_direct_actions[two_tools]
+14 failed, 35 passed, 1 warning in 19.34s

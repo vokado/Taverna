@@ -73,3 +73,7 @@ long-chat/media: истёк общий5s fixture readiness, health ещё не20
 ### Повтор потока после Unicode guard
 
 Измерения точного66c0569 (jobs.py совпадает с5a1859c, scripts сохраняют SHA256): evidence/audit-unicode-events.json —1000 fragments0.162s,103472 application atomic bytes; evidence/audit-unicode-events-paced.json —300 fragments/10ms3.791s,80799 journal bytes. Все значения — Linux synthetic real storage/queue, без LM/GPU; source validation не вернула прежнюю амплификацию. Замеры выполнены отдельно от локальной тестовой нагрузки. Остальные измеренные core modules не менялись после bfc6c3c.
+
+### Полный повтор66c0569
+
+CI43832734245 SUCCESS Ubuntu/Windows. Windows job133181720983:343 backend PASS187.64s, Ruff PASS,19 browser PASS2.7m, Windows portable build и smoke_frozen PASS. Artifact14210320770,58140990байт. Исправления ожиданий подтверждены полным прогоном, исходные FAIL не удалены. Проверка orphan-host относится к следующему9972ad5, CI43833545176 ещё учитывается отдельно; данные этого успешного запуска не приписываются новому коду. Windows-runner не закрывает Windows11/LM Studio/RTX5070/real diffusion/приёмку.

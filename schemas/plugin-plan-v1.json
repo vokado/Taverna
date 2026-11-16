@@ -369,6 +369,80 @@
       "title": "OwnerReference",
       "type": "object"
     },
+    "TemplateRun": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "maxProperties": 32,
+          "title": "Inputs",
+          "type": "object"
+        },
+        "manuscript_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manuscript Id"
+        },
+        "manuscript_revision": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manuscript Revision"
+        },
+        "chapter_title": {
+          "default": "Новая глава",
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Chapter Title",
+          "type": "string"
+        },
+        "type": {
+          "const": "tool.template",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "format": "uuid",
+          "title": "Target",
+          "type": "string"
+        },
+        "result_id": {
+          "format": "uuid",
+          "title": "Result Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "type",
+        "target",
+        "result_id"
+      ],
+      "title": "TemplateRun",
+      "type": "object"
+    },
     "ToolEntry": {
       "additionalProperties": false,
       "properties": {
@@ -510,7 +584,8 @@
             "book.save": "#/$defs/BookSave",
             "note.save": "#/$defs/NoteSave",
             "own.delete": "#/$defs/OwnDelete",
-            "own.set": "#/$defs/OwnSet"
+            "own.set": "#/$defs/OwnSet",
+            "tool.template": "#/$defs/TemplateRun"
           },
           "propertyName": "type"
         },
@@ -526,6 +601,9 @@
           },
           {
             "$ref": "#/$defs/BookSave"
+          },
+          {
+            "$ref": "#/$defs/TemplateRun"
           }
         ]
       },

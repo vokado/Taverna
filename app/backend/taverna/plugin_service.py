@@ -18,6 +18,7 @@ from .plugin_compute import compute
 from .plugin_files import PluginFiles
 from .plugin_registry import CATALOG
 from .storage import Mutation, document, encoded, safe_path
+from .tool_models import TemplatePreview
 
 
 class PluginService:
@@ -245,7 +246,9 @@ class PluginService:
         if len(encoded(plan)) > 256 * 1024:
             raise AppError("plugin_output_limit", "План расширения больше256КиБ.", 413)
         await asyncio.to_thread(self.current, payload)
-        changes, write_guards = await asyncio.to_thread(self.plan_effects, row, plan)
+        rendered_tools = []
+        changes, write_guards = await asyncio.to_thread(self.plan_effects, row, plan, rendered_tools)
+        metadata["tool_previews"] = rendered_tools
         self.merge_guards(guards, write_guards)
         metadata["external_sources"] = [
             {k: f[k] for k in ("scope", "path", "bytes", "sha256")} for f in request.get("files", [])
@@ -286,9 +289,53 @@ class PluginService:
                 raise AppError("plugin_input_conflict", "Источник изменился во время вычисления плана.", 409)
             target[key] = revision
 
-    def plan_effects(self, row, plan):
+    def plan_effects(self, row, plan, rendered_tools=None):
         changes, guards, targets = [], {}, set()
         for action in plan["actions"]:
+            if action["type"] == "tool.template":
+                if not any(
+                    g["capability"] == "tools.run" and action["target"] in g["scopes"]
+                    for g in row["payload"]["grants"]
+                ):
+                    raise AppError(
+                        "plugin_scope_denied", "Выберите отдельное разрешение на точный инструмент.", 403
+                    )
+                body = TemplatePreview.model_validate({k: action[k] for k in TemplatePreview.model_fields})
+                preview, extra = self.tools.preview_plan(action["target"], body)
+                data = preview["payload"]
+                data["result_id"] = action["result_id"]
+                self.permit(
+                    row,
+                    "notes.write" if data["action"] == "note" else "books.write",
+                    "new" if data["action"] == "note" else data["manuscript_id"],
+                )
+                more, current_guards, _ = self.tools.plan_preview_effects(data)
+                self.merge_guards(extra, current_guards)
+                for change in more:
+                    if change.key in targets:
+                        raise AppError(
+                            "plugin_duplicate_effect", "Один план не может дважды менять один документ.", 422
+                        )
+                    targets.add(change.key)
+                changes.extend(more)
+                self.merge_guards(guards, extra)
+                if rendered_tools is not None:
+                    rendered_tools.append(
+                        {
+                            k: data[k]
+                            for k in (
+                                "tool_id",
+                                "tool_revision",
+                                "action",
+                                "title",
+                                "text",
+                                "manuscript_id",
+                                "manuscript_revision",
+                                "result_id",
+                            )
+                        }
+                    )
+                continue
             target, expected = action["target"], action["expected_revision"]
             kind = action["type"].split(".")[0]
             self.permit(
