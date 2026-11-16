@@ -1,0 +1,1122 @@
+{
+  "commit": "bfc6c3c3c5c3e09757776a4e144f3d5881ec481e",
+  "source_sha256": {
+    "storage.py": "15bf6dc84467de18901fb0676b347fa73861d857dbf287b94330ba772b8db402",
+    "jobs.py": "156a8282f6b024ffa7fa07926068f69afd408bc0a3a1e084aff6bc6131801d59",
+    "chat.py": "306f5f2b1cd3c8108013c3dcae3e32bbc8cd93a947d3bf63b0c2249cfee36993",
+    "memory_index.py": "53e24547b178fe023d29383cb196148b0ba8fd53d068db8d0c1e16b40dcfc5d1",
+    "prompts.py": "a24777537eba62660239025e62dad62180d3bb16fcfbea379d5d327ffbb78025"
+  },
+  "arguments": {
+    "output": "reports/evidence/audit-final.json",
+    "part": "all",
+    "operations": 2000,
+    "fragments": 1000,
+    "fragment_interval_ms": 0,
+    "index_updates": 20,
+    "histories": [
+      1000,
+      5000,
+      10000
+    ]
+  },
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "note": "Synthetic local corpus, real storage/queue/importer; no LM Studio/GPU; bytes are application atomic-write bytes, not physical disk writes. Run without concurrent local tests.",
+  "cases": {
+    "events": {
+      "fragments": 1000,
+      "fragment_interval_ms": 0,
+      "source_utf8_bytes": 15000,
+      "counters": {
+        "atomic_writes": 104,
+        "atomic_write_bytes": 103472,
+        "fsync_calls": 242,
+        "object_reads": 34,
+        "recovery_calls": 34,
+        "seconds": 0.14377003101981245
+      },
+      "samples": [
+        {
+          "fragments": 100,
+          "elapsed_seconds": 0.01887996299774386,
+          "footprint": {
+            "files": 17,
+            "total_bytes": 7495,
+            "journal_bytes": 3859,
+            "manifest_bytes": 994,
+            "live_entries": 3,
+            "index_entries": 0,
+            "intent_files": 3,
+            "object_files": 5
+          }
+        },
+        {
+          "fragments": 500,
+          "elapsed_seconds": 0.0646571590041276,
+          "footprint": {
+            "files": 47,
+            "total_bytes": 26953,
+            "journal_bytes": 11635,
+            "manifest_bytes": 2824,
+            "live_entries": 9,
+            "index_entries": 0,
+            "intent_files": 9,
+            "object_files": 17
+          }
+        },
+        {
+          "fragments": 1000,
+          "elapsed_seconds": 0.13043392600957304,
+          "footprint": {
+            "files": 87,
+            "total_bytes": 52944,
+            "journal_bytes": 22019,
+            "manifest_bytes": 5266,
+            "live_entries": 17,
+            "index_entries": 0,
+            "intent_files": 17,
+            "object_files": 33
+          }
+        }
+      ],
+      "after": {
+        "files": 93,
+        "total_bytes": 56887,
+        "journal_bytes": 23687,
+        "manifest_bytes": 5876,
+        "live_entries": 19,
+        "index_entries": 0,
+        "intent_files": 18,
+        "object_files": 36
+      }
+    },
+    "growth-unique-False": {
+      "operations": 2000,
+      "unique_keys": false,
+      "counters": {
+        "atomic_writes": 10000,
+        "atomic_write_bytes": 2871355,
+        "fsync_calls": 24000,
+        "object_reads": 2011,
+        "recovery_calls": 2012,
+        "seconds": 11.904204023012426
+      },
+      "samples": [
+        {
+          "operations": 100,
+          "elapsed_seconds": 0.6273751770204399,
+          "footprint": {
+            "files": 402,
+            "total_bytes": 110196,
+            "journal_bytes": 66684,
+            "manifest_bytes": 330,
+            "live_entries": 1,
+            "index_entries": 0,
+            "intent_files": 100,
+            "object_files": 100
+          },
+          "read": {
+            "seconds": [
+              0.0004416739975567907,
+              0.00032449798891320825,
+              0.00027713700546883047
+            ],
+            "median_seconds": 0.00032449798891320825,
+            "max_seconds": 0.0004416739975567907,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0004416739975567907
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.00032449798891320825
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.00027713700546883047
+              }
+            ]
+          }
+        },
+        {
+          "operations": 500,
+          "elapsed_seconds": 3.1331215330283158,
+          "footprint": {
+            "files": 2002,
+            "total_bytes": 551396,
+            "journal_bytes": 334284,
+            "manifest_bytes": 330,
+            "live_entries": 1,
+            "index_entries": 0,
+            "intent_files": 500,
+            "object_files": 500
+          },
+          "read": {
+            "seconds": [
+              0.0005888959858566523,
+              0.00033921998692676425,
+              0.0003307869774289429
+            ],
+            "median_seconds": 0.00033921998692676425,
+            "max_seconds": 0.0005888959858566523,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0005888959858566523
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.00033921998692676425
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0003307869774289429
+              }
+            ]
+          }
+        },
+        {
+          "operations": 1000,
+          "elapsed_seconds": 6.0390958830248564,
+          "footprint": {
+            "files": 4002,
+            "total_bytes": 1102901,
+            "journal_bytes": 668786,
+            "manifest_bytes": 332,
+            "live_entries": 1,
+            "index_entries": 0,
+            "intent_files": 1000,
+            "object_files": 1000
+          },
+          "read": {
+            "seconds": [
+              0.000699222000548616,
+              0.0003183690132573247,
+              0.00031599498470313847
+            ],
+            "median_seconds": 0.0003183690132573247,
+            "max_seconds": 0.000699222000548616,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.000699222000548616
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0003183690132573247
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.00031599498470313847
+              }
+            ]
+          }
+        },
+        {
+          "operations": 2000,
+          "elapsed_seconds": 11.761572137009352,
+          "footprint": {
+            "files": 8002,
+            "total_bytes": 2209901,
+            "journal_bytes": 1339786,
+            "manifest_bytes": 332,
+            "live_entries": 1,
+            "index_entries": 0,
+            "intent_files": 2000,
+            "object_files": 2000
+          },
+          "read": {
+            "seconds": [
+              0.0006690359732601792,
+              0.00034111301647499204,
+              0.0003034760011360049
+            ],
+            "median_seconds": 0.00034111301647499204,
+            "max_seconds": 0.0006690359732601792,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0006690359732601792
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.00034111301647499204
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0003034760011360049
+              }
+            ]
+          }
+        }
+      ],
+      "after": {
+        "files": 8002,
+        "total_bytes": 2209901,
+        "journal_bytes": 1339786,
+        "manifest_bytes": 332,
+        "live_entries": 1,
+        "index_entries": 0,
+        "intent_files": 2000,
+        "object_files": 2000
+      }
+    },
+    "growth-unique-True": {
+      "operations": 2000,
+      "unique_keys": true,
+      "counters": {
+        "atomic_writes": 10016,
+        "atomic_write_bytes": 477182344,
+        "fsync_calls": 24032,
+        "object_reads": 12,
+        "recovery_calls": 2012,
+        "seconds": 47.855683228001
+      },
+      "samples": [
+        {
+          "operations": 100,
+          "elapsed_seconds": 0.6374171899806242,
+          "footprint": {
+            "files": 403,
+            "total_bytes": 150881,
+            "journal_bytes": 84414,
+            "manifest_bytes": 23377,
+            "live_entries": 100,
+            "index_entries": 0,
+            "intent_files": 100,
+            "object_files": 100
+          },
+          "read": {
+            "seconds": [
+              0.0012296090135350823,
+              0.0010088669951073825,
+              0.0010166089923586696
+            ],
+            "median_seconds": 0.0010166089923586696,
+            "max_seconds": 0.0012296090135350823,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0012296090135350823
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0010088669951073825
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0010166089923586696
+              }
+            ]
+          }
+        },
+        {
+          "operations": 500,
+          "elapsed_seconds": 5.301882387982914,
+          "footprint": {
+            "files": 2006,
+            "total_bytes": 937297,
+            "journal_bytes": 604030,
+            "manifest_bytes": 117377,
+            "live_entries": 500,
+            "index_entries": 0,
+            "intent_files": 500,
+            "object_files": 500
+          },
+          "read": {
+            "seconds": [
+              0.004249593999702483,
+              0.0039466059824917465,
+              0.0038356180011760443
+            ],
+            "median_seconds": 0.0039466059824917465,
+            "max_seconds": 0.004249593999702483,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.004249593999702483
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0039466059824917465
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.0038356180011760443
+              }
+            ]
+          }
+        },
+        {
+          "operations": 1000,
+          "elapsed_seconds": 15.264358765998622,
+          "footprint": {
+            "files": 4010,
+            "total_bytes": 2356507,
+            "journal_bytes": 1689739,
+            "manifest_bytes": 234878,
+            "live_entries": 1000,
+            "index_entries": 0,
+            "intent_files": 1000,
+            "object_files": 1000
+          },
+          "read": {
+            "seconds": [
+              0.007653480977751315,
+              0.007838119025109336,
+              0.00764067200361751
+            ],
+            "median_seconds": 0.007653480977751315,
+            "max_seconds": 0.007838119025109336,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.007653480977751315
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.007838119025109336
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.00764067200361751
+              }
+            ]
+          }
+        },
+        {
+          "operations": 2000,
+          "elapsed_seconds": 47.66864742798498,
+          "footprint": {
+            "files": 8018,
+            "total_bytes": 6653339,
+            "journal_bytes": 5316571,
+            "manifest_bytes": 471878,
+            "live_entries": 2000,
+            "index_entries": 0,
+            "intent_files": 2000,
+            "object_files": 2000
+          },
+          "read": {
+            "seconds": [
+              0.014897315995767713,
+              0.014790904999244958,
+              0.014963043999159709
+            ],
+            "median_seconds": 0.014897315995767713,
+            "max_seconds": 0.014963043999159709,
+            "counters": [
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.014897315995767713
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.014790904999244958
+              },
+              {
+                "atomic_writes": 0,
+                "atomic_write_bytes": 0,
+                "fsync_calls": 0,
+                "object_reads": 1,
+                "recovery_calls": 1,
+                "seconds": 0.014963043999159709
+              }
+            ]
+          }
+        }
+      ],
+      "after": {
+        "files": 8018,
+        "total_bytes": 6653339,
+        "journal_bytes": 5316571,
+        "manifest_bytes": 471878,
+        "live_entries": 2000,
+        "index_entries": 0,
+        "intent_files": 2000,
+        "object_files": 2000
+      }
+    },
+    "history-1000": {
+      "messages": 1000,
+      "prefix": {
+        "seconds": [
+          0.009774561010999605,
+          0.009993388986913487,
+          0.009617244999390095
+        ],
+        "median_seconds": 0.009774561010999605,
+        "max_seconds": 0.009993388986913487,
+        "counters": [
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 9,
+            "recovery_calls": 1,
+            "seconds": 0.009774561010999605
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 9,
+            "recovery_calls": 1,
+            "seconds": 0.009993388986913487
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 9,
+            "recovery_calls": 1,
+            "seconds": 0.009617244999390095
+          }
+        ]
+      },
+      "prompt_builder": {
+        "seconds": [
+          0.0023490680032409728,
+          0.0016089359996840358,
+          0.0018300280207768083
+        ],
+        "median_seconds": 0.0018300280207768083,
+        "max_seconds": 0.0023490680032409728,
+        "counters": [
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.0023490680032409728
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.0016089359996840358
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.0018300280207768083
+          }
+        ]
+      },
+      "append_one": {
+        "seconds": [
+          0.03331217399681918
+        ],
+        "median_seconds": 0.03331217399681918,
+        "max_seconds": 0.03331217399681918,
+        "counters": [
+          {
+            "atomic_writes": 8,
+            "atomic_write_bytes": 153845,
+            "fsync_calls": 18,
+            "object_reads": 21,
+            "recovery_calls": 18,
+            "seconds": 0.03331217399681918
+          }
+        ]
+      },
+      "fork": {
+        "seconds": [
+          0.3813358990009874
+        ],
+        "median_seconds": 0.3813358990009874,
+        "max_seconds": 0.3813358990009874,
+        "counters": [
+          {
+            "atomic_writes": 17,
+            "atomic_write_bytes": 1405667,
+            "fsync_calls": 36,
+            "object_reads": 21,
+            "recovery_calls": 12,
+            "seconds": 0.3813358990009874
+          }
+        ]
+      },
+      "footprint": {
+        "files": 51,
+        "total_bytes": 2912773,
+        "journal_bytes": 20920,
+        "manifest_bytes": 11391,
+        "live_entries": 27,
+        "index_entries": 0,
+        "intent_files": 5,
+        "object_files": 33
+      },
+      "prompt_output_messages": 33
+    },
+    "history-5000": {
+      "messages": 5000,
+      "prefix": {
+        "seconds": [
+          0.07416451501194388,
+          0.0461676400154829,
+          0.049608859000727534
+        ],
+        "median_seconds": 0.049608859000727534,
+        "max_seconds": 0.07416451501194388,
+        "counters": [
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 41,
+            "recovery_calls": 1,
+            "seconds": 0.07416451501194388
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 41,
+            "recovery_calls": 1,
+            "seconds": 0.0461676400154829
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 41,
+            "recovery_calls": 1,
+            "seconds": 0.049608859000727534
+          }
+        ]
+      },
+      "prompt_builder": {
+        "seconds": [
+          0.010099187988089398,
+          0.008530612976755947,
+          0.009013167989905924
+        ],
+        "median_seconds": 0.009013167989905924,
+        "max_seconds": 0.010099187988089398,
+        "counters": [
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.010099187988089398
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.008530612976755947
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.009013167989905924
+          }
+        ]
+      },
+      "append_one": {
+        "seconds": [
+          0.09503592102555558
+        ],
+        "median_seconds": 0.09503592102555558,
+        "max_seconds": 0.09503592102555558,
+        "counters": [
+          {
+            "atomic_writes": 8,
+            "atomic_write_bytes": 49157,
+            "fsync_calls": 18,
+            "object_reads": 53,
+            "recovery_calls": 50,
+            "seconds": 0.09503592102555558
+          }
+        ]
+      },
+      "fork": {
+        "seconds": [
+          2.0141543019854
+        ],
+        "median_seconds": 2.0141543019854,
+        "max_seconds": 2.0141543019854,
+        "counters": [
+          {
+            "atomic_writes": 49,
+            "atomic_write_bytes": 6990787,
+            "fsync_calls": 100,
+            "object_reads": 53,
+            "recovery_calls": 12,
+            "seconds": 2.0141543019854
+          }
+        ]
+      },
+      "footprint": {
+        "files": 115,
+        "total_bytes": 13781877,
+        "journal_bytes": 59768,
+        "manifest_bytes": 41023,
+        "live_entries": 91,
+        "index_entries": 0,
+        "intent_files": 5,
+        "object_files": 97
+      },
+      "prompt_output_messages": 32
+    },
+    "history-10000": {
+      "messages": 10000,
+      "prefix": {
+        "seconds": [
+          0.13754891999997199,
+          0.136001914012013,
+          0.10178260700195096
+        ],
+        "median_seconds": 0.136001914012013,
+        "max_seconds": 0.13754891999997199,
+        "counters": [
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 80,
+            "recovery_calls": 1,
+            "seconds": 0.13754891999997199
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 80,
+            "recovery_calls": 1,
+            "seconds": 0.136001914012013
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 80,
+            "recovery_calls": 1,
+            "seconds": 0.10178260700195096
+          }
+        ]
+      },
+      "prompt_builder": {
+        "seconds": [
+          0.019930935988668352,
+          0.015379224991193041,
+          0.015375719987787306
+        ],
+        "median_seconds": 0.015379224991193041,
+        "max_seconds": 0.019930935988668352,
+        "counters": [
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.019930935988668352
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.015379224991193041
+          },
+          {
+            "atomic_writes": 0,
+            "atomic_write_bytes": 0,
+            "fsync_calls": 0,
+            "object_reads": 0,
+            "recovery_calls": 0,
+            "seconds": 0.015375719987787306
+          }
+        ]
+      },
+      "append_one": {
+        "seconds": [
+          0.24813367999740876
+        ],
+        "median_seconds": 0.24813367999740876,
+        "max_seconds": 0.24813367999740876,
+        "counters": [
+          {
+            "atomic_writes": 8,
+            "atomic_write_bytes": 89191,
+            "fsync_calls": 18,
+            "object_reads": 92,
+            "recovery_calls": 89,
+            "seconds": 0.24813367999740876
+          }
+        ]
+      },
+      "fork": {
+        "seconds": [
+          3.9677894730120897
+        ],
+        "median_seconds": 3.9677894730120897,
+        "max_seconds": 3.9677894730120897,
+        "counters": [
+          {
+            "atomic_writes": 88,
+            "atomic_write_bytes": 13970278,
+            "fsync_calls": 178,
+            "object_reads": 92,
+            "recovery_calls": 12,
+            "seconds": 3.9677894730120897
+          }
+        ]
+      },
+      "footprint": {
+        "files": 193,
+        "total_bytes": 27536722,
+        "journal_bytes": 107114,
+        "manifest_bytes": 77137,
+        "live_entries": 169,
+        "index_entries": 0,
+        "intent_files": 5,
+        "object_files": 175
+      },
+      "prompt_output_messages": 32
+    },
+    "distinct-state-fork": {
+      "messages_and_distinct_states": 1000,
+      "fork": {
+        "seconds": [
+          2.4981600609899033
+        ],
+        "median_seconds": 2.4981600609899033,
+        "max_seconds": 2.4981600609899033,
+        "counters": [
+          {
+            "atomic_writes": 1017,
+            "atomic_write_bytes": 3257709,
+            "fsync_calls": 2036,
+            "object_reads": 1021,
+            "recovery_calls": 12,
+            "seconds": 2.4981600609899033
+          }
+        ]
+      },
+      "footprint": {
+        "files": 2056,
+        "total_bytes": 7091897,
+        "journal_bytes": 936880,
+        "manifest_bytes": 737579,
+        "live_entries": 2027,
+        "index_entries": 0,
+        "intent_files": 5,
+        "object_files": 2038
+      }
+    },
+    "index": {
+      "initial_messages": 10000,
+      "updates": 20,
+      "initial_build": {
+        "seconds": [
+          0.4594397990149446
+        ],
+        "median_seconds": 0.4594397990149446,
+        "max_seconds": 0.4594397990149446,
+        "counters": [
+          {
+            "atomic_writes": 45,
+            "atomic_write_bytes": 2460335,
+            "fsync_calls": 92,
+            "object_reads": 86,
+            "recovery_calls": 7,
+            "seconds": 0.4594397990149446
+          }
+        ]
+      },
+      "updates_counters": [
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 70688,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.15100598000572063
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 70904,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.11003149498719722
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 71122,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.14842342599877156
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 71338,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.1439239719766192
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 71554,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.0953743290156126
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 71770,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.1372337070060894
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 71986,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.1417655840050429
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 72202,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.10700737501611002
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 72428,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.10274734999984503
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 72644,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.1614670119888615
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 72861,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.09547936599119566
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 73078,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.158561155985808
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 73295,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.147341130010318
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 73512,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.10257788398303092
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 73729,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.1265475589898415
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 73946,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.14322262597852387
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 74163,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.1008690390153788
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 74380,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.14387335698120296
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 74597,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.15293737599859014
+        },
+        {
+          "atomic_writes": 6,
+          "atomic_write_bytes": 74814,
+          "fsync_calls": 14,
+          "object_reads": 44,
+          "recovery_calls": 3,
+          "seconds": 0.10209900201880373
+        }
+      ],
+      "before": {
+        "files": 143,
+        "total_bytes": 15976937,
+        "journal_bytes": 69881,
+        "manifest_bytes": 55651,
+        "live_entries": 128,
+        "index_entries": 41,
+        "intent_files": 4,
+        "object_files": 128
+      },
+      "after": {
+        "files": 383,
+        "total_bytes": 17410963,
+        "journal_bytes": 356468,
+        "manifest_bytes": 55658,
+        "live_entries": 128,
+        "index_entries": 41,
+        "intent_files": 44,
+        "object_files": 248
+      }
+    }
+  }
+}

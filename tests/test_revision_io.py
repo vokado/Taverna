@@ -251,3 +251,40 @@ def test_malformed_completed_directory_fails_with_recovery_error_not_raw_excepti
         store.get("config/absent.json")
     assert error.value.code == "transaction_recovery_required"
     assert store.pointer.read_bytes() == before
+
+
+@pytest.mark.asyncio
+async def test_invalid_model_unicode_cannot_poison_buffer_or_stop_queue(tmp_path):
+    store = JsonStore(tmp_path)
+    queue = JobQueue(store)
+
+    async def invalid(request, cancel, emit):
+        await emit("delta", {"text": "Сохранённый "})
+        await emit("delta", {"text": "хвост"})
+        await emit("delta", {"text": "\ud800"})
+        return {"must_not_complete": True}
+
+    async def healthy(request, cancel, emit):
+        await emit("delta", {"text": "Следующая задача"})
+        return {"ok": True}
+
+    queue.handlers.update(invalid=invalid, healthy=healthy)
+
+    async def terminal(jid):
+        async with asyncio.timeout(10):
+            while (row := await queue.get(jid))["payload"]["state"] in ("queued", "running"):
+                await asyncio.sleep(0.01)
+        return row
+
+    try:
+        job = await queue.enqueue("invalid", {}, idempotency_key="invalid-unicode")
+        row = await terminal(job["id"])
+        assert row["payload"]["state"] == "failed" and row["payload"]["error"]["code"] == "invalid_json_data"
+        assert (
+            "".join(e["data"].get("text", "") for e in await queue.events(job["id"])) == "Сохранённый хвост"
+        )
+        second = await queue.enqueue("healthy", {}, idempotency_key="healthy-after-invalid-unicode")
+        assert (await terminal(second["id"]))["payload"]["state"] == "completed"
+        assert store.integrity()["ok"]
+    finally:
+        await queue.close()

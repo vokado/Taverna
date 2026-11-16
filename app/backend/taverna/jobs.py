@@ -250,13 +250,21 @@ class JobQueue:
                 and set(payload) == {"text"}
                 and isinstance(payload["text"], str)
             )
+            stream_bytes = 0
+            if stream:
+                try:
+                    stream_bytes = len(payload["text"].encode("utf-8"))
+                except UnicodeError as exc:
+                    raise AppError(
+                        "invalid_json_data", "Фрагмент генерации содержит недопустимый UTF-8 текст.", 422
+                    ) from exc
             pending = self.stream_pending.get(job_id)
             if stream and job_id in self.stream_flushed and (not pending or pending["kind"] == event_type):
                 if pending is None:
                     pending = {"kind": event_type, "parts": [], "bytes": 0, "since": now}
                     self.stream_pending[job_id] = pending
                 pending["parts"].append(payload["text"])
-                pending["bytes"] += len(payload["text"].encode("utf-8"))
+                pending["bytes"] += stream_bytes
                 if (
                     pending["bytes"] < 8192
                     and len(pending["parts"]) < 64

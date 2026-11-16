@@ -36,3 +36,26 @@ Target:89 исходных/новых core tests PASS22.56s; после compact-
 Baseline:1000 burst fragments/15kB →1001 measured transactions/6006 atomic writes/307830689 application bytes/340.488s;2000 unique keys →943549546 application bytes/471683773 journal bytes/607.675s;2000 edits of one key →2871355 application bytes/1339786 journal bytes/65.415s.10k history _prefix p50=.1254s, PromptBuilder=.0219s, fork=4.2599s;1000 distinct state fork=203.335s.20 index updates after10k messages →841 live index keys,57.94MB data tree,102.76s rebuild-only sum. These are synthetic local measurements, not native inference/GPU results; atomic bytes are not physical device I/O. No throughput/SLA is promised for RTX5070/Windows11.
 
 Ограничение: flat primary manifest всё ещё сериализуется целиком при publication; его размер линейно зависит от live entries, cumulative bytes при вставке множества ключей не стали O(1). Устраняются доказанные лишние journal snapshots/сканирование/повторные state reads/index generations, а не объявляется бесконечная масштабируемость. Source version storage растёт с сохраняемой историей; retention не вводится без утверждённого правила удаления. Hardware/реальные движки/подписанная приёмка BLOCKED. После аудита обязательные14–16 продолжаются, не исключаются из объёма.
+
+## Финальный измеренный срез bfc6c3c
+
+Raw audit-final.json содержит commit и SHA256 исходников; все workload выполнены последовательно без локальной регрессии параллельно. Паузы в потоке — audit-final-paced.json. Это синтетические данные, не тест реальной модели/видеокарты; время включает реальную запись/fsync в данном Linux overlay окружении. CSV audit-comparison.csv сохраняет исходные числа/отношения, без округления в доказательствах.
+
+| Нагрузка | До | После |
+|---|---:|---:|
+| 1000 burst fragments (seconds) | 340.488 | 0.144 |
+| 1000 burst fragments atomic application writes (bytes) | 307830689.000 | 103472.000 |
+| growth-unique-False elapsed (seconds) | 65.415 | 11.904 |
+| growth-unique-True elapsed (seconds) | 607.675 | 47.856 |
+| growth-unique-True journal_bytes (bytes) | 471683773.000 | 5316571.000 |
+| growth-unique-True manifest_bytes (bytes) | 471878.000 | 471878.000 |
+| 1000 distinct state fork (seconds) | 203.335 | 2.498 |
+| 20 index rebuilds (seconds) | 102.759 | 2.572 |
+| index live entries (entries) | 841.000 | 41.000 |
+| index data tree bytes (bytes) | 57940440.000 | 17410963.000 |
+
+PromptBuilder не изменён; отличия его небольших timings являются измеренным разбросом среды, а не объявленным ускорением алгоритма. Объём одного-key journal сохранён точно1 339 786байт; у предварительного v2-only варианта он был больше, меньший full v1 устранил эту регрессию. Основной manifest остался прежнего размера; cumulative pointer writes всё ещё зависят от live key count.
+
+Windows CI43825606858 дляbfc6c3c SUCCESS Ubuntu/Windows:342 backend PASS248.50s,19 browser PASS2.6m, оба frozen EXE после переноса/restricted PATH PASS, включая selected external file/queue/WASM/atomic receipt. Artifact14206424028 (58 139 820байт). Это native software proof, не clean Windows11/RTX5070/real LM Studio.
+
+После этого обнаружен дополнительный отрицательный случай: escaped lone surrogate от модели мог попасть в pending buffer до UTF-8 проверки. Проверка перенесена до изменения buffer; реальная queue/storage проверка подтверждает clean failed job, сохранение корректного хвоста и успешную следующую задачу. Полная локальная регрессия этой версии:340 backend PASS100.56s/3 Windows-only SKIP,19 browser PASS2.9m. Новая Unicode guard не выдаётся за часть ранее проведённого Windows запуска; следующий CI подтверждает её отдельно.

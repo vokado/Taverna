@@ -2,6 +2,8 @@
 
 Допуск на 01–16: получен 2026-11-15. D-01–15: APPROVED.
 
+Независимая ревизия: исходный Windows plugins failure исправлен/подтверждён CI; I/O/index/fork/journal исправлены и измерены до/после. bfc6c3c CI43825606858 Ubuntu/Windows/frozen SUCCESS (342/19);340/19 локальная регрессия после дополнительной Unicode guard, её новый native rerun ожидается. Полные доказательства/оставшиеся расходы — REVISION_AUDIT.md. Релиз1.0 не принят. Обязательные14–16 остаются в работе.
+
 | Этап | Реализация / проверки |
 |---|---|
 | 01 | Linux и Windows-runner source/browser/build PASS; frozen EXE smoke подтверждён CI 43639176196 для adc8193; целевая Windows11/Edge/Chrome пока не подтверждена |
