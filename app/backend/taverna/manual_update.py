@@ -14,7 +14,6 @@ import shutil
 import stat
 import tempfile
 from pathlib import Path
-from uuid import uuid4
 from zipfile import BadZipFile, ZipFile
 
 import portalocker
@@ -146,92 +145,115 @@ def prepare_update(
     *,
     expected_sha256: str | None = None,
 ) -> dict:
-    """Stage and verify a new portable installation; never mutate source code."""
+    """Create an independent verified installation without modifying the old one."""
+    if Path(source_root).is_symlink() or Path(destination_root).is_symlink():
+        raise _update_error("update_destination", "Не используйте ссылки для каталогов установки.")
+    if Path(new_archive).is_symlink():
+        raise _update_error("update_archive_missing", "Не используйте ссылки на архивы.")
     source = Path(source_root).resolve()
     destination = Path(destination_root).resolve()
     archive_path = Path(new_archive).resolve()
     if (
         destination.exists()
+        or destination.is_symlink()
         or destination == source
         or destination.is_relative_to(source)
         or source.is_relative_to(destination)
     ):
         raise _update_error("update_destination", "Выберите новый каталог вне текущей установки.")
-    if not source.is_dir() or not (source / "Taverna.exe").is_file():
-        raise _update_error("update_source", "Не найдена действующая портативная установка.")
-    if not archive_path.is_file() or archive_path.is_symlink():
-        raise _update_error("update_archive_missing", "Новый ZIP отсутствует или является ссылкой.")
+    if (
+        not source.is_dir()
+        or not (source / "Taverna.exe").is_file()
+        or not (source / "data").is_dir()
+    ):
+        raise _update_error("update_source", "Не найдена запущенная ранее портативная установка.")
+    if not archive_path.is_file():
+        raise _update_error("update_archive_missing", "Новый ZIP отсутствует.")
     if expected_sha256 is not None and (
         len(expected_sha256) != 64
         or any(c not in "0123456789abcdef" for c in expected_sha256)
     ):
         raise _update_error("update_checksum", "Ожидалась контрольная сумма SHA256.")
-    hashed = hashlib.sha256()
-    with archive_path.open("rb") as stream:
-        while chunk := stream.read(1024 * 1024):
-            hashed.update(chunk)
-    actual_sha = hashed.hexdigest()
-    if expected_sha256 is not None and actual_sha != expected_sha256:
-        raise _update_error("update_checksum", "Контрольная сумма ZIP не совпадает.")
-    try:
-        with ZipFile(archive_path) as bundle:
-            entries = _safe_entries(bundle)
-    except (BadZipFile, OSError, ValueError, KeyError) as exc:
-        raise _update_error("update_archive_invalid", "Архив обновления повреждён.") from exc
 
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    staging = Path(tempfile.mkdtemp(prefix=f".{destination.name}.upgrade-", dir=destination.parent))
+    # Keep the same file handle pinned across hashing, validation and extraction,
+    # so replacing the ZIP pathname cannot change what gets published.
     try:
-        # The same lock is used by the main launcher. A running Taverna must
-        # never be copied or updated while its data may be changing.
-        lock_path = source / "data/server.lock"
-        try:
-            with portalocker.Lock(lock_path, timeout=0):
-                store = JsonStore(source)
-                backup = create_full_backup(store, reason="pre-update")
-                with ZipFile(archive_path) as bundle:
-                    for info, clean in entries:
-                        output = staging.joinpath(*_archive_parts(clean))
-                        if info.is_dir():
-                            output.mkdir(parents=True, exist_ok=True)
-                            continue
-                        output.parent.mkdir(parents=True, exist_ok=True)
-                        with bundle.open(info) as reader, output.open("xb") as writer:
-                            while chunk := reader.read(1024 * 1024):
-                                writer.write(chunk)
-                _copy_user_tree(source, staging)
-                generation = _verify_directory(staging)
-                (staging / "upgrade-record.json").write_text(
-                    json.dumps(
-                        {
-                            "format": 1,
-                            "zip_sha256": actual_sha,
-                            "source_generation": generation,
-                            "backup_name": backup.name,
-                            "old_install_preserved": True,
-                            "new_install_verified": True,
-                        },
-                        ensure_ascii=False,
-                        indent=2,
-                    ),
-                    encoding="utf-8",
+        with archive_path.open("rb") as bundle_file:
+            hashed = hashlib.sha256()
+            while chunk := bundle_file.read(1024 * 1024):
+                hashed.update(chunk)
+            actual_sha = hashed.hexdigest()
+            if expected_sha256 is not None and actual_sha != expected_sha256:
+                raise _update_error("update_checksum", "Контрольная сумма ZIP не совпадает.")
+            bundle_file.seek(0)
+            with ZipFile(bundle_file) as bundle:
+                entries = _safe_entries(bundle)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                staging = Path(
+                    tempfile.mkdtemp(
+                        prefix=f".{destination.name}.upgrade-",
+                        dir=destination.parent,
+                    )
                 )
-                if destination.exists():
-                    raise _update_error("update_destination", "Каталог назначения появился во время обновления.")
-                os.replace(staging, destination)
-        except portalocker.exceptions.LockException as exc:
-            raise _update_error(
-                "update_running",
-                "Закройте Таверну перед обновлением. Действующая установка не изменена.",
-                409,
-            ) from exc
-        return {
-            "destination": str(destination),
-            "backup": str(backup),
-            "zip_sha256": actual_sha,
-            "data_generation": generation,
-            "old_install_preserved": True,
-        }
-    finally:
-        if staging.exists():
-            shutil.rmtree(staging, ignore_errors=True)
+                try:
+                    # The main launcher holds this lock for its entire lifetime.
+                    # Never migrate a mutable live store.
+                    lock_path = source / "data/server.lock"
+                    try:
+                        with portalocker.Lock(lock_path, timeout=0):
+                            store = JsonStore(source)
+                            backup = create_full_backup(store, reason="pre-update")
+                            for info, clean in entries:
+                                output = staging.joinpath(*_archive_parts(clean))
+                                if info.is_dir():
+                                    output.mkdir(parents=True, exist_ok=True)
+                                    continue
+                                output.parent.mkdir(parents=True, exist_ok=True)
+                                with bundle.open(info) as reader, output.open("xb") as writer:
+                                    while chunk := reader.read(1024 * 1024):
+                                        writer.write(chunk)
+                            _copy_user_tree(source, staging)
+                            generation = _verify_directory(staging)
+                            (staging / "upgrade-record.json").write_text(
+                                json.dumps(
+                                    {
+                                        "format": 1,
+                                        "zip_sha256": actual_sha,
+                                        "source_generation": generation,
+                                        "backup_name": backup.name,
+                                        "old_install_preserved": True,
+                                        "new_install_verified": True,
+                                    },
+                                    ensure_ascii=False,
+                                    indent=2,
+                                ),
+                                encoding="utf-8",
+                            )
+                            if destination.exists() or destination.is_symlink():
+                                raise _update_error(
+                                    "update_destination",
+                                    "Каталог назначения появился во время обновления.",
+                                )
+                            os.replace(staging, destination)
+                    except portalocker.exceptions.LockException as exc:
+                        raise _update_error(
+                            "update_running",
+                            "Закройте Таверну перед обновлением. Старая установка не изменена.",
+                            409,
+                        ) from exc
+                    return {
+                        "destination": str(destination),
+                        "backup": str(backup),
+                        "zip_sha256": actual_sha,
+                        "data_generation": generation,
+                        "old_install_preserved": True,
+                    }
+                finally:
+                    if staging.exists():
+                        shutil.rmtree(staging, ignore_errors=True)
+    except (BadZipFile, EOFError, ValueError, OSError) as exc:
+        raise _update_error(
+            "update_io_error",
+            "Не удалось проверить или распаковать ZIP. Старая установка сохранена.",
+            503,
+        ) from exc
