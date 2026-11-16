@@ -18,7 +18,12 @@ def main():
     if os.name != "nt":
         raise RuntimeError("Этот smoke требует Windows.")
     archive = Path("dist/Taverna-Internal-Windows-x64.zip")
-    with tempfile.TemporaryDirectory(prefix="Таверна перенос ") as temp:
+    with (
+        tempfile.TemporaryDirectory(prefix="Таверна перенос ") as temp,
+        tempfile.TemporaryDirectory(prefix="Таверна внешние ") as outside,
+    ):
+        external = Path(outside) / "Материал с пробелами.txt"
+        external.write_text("Прочитано только по отдельному разрешению", encoding="utf-8")
         root = Path(temp)
         with ZipFile(archive) as source:
             source.extractall(root)
@@ -205,6 +210,13 @@ def main():
                                             "scopes": ["smoke"],
                                         }
                                         for cap in ("own.read", "own.write")
+                                    ]
+                                    + [
+                                        {
+                                            "capability": "filesystem.read",
+                                            "reason": "Native selected-file smoke",
+                                            "scopes": [outside],
+                                        }
                                     ],
                                 }
                             ),
@@ -262,7 +274,8 @@ def main():
                             "enabled": True,
                             "grants": [
                                 {"capability": cap, "scopes": ["smoke"]} for cap in ("own.read", "own.write")
-                            ],
+                            ]
+                            + [{"capability": "filesystem.read", "scopes": [outside]}],
                             "trusted_full_access_ack": False,
                             "confirmed": True,
                         },
@@ -276,6 +289,22 @@ def main():
                     catalog_revision = client.get(base + "/api/v1/plugins", timeout=10).json()[
                         "catalog_revision"
                     ]
+                    file_preview = client.post(
+                        base + f"/api/v1/plugins/{pid}/files/preview",
+                        json={
+                            "plugin_revision": captured["revision"],
+                            "catalog_revision": catalog_revision,
+                            "permission_epoch": captured["payload"]["permission_epoch"],
+                            "package_sha256": checked["sha256"],
+                            "scope": outside,
+                            "name": external.name,
+                        },
+                        headers={"X-Taverna-CSRF": csrf},
+                        timeout=10,
+                    )
+                    assert file_preview.status_code == 200, file_preview.text
+                    selected = file_preview.json()
+                    assert selected["text_preview"] == external.read_text(encoding="utf-8")
                     queued = client.post(
                         base + f"/api/v1/plugins/{pid}/run",
                         json={
@@ -283,6 +312,14 @@ def main():
                             "catalog_revision": catalog_revision,
                             "permission_epoch": captured["payload"]["permission_epoch"],
                             "package_sha256": checked["sha256"],
+                            "files": [
+                                {
+                                    "scope": outside,
+                                    "name": external.name,
+                                    "sha256": selected["sha256"],
+                                    "confirmed": True,
+                                }
+                            ],
                         },
                         headers={
                             "X-Taverna-CSRF": csrf,
@@ -304,6 +341,9 @@ def main():
                     data_url = base + f"/api/v1/plugins/{pid}/data/smoke"
                     assert client.get(data_url, timeout=10).json()["revision"] == 0
                     proposal_id = job["result"]["proposal_id"]
+                    pending = client.get(base + f"/api/v1/plugins/{pid}/previews", timeout=10).json()["items"]
+                    saved = next(p for p in pending if p["id"] == proposal_id)
+                    assert saved["payload"]["metadata"]["external_sources"][0]["sha256"] == selected["sha256"]
                     for _attempt in range(2):
                         applied = client.post(
                             base + f"/api/v1/plugins/previews/{proposal_id}/accept",
@@ -329,7 +369,7 @@ def main():
                     assert not info.exists()
                 print(
                     executable,
-                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated host/OS limits/Python helpers/plugin registry/queued WASM broker/atomic receipt/shutdown",
+                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated host/OS limits/Python helpers/plugin registry/queued WASM broker/selected external file/atomic receipt/shutdown",
                 )
             finally:
                 if process.poll() is None:

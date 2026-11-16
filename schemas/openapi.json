@@ -7124,6 +7124,54 @@
         }
       }
     },
+    "/api/v1/plugins/{pid}/files/preview": {
+      "post": {
+        "summary": "File Preview",
+        "operationId": "file_preview_api_v1_plugins__pid__files_preview_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PluginFilePreview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/plugins/{pid}/data/{target}": {
       "get": {
         "summary": "Own Data",
@@ -13692,6 +13740,87 @@
         ],
         "title": "PluginDecision"
       },
+      "PluginFilePreview": {
+        "properties": {
+          "catalog_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Catalog Revision"
+          },
+          "plugin_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Plugin Revision"
+          },
+          "permission_epoch": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Permission Epoch"
+          },
+          "package_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Sha256"
+          },
+          "scope": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Scope"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "catalog_revision",
+          "plugin_revision",
+          "permission_epoch",
+          "package_sha256",
+          "scope",
+          "name"
+        ],
+        "title": "PluginFilePreview"
+      },
+      "PluginFileSelection": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Scope"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scope",
+          "name",
+          "sha256"
+        ],
+        "title": "PluginFileSelection"
+      },
       "PluginGrant": {
         "properties": {
           "capability": {
@@ -13803,6 +13932,14 @@
             "type": "array",
             "maxItems": 32,
             "title": "Reads"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/PluginFileSelection"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Files"
           },
           "confirmed_full_access_run": {
             "type": "boolean",

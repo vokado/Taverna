@@ -1,6 +1,12 @@
 import { test, expect } from "./fixtures";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, existsSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  existsSync,
+  rmSync,
+  writeFileSync,
+  readFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -245,6 +251,13 @@ test("Декларативный плагин: визуальные параме
     entry: "main.json",
     fields: [
       { key: "text", label: "Текст дневника", type: "text", required: true },
+      { key: "flag", label: "Флаг примера", type: "checkbox", required: true },
+      {
+        key: "choice",
+        label: "Необязательный вариант",
+        type: "select",
+        options: ["a", "b"],
+      },
     ],
     requests: [
       {
@@ -312,6 +325,15 @@ test("Декларативный плагин: визуальные параме
   const runner = page.getByLabel("Запуск выбранного расширения", {
     exact: true,
   });
+  await expect(
+    runner.getByLabel("Флаг примера", { exact: true }),
+  ).not.toBeChecked();
+  await runner
+    .getByLabel("Необязательный вариант", { exact: true })
+    .selectOption("a");
+  await runner
+    .getByLabel("Необязательный вариант", { exact: true })
+    .selectOption("");
   await runner
     .getByLabel("Текст дневника", { exact: true })
     .fill("{{не_выполнять}} <script>bad()</script>");
@@ -339,7 +361,7 @@ test("Декларативный плагин: визуальные параме
   await plan
     .getByRole("button", { name: "Применить план расширения", exact: true })
     .click();
-  await expect(plan).toContainText("applied");
+  await expect(plan).toContainText("Применён");
   const saved = await (
     await page.request.get(appUrl + "/api/v1/tools/" + note)
   ).json();
@@ -353,9 +375,181 @@ test("Декларативный плагин: визуальные параме
     page
       .getByLabel("Запуск выбранного расширения", { exact: true })
       .getByRole("article"),
-  ).toContainText("applied");
+  ).toContainText("Применён");
   expect(
     (await (await page.request.get(appUrl + "/api/v1/tools/" + note)).json())
       .revision,
   ).toBe(1);
+});
+
+test("Внешний файл расширения: отдельный scope, просмотр, подтверждение, конфликт SHA и provenance плана", async ({
+  page,
+  appUrl,
+}) => {
+  test.setTimeout(90000);
+  const folder = mkdtempSync(join(tmpdir(), "taverna-selected-file-")),
+    name = "Материал с пробелами.txt",
+    path = join(folder, name);
+  writeFileSync(path, "<script>не выполнять()</script>", "utf8");
+  const id = crypto.randomUUID(),
+    caps = ["filesystem.read", "own.read", "own.write"],
+    manifest = {
+      id,
+      name: "Проверка внешнего чтения",
+      version: "1.0.0",
+      runtime: "declarative",
+      entry: "main.json",
+      requests: caps.map((capability) => ({
+        capability,
+        reason: "Явный тест выбранного материала",
+        scopes: capability === "filesystem.read" ? [folder] : ["counter"],
+      })),
+    };
+  const source = JSON.stringify({
+    format: 1,
+    message: "Материал согласован",
+    actions: [
+      {
+        type: "own.set",
+        target: "counter",
+        expected_revision: 0,
+        value: "Проверенный результат",
+      },
+    ],
+  });
+  const zip = execFileSync(
+    process.env.TAVERNA_PYTHON || "python",
+    [resolve("e2e/support/plugin_fixture.py")],
+    { input: JSON.stringify({ manifest, source }) },
+  );
+  try {
+    const csrf = (
+        await (await page.request.get(appUrl + "/api/v1/session")).json()
+      ).csrf,
+      headers = { "X-Taverna-CSRF": csrf, "Content-Type": "application/zip" };
+    const preview = await (
+      await page.request.post(appUrl + "/api/v1/plugins/import-preview", {
+        data: zip,
+        headers,
+      })
+    ).json();
+    const imported = await page.request.post(
+      appUrl +
+        `/api/v1/plugins/import?expected_revision=0&catalog_revision=${preview.catalog_revision}&approved_sha256=${preview.sha256}&confirmed=true`,
+      { data: zip, headers },
+    );
+    expect(imported.ok()).toBe(true);
+    const row = await imported.json();
+    const enabled = await page.request.put(appUrl + "/api/v1/plugins/" + id, {
+      headers: { "X-Taverna-CSRF": csrf },
+      data: {
+        expected_revision: row.revision,
+        catalog_revision: 1,
+        approved_sha256: preview.sha256,
+        enabled: true,
+        confirmed: true,
+        grants: manifest.requests.map((r) => ({
+          capability: r.capability,
+          scopes: r.scopes,
+        })),
+        trusted_full_access_ack: false,
+      },
+    });
+    expect(enabled.ok()).toBe(true);
+    await page.getByRole("button", { name: "Расширения", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: "Проверка внешнего чтения · 1.0.0",
+        exact: true,
+      })
+      .click();
+    const runner = page.getByLabel("Запуск выбранного расширения", {
+      exact: true,
+    });
+    await runner
+      .getByLabel("Разрешённый внешний каталог", { exact: true })
+      .selectOption(folder);
+    await runner
+      .getByLabel("Относительное имя внешнего файла", { exact: true })
+      .fill(name);
+    await runner
+      .getByRole("button", { name: "Проверить внешний файл", exact: true })
+      .click();
+    const checked = runner.getByRole("article", {
+      name: "Предпросмотр внешнего файла",
+      exact: true,
+    });
+    await expect(checked).toContainText("<script>не выполнять()</script>");
+    await expect(checked.locator("script")).toHaveCount(0);
+    await expect(
+      checked.getByRole("button", {
+        name: "Добавить проверенный файл к запуску",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    await checked
+      .getByLabel("Подтверждаю передачу снимка этого файла расширению", {
+        exact: true,
+      })
+      .check();
+    await checked
+      .getByRole("button", {
+        name: "Добавить проверенный файл к запуску",
+        exact: true,
+      })
+      .click();
+    writeFileSync(path, "Обновлённый владельцем материал", "utf8");
+    await runner
+      .getByRole("button", { name: "Вычислить план расширения", exact: true })
+      .click();
+    await expect(runner.getByRole("status")).toContainText(
+      "изменился после предпросмотра",
+      { timeout: 20000 },
+    );
+    await expect(runner.getByRole("article")).toHaveCount(0);
+    await runner
+      .getByRole("button", { name: "Убрать внешний файл 1", exact: true })
+      .click();
+    await runner
+      .getByLabel("Относительное имя внешнего файла", { exact: true })
+      .fill(name);
+    await runner
+      .getByRole("button", { name: "Проверить внешний файл", exact: true })
+      .click();
+    await checked
+      .getByLabel("Подтверждаю передачу снимка этого файла расширению", {
+        exact: true,
+      })
+      .check();
+    await checked
+      .getByRole("button", {
+        name: "Добавить проверенный файл к запуску",
+        exact: true,
+      })
+      .click();
+    await runner
+      .getByRole("button", { name: "Вычислить план расширения", exact: true })
+      .click();
+    const plan = runner.getByRole("article");
+    await expect(plan).toContainText("Материал согласован", { timeout: 20000 });
+    await expect(plan).toContainText("Снимок внешнего источника:");
+    await expect(plan).toContainText(name);
+    const url = appUrl + `/api/v1/plugins/${id}/data/counter`;
+    expect((await (await page.request.get(url)).json()).revision).toBe(0);
+    await plan
+      .getByLabel("Подтверждаю перечисленные изменения JSON этого плана", {
+        exact: true,
+      })
+      .check();
+    await plan
+      .getByRole("button", { name: "Применить план расширения", exact: true })
+      .click();
+    await expect(plan).toContainText("Применён");
+    const own = await (await page.request.get(url)).json();
+    expect(own.revision).toBe(1);
+    expect(own.value).toBe("Проверенный результат");
+    expect(readFileSync(path, "utf8")).toBe("Обновлённый владельцем материал");
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 });

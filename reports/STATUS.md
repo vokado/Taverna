@@ -17,7 +17,7 @@
 | 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;CI43740639796/2ab1475 Ubuntu/Windows/frozen SUCCESS,целевая среда BLOCKED |
 | 12 | Библиотека/слои/варианты/аудио/drafts/ZIP и Comfy image adapter/lease/cancel реализованы;190 backend/12 browser Linux PASS;CI43750969808/e67c4cd Ubuntu/Windows/frozen SUCCESS; окончательный выбор движка/RTX5070/LM Studio BLOCKED |
 | 13 | Рукописи/AI previews/4формата экспорта/materials/tools реализованы; после исправлений CI43777643165/9c4a672 Ubuntu/Windows/frozen SUCCESS,221 backend/16 browser; target/live AI BLOCKED |
-| 14 | IN_PROGRESS: Wasmtime/no-WASI host, registry/grants/manager, shared-queue compute и атомарные own/note/book plans; Linux283 backend PASS/2 Windows SKIP; 18 browser PASS2.9m +2 plugin retest PASS14.7s. CI08f99d4 host baseline SUCCESS; новые registry CI выявили ZIP/test synchronization defects, исправления проверяются. External broker/rules/macros/scheduler ещё не завершены |
+| 14 | IN_PROGRESS: manager/grants/Wasmtime host/shared queue/atomic own-note-book plans и выбранные external read snapshots/API/UI. Linux317 backend PASS/2 Windows SKIP,19 browser PASS. CI43813841312/31abb4a Ubuntu/Windows/frozen SUCCESS (315/18, новый read primitive на Windows проверен); последующая files→guest/UI/frozen интеграция ожидает CI. Внешняя запись/сеть/команды/tools/rules/scheduler ещё не завершены |
 | 15 | Полная упаковка/backup/manual update/documentation NOT_STARTED; базовый Windows portable pipeline с01 уже действует |
 | 16 | Финальная приёмка NOT_STARTED; обязательные hardware/clean Windows11/live LM Studio критерии BLOCKED |
 

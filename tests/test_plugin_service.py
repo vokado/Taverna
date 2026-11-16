@@ -185,7 +185,7 @@ async def test_declarative_inputs_single_pass_types_and_idempotent_queue(tmp_pat
         fields=[{"key": "text", "label": "Текст", "required": True}],
     )
     try:
-        for values in ({}, {"text": 3}, {"text": "ok", "extra": "x"}):
+        for values in ({}, {"text": "   "}, {"text": 3}, {"text": "ok", "extra": "x"}):
             with pytest.raises(AppError):
                 await service.enqueue(row["id"], request(row, parameters=values), str(uuid4()))
         body = request(row, parameters={"text": "{{evil}}"})

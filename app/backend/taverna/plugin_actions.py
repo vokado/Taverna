@@ -36,15 +36,30 @@ class PluginRead(Strict):
         return self
 
 
+class PluginFilePreview(PluginIdentity):
+    scope: str = Field(min_length=1, max_length=4000)
+    name: str = Field(min_length=1, max_length=1024)
+
+
+class PluginFileSelection(Strict):
+    scope: str = Field(min_length=1, max_length=4000)
+    name: str = Field(min_length=1, max_length=1024)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    confirmed: bool = False
+
+
 class PluginRun(PluginIdentity):
     parameters: dict[str, JsonValue] = Field(default_factory=dict, max_length=50)
     reads: list[PluginRead] = Field(default_factory=list, max_length=32)
+    files: list[PluginFileSelection] = Field(default_factory=list, max_length=8)
     confirmed_full_access_run: bool = False
 
     @model_validator(mode="after")
     def no_duplicates(self):
         if len({(r.kind, r.target) for r in self.reads}) != len(self.reads):
             raise ValueError("Повторный источник данных")
+        if len({(f.scope, f.name) for f in self.files}) != len(self.files):
+            raise ValueError("Повторный внешний файл")
         return self
 
 

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Header, Query, Request
 from pydantic import Field
 
 from .core import AppError
-from .plugin_actions import PluginDecision, PluginRun
+from .plugin_actions import PluginDecision, PluginFilePreview, PluginRun
 from .plugin_models import PluginGrant
 from .world_models import Strict
 
@@ -105,6 +105,10 @@ def router(registry, queue=None, service=None):
         idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
     ):
         return await service.enqueue(str(pid), body, idempotency_key)
+
+    @api.post("/{pid}/files/preview")
+    async def file_preview(pid: UUID, body: PluginFilePreview):
+        return await asyncio.to_thread(service.file_preview, str(pid), body)
 
     @api.get("/{pid}/data/{target}")
     def own_data(pid: UUID, target: str):

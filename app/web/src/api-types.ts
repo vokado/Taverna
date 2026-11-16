@@ -2194,6 +2194,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugins/{pid}/files/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** File Preview */
+        post: operations["file_preview_api_v1_plugins__pid__files_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugins/{pid}/data/{target}": {
         parameters: {
             query?: never;
@@ -5057,6 +5074,35 @@ export interface components {
              */
             confirmed: boolean;
         };
+        /** PluginFilePreview */
+        PluginFilePreview: {
+            /** Catalog Revision */
+            catalog_revision: number;
+            /** Plugin Revision */
+            plugin_revision: number;
+            /** Permission Epoch */
+            permission_epoch: number;
+            /** Package Sha256 */
+            package_sha256: string;
+            /** Scope */
+            scope: string;
+            /** Name */
+            name: string;
+        };
+        /** PluginFileSelection */
+        PluginFileSelection: {
+            /** Scope */
+            scope: string;
+            /** Name */
+            name: string;
+            /** Sha256 */
+            sha256: string;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
         /** PluginGrant */
         PluginGrant: {
             /**
@@ -5100,6 +5146,8 @@ export interface components {
             };
             /** Reads */
             reads?: components["schemas"]["PluginRead"][];
+            /** Files */
+            files?: components["schemas"]["PluginFileSelection"][];
             /**
              * Confirmed Full Access Run
              * @default false
@@ -11154,6 +11202,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PluginRun"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    file_preview_api_v1_plugins__pid__files_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PluginFilePreview"];
             };
         };
         responses: {

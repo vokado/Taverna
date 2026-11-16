@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import copy
 import json
 import math
@@ -14,6 +15,7 @@ from uuid import UUID, uuid4
 from .core import AppError
 from .plugin_actions import PluginPlan, PluginRun
 from .plugin_compute import compute
+from .plugin_files import PluginFiles
 from .plugin_registry import CATALOG
 from .storage import Mutation, document, encoded, safe_path
 
@@ -22,6 +24,7 @@ class PluginService:
     def __init__(self, registry, tools, queue):
         self.registry, self.tools, self.queue = registry, tools, queue
         self.store, self.books = registry.store, tools.manuscripts
+        self.files = PluginFiles(registry)
         self.store.register("plugin_plan", 1, PluginPlan.model_json_schema())
         queue.handlers["plugin_compute"] = self.run
         queue.preemptible_kinds.add("plugin_compute")
@@ -74,7 +77,7 @@ class PluginService:
                 "checkbox": type(value) is bool,
                 "select": isinstance(value, str) and value in field["options"],
             }[field["type"]]
-            if not valid:
+            if not valid or (field["required"] and isinstance(value, str) and not value.strip()):
                 raise AppError("plugin_parameters", "Тип или значение поля не соответствует манифесту.", 422)
         if len(encoded(values)) > 128 * 1024:
             raise AppError("plugin_input_limit", "Поля расширения больше128КиБ.", 413)
@@ -82,6 +85,10 @@ class PluginService:
     async def enqueue(self, pid, body: PluginRun, idempotency_key):
         payload = {**body.model_dump(mode="json"), "plugin_id": str(UUID(str(pid)))}
         row = await asyncio.to_thread(self.current, payload)
+        if any(not f["confirmed"] for f in payload["files"]):
+            raise AppError(
+                "confirmation_required", "Подтвердите передачу каждого выбранного внешнего файла.", 403
+            )
         self.parameters(row["payload"]["manifest"], payload["parameters"])
         if row["payload"]["manifest"]["runtime"] == "trusted_python" and not body.confirmed_full_access_run:
             raise AppError(
@@ -131,7 +138,24 @@ class PluginService:
                         "value": copy.deepcopy(value["payload"] if value else None),
                     }
                 )
+                if len(encoded({"parameters": payload["parameters"], "data": data})) > 256 * 1024:
+                    raise AppError(
+                        "plugin_input_limit", "Выбранные данные больше256КиБ; сократите выборку.", 413
+                    )
         request = {"format": 1, "parameters": payload["parameters"], "data": data}
+        for selected in payload.get("files", []):
+            if not selected["confirmed"]:
+                raise AppError("confirmation_required", "Не подтверждено чтение внешнего файла.", 403)
+            item = self.files.read(payload, selected["scope"], selected["name"])
+            if item["sha256"] != selected["sha256"]:
+                raise AppError(
+                    "plugin_file_conflict",
+                    "Внешний файл изменился после предпросмотра. Выберите его заново.",
+                    409,
+                )
+            request.setdefault("files", []).append({**item, "scope": selected["scope"]})
+            if len(encoded(request)) > 256 * 1024:
+                raise AppError("plugin_input_limit", "Выбранные данные и файлы больше256КиБ.", 413)
         if len(encoded(request)) > 256 * 1024:
             raise AppError("plugin_input_limit", "Выбранные данные больше256КиБ; сократите выборку.", 413)
         return row, request, guards
@@ -223,6 +247,9 @@ class PluginService:
         await asyncio.to_thread(self.current, payload)
         changes, write_guards = await asyncio.to_thread(self.plan_effects, row, plan)
         self.merge_guards(guards, write_guards)
+        metadata["external_sources"] = [
+            {k: f[k] for k in ("scope", "path", "bytes", "sha256")} for f in request.get("files", [])
+        ]
         preview = document(
             "plugin_preview",
             {
@@ -315,6 +342,23 @@ class PluginService:
                 self.merge_guards(guards, extra)
                 guards[key] = expected
         return changes, guards
+
+    def file_preview(self, pid, body):
+        identity = {**body.model_dump(mode="json"), "plugin_id": pid}
+        item = self.files.read(identity, body.scope, body.name)
+        raw = base64.b64decode(item["content_base64"])
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeError:
+            text = None
+        return {
+            "scope": body.scope,
+            "name": body.name,
+            "sha256": item["sha256"],
+            "bytes": item["bytes"],
+            "text_preview": text[:8000] if text is not None else None,
+            "truncated": bool(text is not None and len(text) > 8000),
+        }
 
     def own_data(self, pid, target):
         with self.store.view() as view:

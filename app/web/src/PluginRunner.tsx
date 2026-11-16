@@ -16,6 +16,7 @@ type Row = {
     permission_epoch: number;
     package_sha256: string;
     enabled: boolean;
+    grants: { capability: string; scopes: string[] }[];
   };
 };
 type Read = {
@@ -34,9 +35,42 @@ type Preview = {
   payload: {
     status: string;
     plan: { message: string; actions: unknown[] };
-    metadata: { runtime: string };
+    metadata: {
+      runtime: string;
+      external_sources?: {
+        scope: string;
+        path: string;
+        sha256: string;
+        bytes: number;
+      }[];
+    };
     identity: { package_sha256: string };
   };
+};
+type FilePreview = {
+  scope: string;
+  name: string;
+  sha256: string;
+  bytes: number;
+  text_preview: string | null;
+  truncated: boolean;
+};
+type SelectedFile = {
+  scope: string;
+  name: string;
+  sha256: string;
+  confirmed: boolean;
+};
+const states: Record<string, string> = {
+  pending: "Ожидает подтверждения",
+  applied: "Применён",
+  rejected: "Отклонён",
+  queued: "В очереди",
+  running: "Выполняется",
+  completed: "Завершено",
+  failed: "Ошибка",
+  cancelled: "Отменено",
+  interrupted: "Прервано",
 };
 type Job = {
   id: string;
@@ -58,8 +92,22 @@ export function PluginRunner({
 }) {
   const [parameters, setParameters] = useState<
       Record<string, string | number | boolean>
-    >({}),
+    >(() =>
+      Object.fromEntries(
+        row.payload.manifest.fields
+          .filter((f) => f.type === "checkbox")
+          .map((f) => [f.key, false]),
+      ),
+    ),
     [reads, setReads] = useState<Read[]>([]),
+    [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]),
+    [fileScope, setFileScope] = useState(
+      row.payload.grants.find((g) => g.capability === "filesystem.read")
+        ?.scopes[0] || "",
+    ),
+    [fileName, setFileName] = useState(""),
+    [filePreview, setFilePreview] = useState<FilePreview | null>(null),
+    [fileConfirmed, setFileConfirmed] = useState(false),
     [kind, setKind] = useState<Read["kind"]>("own"),
     [target, setTarget] = useState(""),
     [revision, setRevision] = useState(0),
@@ -182,9 +230,12 @@ export function PluginRunner({
               <select
                 aria-label={f.label}
                 value={String(parameters[f.key] ?? "")}
-                onChange={(e) =>
-                  setParameters({ ...parameters, [f.key]: e.target.value })
-                }
+                onChange={(e) => {
+                  const next = { ...parameters };
+                  if (e.target.value === "") delete next[f.key];
+                  else next[f.key] = e.target.value;
+                  setParameters(next);
+                }}
               >
                 <option value="">Выберите</option>
                 {f.options.map((v) => (
@@ -224,6 +275,7 @@ export function PluginRunner({
         <label>
           Тип источника
           <select
+            aria-label="Тип источника"
             value={kind}
             onChange={(e) => {
               setKind(e.target.value as Read["kind"]);
@@ -348,6 +400,129 @@ export function PluginRunner({
             </li>
           ))}
         </ul>
+        <fieldset>
+          <legend>Внешние файлы для этого запуска</legend>
+          <p>
+            Передаётся только выбранный снимок файла, максимум128КиБ на файл
+            и256КиБ для всего входа. Чтение и запись — разные разрешения.
+          </p>
+          <label>
+            Разрешённый внешний каталог
+            <select
+              aria-label="Разрешённый внешний каталог"
+              value={fileScope}
+              onChange={(e) => {
+                setFileScope(e.target.value);
+                setFilePreview(null);
+                setFileConfirmed(false);
+              }}
+            >
+              <option value="">Выберите выданную область</option>
+              {row.payload.grants
+                .filter((g) => g.capability === "filesystem.read")
+                .flatMap((g) => g.scopes)
+                .map((scope) => (
+                  <option key={scope} value={scope}>
+                    {scope}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            Относительное имя внешнего файла
+            <input
+              value={fileName}
+              onChange={(e) => {
+                setFileName(e.target.value);
+                setFilePreview(null);
+                setFileConfirmed(false);
+              }}
+            />
+          </label>
+          <button
+            disabled={!fileScope || !fileName}
+            onClick={() =>
+              void act(async () => {
+                setFilePreview(null);
+                setFileConfirmed(false);
+                const result = await request<FilePreview>(
+                  `/plugins/${row.id}/files/preview`,
+                  "POST",
+                  { ...identity, scope: fileScope, name: fileName },
+                );
+                setFilePreview(result);
+              })
+            }
+          >
+            Проверить внешний файл
+          </button>
+          {filePreview && (
+            <article aria-label="Предпросмотр внешнего файла">
+              <p>
+                {filePreview.scope} / {filePreview.name} · {filePreview.bytes}{" "}
+                байт · SHA256 {filePreview.sha256}
+              </p>
+              <pre>
+                {filePreview.text_preview ??
+                  "Бинарный файл: текстовый просмотр недоступен."}
+              </pre>
+              {filePreview.truncated && <p>Показаны первые8000 символов.</p>}
+              <label>
+                <input
+                  type="checkbox"
+                  checked={fileConfirmed}
+                  onChange={(e) => setFileConfirmed(e.target.checked)}
+                />
+                Подтверждаю передачу снимка этого файла расширению
+              </label>
+              <button
+                disabled={!fileConfirmed || selectedFiles.length >= 8}
+                onClick={() => {
+                  if (
+                    selectedFiles.some(
+                      (f) =>
+                        f.scope === filePreview.scope &&
+                        f.name === filePreview.name,
+                    )
+                  ) {
+                    setStatus("Этот файл уже выбран.");
+                    return;
+                  }
+                  setSelectedFiles([
+                    ...selectedFiles,
+                    {
+                      scope: filePreview.scope,
+                      name: filePreview.name,
+                      sha256: filePreview.sha256,
+                      confirmed: true,
+                    },
+                  ]);
+                  setFilePreview(null);
+                  setFileConfirmed(false);
+                  setFileName("");
+                }}
+              >
+                Добавить проверенный файл к запуску
+              </button>
+            </article>
+          )}
+          <ul>
+            {selectedFiles.map((f, index) => (
+              <li key={f.scope + ":" + f.name}>
+                {f.scope} / {f.name} · SHA256 {f.sha256}
+                <button
+                  onClick={() =>
+                    setSelectedFiles(
+                      selectedFiles.filter((_, i) => i !== index),
+                    )
+                  }
+                >
+                  Убрать внешний файл {index + 1}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
         {row.payload.manifest.runtime === "trusted_python" && (
           <label>
             <input
@@ -367,6 +542,7 @@ export function PluginRunner({
                 ...identity,
                 parameters,
                 reads,
+                files: selectedFiles,
                 confirmed_full_access_run: ack,
               };
               const fingerprint = JSON.stringify(body);
@@ -392,7 +568,7 @@ export function PluginRunner({
       </fieldset>
       {job && (
         <p>
-          Задача {job.id}: {job.payload.state}
+          Задача {job.id}: {states[job.payload.state] || job.payload.state}
         </p>
       )}
       <button
@@ -415,9 +591,16 @@ export function PluginRunner({
         <article key={p.id} aria-label={"План расширения " + p.id}>
           <h4>{p.payload.plan.message || "План действий"}</h4>
           <p>
-            {p.payload.status}; код SHA256 {p.payload.identity.package_sha256}
+            {states[p.payload.status] || p.payload.status}; код SHA256{" "}
+            {p.payload.identity.package_sha256}
           </p>
           <pre>{JSON.stringify(p.payload.plan.actions, null, 2)}</pre>
+          {(p.payload.metadata.external_sources || []).map((f) => (
+            <p key={f.scope + f.path}>
+              Снимок внешнего источника: {f.scope} / {f.path} · {f.bytes} байт ·
+              SHA256 {f.sha256}
+            </p>
+          ))}
           {p.payload.status === "pending" && (
             <>
               <label>
