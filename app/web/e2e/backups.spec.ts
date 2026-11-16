@@ -2,7 +2,9 @@ import { test, expect } from "./fixtures";
 
 test("резервная копия: создание, контроль и скачивание через интерфейс", async ({
   page,
+  appUrl,
 }) => {
+  expect(appUrl).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
   await page.getByRole("button", { name: "Резервные копии", exact: true }).click();
   const region = page.getByRole("region", { name: "Резервные копии" });
   await expect(
