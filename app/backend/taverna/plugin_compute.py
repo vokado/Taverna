@@ -44,7 +44,7 @@ async def compute(
     cancel=None,
     entry_path=None,
 ):
-    if len(code) > MAX_MODULE or not 0.1 <= timeout <= 30:
+    if len(code) > MAX_MODULE or type(timeout) not in (int, float) or not 0.1 <= timeout <= 30:
         raise AppError("plugin_resource_limit", "Превышен размер модуля или допустимый deadline.", 422)
     if (
         runtime not in ("wasm", "trusted_python")
@@ -70,6 +70,7 @@ async def compute(
                 "code": base64.b64encode(code).decode("ascii"),
                 "input": request,
                 "fuel": fuel,
+                "timeout_seconds": timeout,
                 "trusted_full_access": trusted_full_access,
                 **({"entry_path": str(entry_path)} if entry_path is not None else {}),
             },
@@ -131,6 +132,8 @@ async def compute(
                 if task.done() and not task.cancelled() and task.exception():
                     raise task.exception()
             await asyncio.sleep(0.03)
+        if process.returncode == 124:
+            raise AppError("plugin_timeout", "Host расширения превысил время исполнения.", 408)
         if process.returncode != 0:
             raise AppError(
                 "plugin_host_crashed", "Отдельный host завершился аварийно; сервер продолжает работу.", 422

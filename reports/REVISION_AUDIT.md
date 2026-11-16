@@ -69,3 +69,7 @@ images.spec.ts: первый POST08:09:19.647Z, completed GET08:09:25.502Z; вт
 long-chat/media: истёк общий5s fixture readiness, health ещё не200. Старый fixture игнорировал stderr и не сохранял startup state, поэтому конкретная причина задержки/возможной аварии не установлена; это не объявляется доказанным дефектом приложения или доказанным медленным стартом. Новый fixture даёт cold startup30s, ограничивает каждую health попытку1s, немедленно падает при exit/spawn error и прикладывает metadata без секретов (elapsed/attempts/health/exit/signal). Fixture имеет отдельный45s budget с shutdown; retries не добавлены. Следующий Windows CI должен подтвердить результат, иначе исследуется новая диагностика. Три затронутых browser tests локально PASS30.6s; полная локальная browser регрессия выполняется отдельно.
 
 Полная локальная browser регрессия test-only исправления:19 PASS2.4m, evidence/audit-ci-deadlines-browser.txt. Backend не изменён (предыдущий Windows343 PASS); следующий CI повторяет backend/browser/frozen полностью.
+
+### Повтор потока после Unicode guard
+
+Измерения точного66c0569 (jobs.py совпадает с5a1859c, scripts сохраняют SHA256): evidence/audit-unicode-events.json —1000 fragments0.162s,103472 application atomic bytes; evidence/audit-unicode-events-paced.json —300 fragments/10ms3.791s,80799 journal bytes. Все значения — Linux synthetic real storage/queue, без LM/GPU; source validation не вернула прежнюю амплификацию. Замеры выполнены отдельно от локальной тестовой нагрузки. Остальные измеренные core modules не менялись после bfc6c3c.

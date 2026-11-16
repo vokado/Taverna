@@ -157,6 +157,25 @@ def main():
                             assert result["result"] == {"actions": []}
                         else:
                             assert result["code"] == "plugin_import_denied"
+                    # This timeout is enforced by the frozen host itself, not
+                    # subprocess.run; the parent remains alive and gives it 15s.
+                    deadline_envelope = {
+                        "runtime": "trusted_python",
+                        "trusted_full_access": True,
+                        "input": {},
+                        "timeout_seconds": 0.5,
+                        "code": base64.b64encode(b"import time\ndef run(request): time.sleep(60)").decode(),
+                    }
+                    expired = subprocess.run(
+                        [str(root / "Taverna-PluginHost.exe")],
+                        input=json.dumps(deadline_envelope).encode(),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        cwd=root,
+                        env=env,
+                        timeout=15,
+                    )
+                    assert expired.returncode == 124, "Frozen host did not enforce its own deadline"
                     folder = root / "diagnostics" / "Python с пробелами"
                     folder.mkdir(parents=True, exist_ok=True)
                     (folder / "helper.py").write_text('value="проверено"', encoding="utf-8")

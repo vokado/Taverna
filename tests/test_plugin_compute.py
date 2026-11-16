@@ -199,3 +199,95 @@ async def test_trusted_python_entry_context_supports_packaged_helpers(tmp_path):
     assert result["result"]["value"] == "проверено" and result["result"]["entry"] == str(entry)
     with pytest.raises(AppError):
         await compute(guest(), {}, entry_path=entry)
+
+
+@pytest.mark.parametrize("background_thread", [False, True])
+def test_compute_host_deadline_survives_backend_process_death(tmp_path, background_thread):
+    """Real parent/host processes: killing the backend must not orphan a sleeping guest."""
+    import os
+    import signal
+    import subprocess
+    import sys
+    import time
+
+    marker = tmp_path / "host.pid"
+    if background_thread:
+        source = (
+            "import os,time,threading\nfrom pathlib import Path\n"
+            "def run(request):\n threading.Thread(target=lambda: time.sleep(60), daemon=False).start()\n"
+            " Path(request['marker']).write_text(str(os.getpid()))\n return {}\n"
+        )
+    else:
+        source = (
+            "import os,time\nfrom pathlib import Path\n"
+            "def run(request):\n Path(request['marker']).write_text(str(os.getpid()))\n"
+            " while True: time.sleep(1)\n"
+        )
+    guest_code = source.encode()
+    parent_code = (
+        "import asyncio\nfrom taverna.plugin_compute import compute\n"
+        f"asyncio.run(compute({guest_code!r}, {{'marker': {str(marker)!r}}}, "
+        "runtime='trusted_python', trusted_full_access=True, timeout=2))"
+    )
+    parent = subprocess.Popen(
+        [sys.executable, "-c", parent_code], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    pid = None
+    handle = None
+    kernel = None
+    try:
+        deadline = time.monotonic() + 15
+        while not marker.exists() and time.monotonic() < deadline:
+            assert parent.poll() is None, "Backend exited before host started"
+            time.sleep(0.02)
+        assert marker.exists(), "Real host did not start"
+        pid = int(marker.read_text())
+        if os.name == "nt":
+            import ctypes
+
+            kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
+            kernel.OpenProcess.restype = ctypes.c_void_p
+            kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+            kernel.WaitForSingleObject.restype = ctypes.c_ulong
+            kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+            handle = kernel.OpenProcess(0x00100000, False, pid)
+            assert handle, "Expected running host handle"
+        parent.kill()
+        parent.wait(timeout=5)
+        if handle:
+            assert kernel.WaitForSingleObject(handle, 6000) == 0, "Orphaned host exceeded its own deadline"
+        else:
+            from pathlib import Path
+
+            deadline = time.monotonic() + 6
+            while time.monotonic() < deadline:
+                try:
+                    os.kill(pid, 0)
+                    # An orphan zombie has exited, but the container init may not reap it.
+                    if Path(f"/proc/{pid}/stat").read_text().split(") ", 1)[1].startswith("Z"):
+                        break
+                except (ProcessLookupError, FileNotFoundError):
+                    break
+                time.sleep(0.05)
+            else:
+                pytest.fail("Orphaned host exceeded its own deadline")
+    finally:
+        if parent.poll() is None:
+            parent.kill()
+            parent.wait(timeout=5)
+        if pid is not None and (not handle or kernel.WaitForSingleObject(handle, 0) != 0):
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+        if handle:
+            kernel.CloseHandle(handle)
+
+
+@pytest.mark.parametrize("timeout", [True, None, "3", float("nan"), float("inf"), 0, 31])
+@pytest.mark.asyncio
+async def test_invalid_host_deadline_rejected_before_launch(timeout):
+    with pytest.raises(AppError) as error:
+        await compute(guest(), {}, timeout=timeout)
+    assert error.value.code == "plugin_resource_limit"

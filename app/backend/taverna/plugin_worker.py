@@ -10,7 +10,10 @@ import base64
 import contextlib
 import io
 import json
+import math
+import os
 import sys
+import threading
 
 MAX_MODULE = 256 * 1024
 MAX_INPUT = 256 * 1024
@@ -175,6 +178,7 @@ def main():
             "code",
             "input",
             "fuel",
+            "timeout_seconds",
             "trusted_full_access",
             "entry_path",
         } or not isinstance(envelope.get("input"), dict):
@@ -185,6 +189,15 @@ def main():
         fuel = envelope.get("fuel", 1000000)
         if type(fuel) is not int or not 10000 <= fuel <= 10000000:
             raise HostError("plugin_fuel_limit", "Недопустимый вычислительный бюджет.")
+        timeout = envelope.get("timeout_seconds", 5)
+        if type(timeout) not in (int, float) or not math.isfinite(timeout) or not 0.1 <= timeout <= 30:
+            raise HostError("plugin_resource_limit", "Недопустимый срок исполнения host.")
+        # The backend may crash after starting us. Keep this daemon watchdog alive
+        # through interpreter shutdown, including non-daemon threads left by a guest.
+        # Trusted full-access Python can deliberately bypass it; this is not a sandbox.
+        watchdog = threading.Timer(timeout, lambda: os._exit(124))
+        watchdog.daemon = True
+        watchdog.start()
         if envelope["runtime"] == "wasm":
             if envelope.get("entry_path") is not None:
                 raise HostError("plugin_input_invalid", "WASM не получает путь к файлам host.")

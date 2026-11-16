@@ -1,0 +1,20 @@
+{
+  "base_commit": "66c056911345f086e4b1abc44d5abc4f0613c92e",
+  "source_sha256": {
+    "app/backend/taverna/plugin_compute.py": "0ae4b2dcaa9796e898f8065b20063745f400ab8f80d23773d15f553a66379216",
+    "app/backend/taverna/plugin_worker.py": "5a995b80970a2010128d4348038085eb1ae1a8da8db4ba2c06236d1912496a2b",
+    "tests/test_plugin_compute.py": "1cf91f3f9a6058fa2b4ddaf6826e42adb94b2b7248f7ee04e10495b35de8b3d4",
+    "packaging/smoke_frozen.py": "22fd56b92468067083d13c9085605879554ca0884849e7f57f4e74b7048ca122"
+  },
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "backend": {
+    "result": "PASS",
+    "passed": 349,
+    "skipped_windows_only": 3,
+    "seconds": 81.69,
+    "command": ".venv/bin/pytest -q",
+    "evidence": "reports/evidence/stage-14-host-deadline-backend.txt"
+  },
+  "native_frozen": "NOT_RUN; next CI required"
+}

@@ -83,3 +83,11 @@ UI: каталог выбирается только из опубликован
 Миграций пользовательских данных нет: новый files optional input default[], старые pending plans без external_sources читаются. OpenAPI дополнен DTO/route. Источник основного хранилища/очередь/модель LM Studio не менялись. Native smoke расширен выбранным внешним файлом из отдельной папки вне portable root и проверкой provenance; новая frozen integration здесь NOT_RUN, будет подтверждена отдельным CI. Базовый native proof31abb4a выше не выдаётся за этот запуск.
 
 Осталось14: filesystem.write/network/commands/tools broker, внешний started/unknown/reconciliation ledger, rules/macros/scheduler/durable outbox/loop budgets/catch-up/maintenance; backup15. Все181 требования сохранены; составные PLG/AUTO/SEC006 остаются IN_PROGRESS/NOT_RUN. Доступные подтверждения подфункций не заменяют недоступные Windows11/RTX5070/live LM Studio/финальную подписанную приёмку. release_ready=False.
+
+## Исправление host после независимой ревизии
+
+PLG-003/SEC-006/AUTO-005, статус этапа14 IN_PROGRESS. Реальное воспроизведение до исправления: evidence/stage-14-orphan-before.txt,1 FAIL6.71s — backend убит, спящий host не остановился. Исправлены только существующие plugin_compute/plugin_worker: приватный timeout в envelope, собственный daemon watchdog, exit124→plugin_timeout, строгая проверка значения; API/data migrations отсутствуют. Тест после первого исправления18 PASS/1 Windows SKIP5.50s. Расширенная регрессия (sleep и non-daemon thread после смерти backend, invalid deadlines, registry/service/file inputs):49 PASS/1 Windows SKIP24.55s, evidence/stage-14-host-deadline-target.txt. Frozen smoke дополнен независимым host self-timeout; native результат пока NOT_RUN. Полная backend регрессия выполняется. Trusted Python сохраняет явный full OS access и не выдаётся за изолированный код. Внешний broker/rules/scheduler и15–16 не объявляются завершёнными.
+
+Полная Linux backend регрессия после watchdog:349 PASS/3 Windows SKIP81.69s, Ruff PASS. Evidence: stage-14-host-deadline-backend.txt и source SHA256 в stage-14-host-deadline-build.json. Windows/PyInstaller self-deadline пока не подтверждён.
+
+Browser plugin regression после watchdog:3 PASS18.3s, evidence/stage-14-host-deadline-browser.txt. Последний полный browser прогон19 PASS2.4m относится к66c0569 (до host изменения); новый CI проверит весь набор с watchdog.
