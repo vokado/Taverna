@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import stat
 import tempfile
@@ -20,7 +21,7 @@ import portalocker
 
 from .core import AppError
 from .full_backup import create_full_backup
-from .storage import JsonStore, is_redirect, portable_parts
+from .storage import JsonStore, is_redirect
 
 _LIMIT_FILES = 150_000
 _LIMIT_BYTES = 8 * 1024 * 1024 * 1024
@@ -43,6 +44,30 @@ def _update_error(code: str, text: str, status: int = 422) -> AppError:
     return AppError(code, text, status)
 
 
+_INVALID_WIN_CHARS = re.compile(r'[<>:"\\\\|?*\\x00-\\x1f]')
+_RESERVED_WIN = {
+    "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
+    *(f"COM{i}" for i in range(10)),
+    *(f"LPT{i}" for i in range(10)),
+}
+
+
+def _archive_parts(name: str) -> list[str]:
+    """Windows-compatible ZIP filename policy, allowing spaces in licenses."""
+    if not name or "\\\\" in name or name.startswith("/"):
+        raise _update_error("update_archive_unsafe", "Недопустимый путь в архиве.")
+    parts = name.split("/")
+    for part in parts:
+        if (
+            part in ("", ".", "..")
+            or part.endswith((" ", "."))
+            or _INVALID_WIN_CHARS.search(part)
+            or part.split(".")[0].upper() in _RESERVED_WIN
+        ):
+            raise _update_error("update_archive_unsafe", "Недопустимый путь в архиве.")
+    return parts
+
+
 def _safe_entries(archive: ZipFile):
     """Validate the whole ZIP before writing any files to the destination."""
     entries, seen, total = [], set(), 0
@@ -54,7 +79,7 @@ def _safe_entries(archive: ZipFile):
             raise _update_error("update_archive_unsafe", "Архив содержит недопустимое имя.")
         is_dir = info.is_dir()
         clean = name[:-1] if is_dir else name
-        portable_parts(clean)
+        _archive_parts(clean)
         if clean.split("/")[0].casefold() in {x.casefold() for x in _USER_DIRS}:
             raise _update_error("update_archive_data", "Обновление не должно содержать пользовательские данные.")
         case_key = clean.casefold()
@@ -166,7 +191,7 @@ def prepare_update(
                 backup = create_full_backup(store, reason="pre-update")
                 with ZipFile(archive_path) as bundle:
                     for info, clean in entries:
-                        output = staging.joinpath(*portable_parts(clean))
+                        output = staging.joinpath(*_archive_parts(clean))
                         if info.is_dir():
                             output.mkdir(parents=True, exist_ok=True)
                             continue
