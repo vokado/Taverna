@@ -3,6 +3,7 @@
 These tests do not claim scheduled backups, restore UI or Windows 11 acceptance.
 """
 import json
+from pathlib import Path
 from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -198,3 +199,35 @@ def test_restore_rechecks_bytes_when_zip_is_replaced_after_preflight(tmp_path, m
     assert exc.value.code == "invalid_full_backup"
     assert not destination.exists()
     assert not list(tmp_path.parent.glob(".changed-restore.*.restore"))
+
+
+def test_large_asset_is_streamed_to_zip_without_read_bytes(tmp_path, monkeypatch):
+    store = JsonStore(tmp_path)
+    blob = b"scene-image" * 500_000
+    checksum = digest(blob)
+    relative = f"media/assets/{checksum}.png"
+    asset = tmp_path / relative
+    attach(store, relative, blob)
+    store.transaction(
+        [
+            Mutation(
+                "media/large.json",
+                document("media_asset", {"relative_path": relative, "checksum": checksum}),
+                0,
+            )
+        ]
+    )
+
+    original_read = Path.read_bytes
+
+    def forbid_whole_asset_read(path):
+        if path == asset:
+            raise AssertionError("Backup must stream assets, not read_bytes() the complete file")
+        return original_read(path)
+
+    monkeypatch.setattr(Path, "read_bytes", forbid_whole_asset_read)
+    archive = create_full_backup(store)
+    verified = verify_full_backup(archive)
+    assert verified["files"][relative] == checksum
+    with ZipFile(archive) as zipped:
+        assert zipped.getinfo(relative).file_size == len(blob)
