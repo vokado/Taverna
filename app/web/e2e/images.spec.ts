@@ -140,6 +140,7 @@ test("Изображения: реальный HTTP-контракт, галер
         async () =>
           (await (await page.request.get(endpoint + "/test/stats")).json())
             .prompts,
+        { timeout: 20000 },
       )
       .toBe(2);
     await panel

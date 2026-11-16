@@ -26,3 +26,5 @@
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.
 
 Аппаратные блокировки: локально доступен Linux, Windows/Wine/RTX5070/LM Studio не обнаружены. Доступен Windows GitHub runner; run 43636025382 успешно выполнил source tests/browser/build для a2b4d4e. Это не заменяет целевой Windows11/hardware/manual review. Новые CI результаты фиксируются после чтения фактического запуска. Реальная модель и генератор изображений не подменяются тестовыми doubles.
+
+Независимая ревизия, повтор5a1859c: Windows343 backend PASS,16 browser PASS/3 FAIL, frozen NOT_RUN; trace/причины/исправление ожиданий — reports/REVISION_AUDIT.md. Локально после test-only исправления19 browser PASS2.4m; следующий native CI ожидается. Релиз не принят.

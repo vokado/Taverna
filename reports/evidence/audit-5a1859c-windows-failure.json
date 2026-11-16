@@ -1,0 +1,219 @@
+{
+  "commit": "5a1859c",
+  "run_id": 43827967641,
+  "job_id": 133166176801,
+  "artifact_id": 14208216046,
+  "artifact_sha256": "5afeeaf36cbed6ead59933ad8cd7d43f4b27ff31e708a5875563a56f6aaef84a",
+  "backend_passed": 343,
+  "backend_seconds": 315.71,
+  "browser_passed": 16,
+  "browser_failed": 3,
+  "source": "Playwright trace.network and resource JSON; headers/cookies/input/output text omitted",
+  "requests": [
+    {
+      "utc": "2026-11-16T08:09:19.647Z",
+      "duration_ms": 78.662,
+      "path": "/api/v1/images/generate",
+      "method": "POST",
+      "status": 202,
+      "error_code": null
+    },
+    {
+      "utc": "2026-11-16T08:09:19.739Z",
+      "duration_ms": 49.561,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:20.292Z",
+      "duration_ms": 4.815,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:20.800Z",
+      "duration_ms": 4.845,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:21.307Z",
+      "duration_ms": 5,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:21.814Z",
+      "duration_ms": 4.872,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:22.330Z",
+      "duration_ms": 6.202,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:22.851Z",
+      "duration_ms": 6.386,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:23.366Z",
+      "duration_ms": 6.203,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:23.888Z",
+      "duration_ms": 6.218,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:24.410Z",
+      "duration_ms": 5.878,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:24.932Z",
+      "duration_ms": 59.657,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:25.502Z",
+      "duration_ms": 6.667,
+      "path": "/api/v1/images/jobs/5be648b3-e930-4a00-b216-ed2487559c4b",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "completed"
+    },
+    {
+      "utc": "2026-11-16T08:09:25.866Z",
+      "duration_ms": 64.479,
+      "path": "/api/v1/images/generate",
+      "method": "POST",
+      "status": 202,
+      "error_code": null
+    },
+    {
+      "utc": "2026-11-16T08:09:25.937Z",
+      "duration_ms": 66.106,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:26.505Z",
+      "duration_ms": 6.61,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:27.013Z",
+      "duration_ms": 6.004,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:27.522Z",
+      "duration_ms": 6.7940000000000005,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:28.033Z",
+      "duration_ms": 6.039,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:28.542Z",
+      "duration_ms": 1469.0529999999999,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:30.521Z",
+      "duration_ms": 1443.2869999999998,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:32.468Z",
+      "duration_ms": 872.185,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "running"
+    },
+    {
+      "utc": "2026-11-16T08:09:33.842Z",
+      "duration_ms": 137.416,
+      "path": "/api/v1/images/jobs/338d54ca-e4e9-4865-a1ea-ab01af055c5f",
+      "method": "GET",
+      "status": 200,
+      "error_code": null,
+      "job_state": "interrupted"
+    }
+  ]
+}
