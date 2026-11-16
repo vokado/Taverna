@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { request, upload } from "./api";
+import { PluginRunner } from "./PluginRunner";
 import type { components } from "./api-types";
 import { useTemplateDraft, type TemplateDraft } from "./useTemplateDraft";
 type Grant = components["schemas"]["PluginGrant"];
@@ -18,6 +19,13 @@ type Manifest = {
   license: string;
   runtime: "declarative" | "wasm" | "trusted_python";
   entry: string;
+  fields: {
+    key: string;
+    label: string;
+    type: "text" | "number" | "checkbox" | "select";
+    required: boolean;
+    options: string[];
+  }[];
   requests: {
     capability: Grant["capability"];
     reason: string;
@@ -112,6 +120,7 @@ export function Plugins({ visible }: { visible: boolean }) {
     if (working.current) return;
     working.current = true;
     setBusy(true);
+    setStatus("");
     try {
       await fn();
     } catch (e) {
@@ -211,11 +220,13 @@ export function Plugins({ visible }: { visible: boolean }) {
       <h2>Пакеты и разрешения расширений</h2>
       <p>
         Импорт и включение не исполняют код. Права выдаются отдельно; обновление
-        кода сбрасывает доверие и разрешения. Запуск через интерфейс и
-        автоматизация ещё в разработке и не объявлены готовыми в этой внутренней
-        сборке.
+        кода сбрасывает доверие и разрешения. Явный запуск подготавливает план
+        внутренних изменений для проверки. Внешние эффекты и автоматизация
+        остаются в разработке в этой внутренней сборке.
       </p>
-      <p role="status">{status}</p>
+      <p role="status" aria-label="Статус управления расширениями">
+        {status}
+      </p>
       <p>{drafts.status}</p>
       <button
         disabled={busy}
@@ -587,6 +598,12 @@ export function Plugins({ visible }: { visible: boolean }) {
               </pre>
             </article>
           )}
+          <PluginRunner
+            key={selected.id + ":" + selected.revision}
+            row={selected}
+            visible={visible}
+            catalogRevision={editor.catalog_revision}
+          />
           <details>
             <summary>Удаление пакета</summary>
             <p>

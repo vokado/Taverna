@@ -15,8 +15,11 @@
 | 09 | Миры/сценарии/snapshots/calendar/events/AST/lore/пакеты/editor реализованы;119 backend PASS,8 E2E PASS, build/Ruff PASS; CI43702010767 дляa12e6ee Ubuntu/Windows/frozen SUCCESS; live AI/corpus/целевая среда BLOCKED; NPC/director в10 |
 | 10 | Реализованы NPC/director/API/UI/drafts/источники/ручной отказ;139 backend и9 E2E PASS, Ruff/types/build PASS; CI43739668246/ad0e711 Ubuntu/Windows/frozen SUCCESS после исправления чтений и поиска; Windows139 backend и9 browser PASS; live/target BLOCKED |
 | 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;CI43740639796/2ab1475 Ubuntu/Windows/frozen SUCCESS,целевая среда BLOCKED |
-| 12 | IN_PROGRESS: библиотека/слои/варианты/аудио/drafts/ZIP;173 backend и11 browser Linux PASS;image engine ещё не реализован |
-| 13–16 | NOT_STARTED |
+| 12 | Библиотека/слои/варианты/аудио/drafts/ZIP и Comfy image adapter/lease/cancel реализованы;190 backend/12 browser Linux PASS;CI43750969808/e67c4cd Ubuntu/Windows/frozen SUCCESS; окончательный выбор движка/RTX5070/LM Studio BLOCKED |
+| 13 | Рукописи/AI previews/4формата экспорта/materials/tools реализованы; после исправлений CI43777643165/9c4a672 Ubuntu/Windows/frozen SUCCESS,221 backend/16 browser; target/live AI BLOCKED |
+| 14 | IN_PROGRESS: Wasmtime/no-WASI host, registry/grants/manager, shared-queue compute и атомарные own/note/book plans; Linux283 backend PASS/2 Windows SKIP; 18 browser PASS2.9m +2 plugin retest PASS14.7s. CI08f99d4 host baseline SUCCESS; новые registry CI выявили ZIP/test synchronization defects, исправления проверяются. External broker/rules/macros/scheduler ещё не завершены |
+| 15 | Полная упаковка/backup/manual update/documentation NOT_STARTED; базовый Windows portable pipeline с01 уже действует |
+| 16 | Финальная приёмка NOT_STARTED; обязательные hardware/clean Windows11/live LM Studio критерии BLOCKED |
 
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.
 

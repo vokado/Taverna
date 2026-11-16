@@ -125,3 +125,7 @@ Unit — доменные инварианты; contract — JSON Schema/OpenAPI
 ## Состояние сейчас
 
 Подготовительные документы сохранены; этапы01–11 реализованы с доступными Linux-проверками; Windows CI10/11 SUCCESS, этап12 IN_PROGRESS. Подробные результаты и блокировки: reports/STATUS.md и отчёты этапов. Разрешение на01–16 действует; следующий этап определяется фактическими проверками, отдельный допуск не нужен. Полный1.0 не готов.
+
+## Исполнение текущей контрольной точки14 (2026-11-16)
+
+Registry/host и внутренние планы реализованы частично; перед API контракт docs/PLUGIN_SECURITY.md, REQ PLG-001–005/AUTO-004–005. Текущие evidence/ошибки/результаты reports/stage-14-progress.md, статус14 IN_PROGRESS. Далее: отдельный внешний broker с scopes/per-action preview/started ledger/unknown outcome, tools integration; затем durable events/rules/macros/scheduler/loop budgets/catch-up и реальные maintenance handlers. Backup подключается только с настоящим модулем15. После доступных проверок и исправления critical failures — commit/CI/обновление матрицы; Windows-runner успех не закрывает clean Windows11/RTX5070/live LM Studio/подписанную приёмку. Все181 исходных требования сохранены.

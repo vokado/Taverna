@@ -196,15 +196,38 @@ def main():
                                     "id": pid,
                                     "name": "Внутренний smoke",
                                     "version": "1.0.0",
-                                    "runtime": "declarative",
-                                    "entry": "main.json",
+                                    "runtime": "wasm",
+                                    "entry": "main.wasm",
+                                    "requests": [
+                                        {
+                                            "capability": cap,
+                                            "reason": "Native broker smoke",
+                                            "scopes": ["smoke"],
+                                        }
+                                        for cap in ("own.read", "own.write")
+                                    ],
                                 }
                             ),
                         )
-                        package.writestr(
-                            "main.json",
-                            json.dumps({"format": 1, "actions": [], "message": "Metadata smoke only"}),
+                        plan_bytes = json.dumps(
+                            {
+                                "format": 1,
+                                "actions": [
+                                    {
+                                        "type": "own.set",
+                                        "target": "smoke",
+                                        "expected_revision": 0,
+                                        "value": {"portable": True},
+                                    }
+                                ],
+                                "message": "Native broker smoke",
+                            }
+                        ).encode()
+                        wat_data = "".join("\\" + format(b, "02x") for b in plan_bytes)
+                        module = wasmtime.wat2wasm(
+                            f'(module (memory (export "memory") 1 256) (data (i32.const 0) "{wat_data}") (func (export "alloc") (param i32) (result i32) i32.const 4096) (func (export "run") (param i32 i32) (result i64) i64.const {len(plan_bytes)}))'
                         )
+                        package.writestr("main.wasm", module)
                     raw = out.getvalue()
                     preview = client.post(
                         base + "/api/v1/plugins/import-preview",
@@ -237,7 +260,9 @@ def main():
                             "catalog_revision": catalog["catalog_revision"],
                             "approved_sha256": checked["sha256"],
                             "enabled": True,
-                            "grants": [],
+                            "grants": [
+                                {"capability": cap, "scopes": ["smoke"]} for cap in ("own.read", "own.write")
+                            ],
                             "trusted_full_access_ack": False,
                             "confirmed": True,
                         },
@@ -247,6 +272,50 @@ def main():
                     assert enabled.status_code == 200 and enabled.json()["payload"]["enabled"] is True, (
                         enabled.text
                     )
+                    captured = enabled.json()
+                    catalog_revision = client.get(base + "/api/v1/plugins", timeout=10).json()[
+                        "catalog_revision"
+                    ]
+                    queued = client.post(
+                        base + f"/api/v1/plugins/{pid}/run",
+                        json={
+                            "plugin_revision": captured["revision"],
+                            "catalog_revision": catalog_revision,
+                            "permission_epoch": captured["payload"]["permission_epoch"],
+                            "package_sha256": checked["sha256"],
+                        },
+                        headers={
+                            "X-Taverna-CSRF": csrf,
+                            "Idempotency-Key": "native-plugin-broker-" + executable,
+                        },
+                        timeout=10,
+                    )
+                    assert queued.status_code == 200, queued.text
+                    jid = queued.json()["id"]
+                    deadline = time.monotonic() + 30
+                    while True:
+                        job = client.get(base + f"/api/v1/generations/{jid}", timeout=10).json()
+                        if job["state"] not in ("queued", "running"):
+                            break
+                        if time.monotonic() > deadline:
+                            raise AssertionError("Native plugin job did not finish")
+                        time.sleep(0.05)
+                    assert job["state"] == "completed", job
+                    data_url = base + f"/api/v1/plugins/{pid}/data/smoke"
+                    assert client.get(data_url, timeout=10).json()["revision"] == 0
+                    proposal_id = job["result"]["proposal_id"]
+                    for _attempt in range(2):
+                        applied = client.post(
+                            base + f"/api/v1/plugins/previews/{proposal_id}/accept",
+                            json={"expected_revision": 1, "confirmed": True},
+                            headers={"X-Taverna-CSRF": csrf},
+                            timeout=10,
+                        )
+                        assert (
+                            applied.status_code == 200 and applied.json()["payload"]["status"] == "applied"
+                        ), applied.text
+                    own = client.get(data_url, timeout=10).json()
+                    assert own["revision"] == 1 and own["value"] == {"portable": True}, own
                     assert not list(root.rglob("*.sqlite*"))
                     assert client.get(base + "/api/v1/diagnostics/storage").json()["ok"]
                     assert (
@@ -260,7 +329,7 @@ def main():
                     assert not info.exists()
                 print(
                     executable,
-                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated host/OS limits/Python helpers/plugin registry/shutdown",
+                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated host/OS limits/Python helpers/plugin registry/queued WASM broker/atomic receipt/shutdown",
                 )
             finally:
                 if process.poll() is None:

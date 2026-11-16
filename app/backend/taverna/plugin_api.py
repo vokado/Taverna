@@ -4,10 +4,11 @@ import asyncio
 from uuid import UUID
 
 import portalocker
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Header, Query, Request
 from pydantic import Field
 
 from .core import AppError
+from .plugin_actions import PluginDecision, PluginRun
 from .plugin_models import PluginGrant
 from .world_models import Strict
 
@@ -60,12 +61,13 @@ async def cancel_stale(registry, queue):
                 r["plugin_revision"],
                 r["permission_epoch"],
                 r["package_sha256"],
+                catalog_revision=r.get("catalog_revision"),
             )
         except (AppError, KeyError):
             await queue.cancel(row["value"]["id"])
 
 
-def router(registry, queue=None):
+def router(registry, queue=None, service=None):
     api = APIRouter(prefix="/api/v1/plugins")
 
     @api.get("")
@@ -95,6 +97,34 @@ def router(registry, queue=None):
         )
         await cancel_stale(registry, queue)
         return result
+
+    @api.post("/{pid}/run")
+    async def run(
+        pid: UUID,
+        body: PluginRun,
+        idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
+    ):
+        return await service.enqueue(str(pid), body, idempotency_key)
+
+    @api.get("/{pid}/data/{target}")
+    def own_data(pid: UUID, target: str):
+        return service.own_data(str(pid), target)
+
+    @api.get("/{pid}/previews")
+    def previews(pid: UUID):
+        return service.previews(str(pid))
+
+    @api.post("/previews/{preview_id}/accept")
+    async def accept(preview_id: UUID, body: PluginDecision):
+        return await asyncio.to_thread(
+            service.decide, str(preview_id), body.expected_revision, body.confirmed
+        )
+
+    @api.post("/previews/{preview_id}/reject")
+    async def reject(preview_id: UUID, body: PluginDecision):
+        return await asyncio.to_thread(
+            service.decide, str(preview_id), body.expected_revision, body.confirmed, False
+        )
 
     @api.get("/{pid}/entry")
     def entry(pid: UUID):

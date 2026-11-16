@@ -38,14 +38,18 @@ class ToolService:
             "errors": errors,
         }
 
-    def save(self, tid, expected, payload):
+    def plan(self, tid, expected, payload):
         data = ToolEntry.model_validate(payload).model_dump(mode="json")
         value = self.store.get(self.key(tid)) or document("tool_entry", {}, entity_id=tid)
         if value["kind"] != "tool_entry":
             raise AppError("tool_conflict", "ID занят другим документом.", 409)
         value["payload"] = data
         guards = self.materials.reference_guards(data["references"])
-        self.store.transaction([Mutation(self.key(tid), value, expected)], guards=guards)
+        return [Mutation(self.key(tid), value, expected)], guards
+
+    def save(self, tid, expected, payload):
+        changes, guards = self.plan(tid, expected, payload)
+        self.store.transaction(changes, guards=guards)
         return self.get(tid)
 
     def names(self, tid, request):

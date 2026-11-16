@@ -1,0 +1,545 @@
+{
+  "$defs": {
+    "BookLink": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "target"
+      ],
+      "title": "BookLink",
+      "type": "object"
+    },
+    "BookMedia": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "format": "uuid",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "caption": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Caption",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "BookMedia",
+      "type": "object"
+    },
+    "BookSave": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "book.save",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "format": "uuid",
+          "title": "Target",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "payload": {
+          "$ref": "#/$defs/Manuscript"
+        }
+      },
+      "required": [
+        "type",
+        "target",
+        "expected_revision",
+        "payload"
+      ],
+      "title": "BookSave",
+      "type": "object"
+    },
+    "Chapter": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 1048576,
+          "title": "Text",
+          "type": "string"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/BookLink"
+          },
+          "maxItems": 100,
+          "title": "Links",
+          "type": "array"
+        },
+        "media": {
+          "items": {
+            "$ref": "#/$defs/BookMedia"
+          },
+          "maxItems": 100,
+          "title": "Media",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "Chapter",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Manuscript": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "const": 1,
+          "default": 1,
+          "title": "Format",
+          "type": "integer"
+        },
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "author": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Author",
+          "type": "string"
+        },
+        "language": {
+          "default": "ru",
+          "pattern": "^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$",
+          "title": "Language",
+          "type": "string"
+        },
+        "chapters": {
+          "items": {
+            "$ref": "#/$defs/Chapter"
+          },
+          "maxItems": 500,
+          "title": "Chapters",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "Manuscript",
+      "type": "object"
+    },
+    "NameGenerator": {
+      "additionalProperties": false,
+      "properties": {
+        "prefixes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Prefixes",
+          "type": "array"
+        },
+        "middles": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Middles",
+          "type": "array"
+        },
+        "suffixes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Suffixes",
+          "type": "array"
+        }
+      },
+      "title": "NameGenerator",
+      "type": "object"
+    },
+    "NoteSave": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "note.save",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "format": "uuid",
+          "title": "Target",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "payload": {
+          "$ref": "#/$defs/ToolEntry"
+        }
+      },
+      "required": [
+        "type",
+        "target",
+        "expected_revision",
+        "payload"
+      ],
+      "title": "NoteSave",
+      "type": "object"
+    },
+    "OwnDelete": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "own.delete",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "title": "Target",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 1,
+          "title": "Expected Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "target",
+        "expected_revision"
+      ],
+      "title": "OwnDelete",
+      "type": "object"
+    },
+    "OwnSet": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "own.set",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "title": "Target",
+          "type": "string"
+        },
+        "expected_revision": {
+          "minimum": 0,
+          "title": "Expected Revision",
+          "type": "integer"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        }
+      },
+      "required": [
+        "type",
+        "target",
+        "expected_revision",
+        "value"
+      ],
+      "title": "OwnSet",
+      "type": "object"
+    },
+    "OwnerReference": {
+      "additionalProperties": false,
+      "properties": {
+        "world_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "World Id"
+        },
+        "story_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Story Id"
+        },
+        "branch_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch Id"
+        },
+        "scene_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene Id"
+        },
+        "event_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Id"
+        },
+        "message_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Id"
+        }
+      },
+      "title": "OwnerReference",
+      "type": "object"
+    },
+    "ToolEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "const": 1,
+          "default": 1,
+          "title": "Format",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "note",
+            "bookmark",
+            "dictionary",
+            "name_generator",
+            "template"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 262144,
+          "title": "Text",
+          "type": "string"
+        },
+        "references": {
+          "items": {
+            "$ref": "#/$defs/OwnerReference"
+          },
+          "maxItems": 100,
+          "title": "References",
+          "type": "array"
+        },
+        "links": {
+          "items": {
+            "$ref": "#/$defs/BookLink"
+          },
+          "maxItems": 100,
+          "title": "Links",
+          "type": "array"
+        },
+        "archived": {
+          "default": false,
+          "title": "Archived",
+          "type": "boolean"
+        },
+        "generator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NameGenerator"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "template": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolTemplate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "title"
+      ],
+      "title": "ToolEntry",
+      "type": "object"
+    },
+    "ToolTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "default": "note",
+          "enum": [
+            "note",
+            "chapter"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 64000,
+          "title": "Text",
+          "type": "string"
+        },
+        "variables": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Variables",
+          "type": "array"
+        },
+        "grants": {
+          "items": {
+            "enum": [
+              "notes.write",
+              "manuscripts.write"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Grants",
+          "type": "array"
+        }
+      },
+      "title": "ToolTemplate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": 1,
+      "default": 1,
+      "title": "Format",
+      "type": "integer"
+    },
+    "actions": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "book.save": "#/$defs/BookSave",
+            "note.save": "#/$defs/NoteSave",
+            "own.delete": "#/$defs/OwnDelete",
+            "own.set": "#/$defs/OwnSet"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/OwnSet"
+          },
+          {
+            "$ref": "#/$defs/OwnDelete"
+          },
+          {
+            "$ref": "#/$defs/NoteSave"
+          },
+          {
+            "$ref": "#/$defs/BookSave"
+          }
+        ]
+      },
+      "maxItems": 32,
+      "title": "Actions",
+      "type": "array"
+    },
+    "message": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Message",
+      "type": "string"
+    }
+  },
+  "title": "PluginPlan",
+  "type": "object"
+}

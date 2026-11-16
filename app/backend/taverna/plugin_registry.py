@@ -381,8 +381,21 @@ class PluginRegistry:
                 "directory": "plugins/" + pid if not removed else None,
             }
 
-    def require_current(self, pid, revision, epoch, checksum):
-        row = self.get(pid)
+    def require_current(self, pid, revision, epoch, checksum, view=None, *, catalog_revision=None):
+        if catalog_revision is not None:
+            if view is None:
+                with self.store.view() as captured:
+                    return self.require_current(
+                        pid, revision, epoch, checksum, captured, catalog_revision=catalog_revision
+                    )
+            catalog = view.get(CATALOG)
+            if not catalog or catalog["revision"] != catalog_revision:
+                raise AppError(
+                    "plugin_catalog_conflict",
+                    "Каталог расширений изменился. Перечитайте пакет и права перед новым запуском.",
+                    409,
+                )
+        row = self.get(pid, view)
         data = row["payload"]
         if (
             not data["enabled"]

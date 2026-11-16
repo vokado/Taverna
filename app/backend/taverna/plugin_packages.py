@@ -74,6 +74,8 @@ class PluginPackages:
                 # compile parses Python without executing top-level statements.
                 compile(entry.decode("utf-8"), "<plugin-import-preview>", "exec")
             else:
+                if len(entry) > 256 * 1024:
+                    raise ValueError("declarative entry too large")
                 plan = parse_json(entry)
                 if (
                     set(plan) - {"format", "actions", "message"}

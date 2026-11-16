@@ -1,0 +1,20 @@
+
+> taverna-web@0.1.0-dev.1 test:e2e
+> playwright test --grep плагин|Менеджер расширений
+
+
+Running 2 tests using 1 worker
+
+(node:54713) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+  ✓  1 e2e/plugins.spec.ts:7:1 › Менеджер расширений: ZIP без autorun, отдельное доверие и права, исходник как текст, черновик и удаление (8.4s)
+
+  ✓  2 e2e/plugins.spec.ts:232:1 › Декларативный плагин: визуальные параметры, общая очередь, просмотр и атомарное подтверждение заметки (5.2s)
+
+  2 passed (14.7s)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

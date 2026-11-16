@@ -71,9 +71,12 @@ test("Менеджер расширений: ZIP без autorun, отдельн�
         exact: true,
       })
       .click();
-    await expect(manager.getByRole("status")).toContainText(
-      "Код не запускался",
-    );
+    await expect(
+      manager.getByRole("status", {
+        name: "Статус управления расширениями",
+        exact: true,
+      }),
+    ).toContainText("Код не запускался");
     const stored = await (
       await page.request.get(appUrl + "/api/v1/plugins/" + manifest.id)
     ).json();
@@ -98,7 +101,12 @@ test("Менеджер расширений: ZIP без autorun, отдельн�
     await manager
       .getByRole("button", { name: "Сохранить состояние и права", exact: true })
       .click();
-    await expect(manager.getByRole("status")).toContainText("доверие");
+    await expect(
+      manager.getByRole("status", {
+        name: "Статус управления расширениями",
+        exact: true,
+      }),
+    ).toContainText("доверие");
     expect(
       (
         await (
@@ -120,7 +128,12 @@ test("Менеджер расширений: ZIP без autorun, отдельн�
     await manager
       .getByRole("button", { name: "Сохранить состояние и права", exact: true })
       .click();
-    await expect(manager.getByRole("status")).toContainText("права сохранены");
+    await expect(
+      manager.getByRole("status", {
+        name: "Статус управления расширениями",
+        exact: true,
+      }),
+    ).toContainText("права сохранены");
     const enabled = await (
       await page.request.get(appUrl + "/api/v1/plugins/" + manifest.id)
     ).json();
@@ -148,14 +161,23 @@ test("Менеджер расширений: ZIP без autorun, отдельн�
     await manager
       .getByRole("button", { name: "Сохранить состояние и права", exact: true })
       .click();
-    await expect(manager.getByRole("status")).toContainText("права сохранены");
-    const revoked = await (
-      await page.request.get(appUrl + "/api/v1/plugins/" + manifest.id)
-    ).json();
-    expect(revoked.payload.grants).toEqual([]);
-    expect(revoked.payload.permission_epoch).toBeGreaterThan(
-      enabled.payload.permission_epoch,
-    );
+    await expect(
+      manager.getByRole("status", {
+        name: "Статус управления расширениями",
+        exact: true,
+      }),
+    ).toContainText("права сохранены");
+    await expect
+      .poll(async () => {
+        const current = await (
+          await page.request.get(appUrl + "/api/v1/plugins/" + manifest.id)
+        ).json();
+        return {
+          grants: current.payload.grants,
+          epoch: current.payload.permission_epoch,
+        };
+      })
+      .toEqual({ grants: [], epoch: enabled.payload.permission_epoch + 1 });
     await manager
       .getByText("JSON разрешений расширения", { exact: true })
       .click();
@@ -192,9 +214,12 @@ test("Менеджер расширений: ZIP без autorun, отдельн�
     await manager
       .getByRole("button", { name: "Удалить расширение", exact: true })
       .click();
-    await expect(manager.getByRole("status")).toContainText(
-      "файлы пакета убраны",
-    );
+    await expect(
+      manager.getByRole("status", {
+        name: "Статус управления расширениями",
+        exact: true,
+      }),
+    ).toContainText("файлы пакета убраны");
     expect(
       (await (await page.request.get(appUrl + "/api/v1/plugins")).json()).items,
     ).toEqual([]);
@@ -202,4 +227,135 @@ test("Менеджер расширений: ZIP без autorun, отдельн�
   } finally {
     rmSync(folder, { recursive: true, force: true });
   }
+});
+
+test("Декларативный плагин: визуальные параметры, общая очередь, просмотр и атомарное подтверждение заметки", async ({
+  page,
+  appUrl,
+}) => {
+  const id = crypto.randomUUID(),
+    note = crypto.randomUUID();
+  const manifest = {
+    format: 1,
+    id,
+    name: "Шаблон дневника",
+    version: "1.0.0",
+    api_version: 1,
+    runtime: "declarative",
+    entry: "main.json",
+    fields: [
+      { key: "text", label: "Текст дневника", type: "text", required: true },
+    ],
+    requests: [
+      {
+        capability: "notes.write",
+        reason: "Создать выбранную заметку",
+        scopes: ["new"],
+      },
+    ],
+  };
+  const source = JSON.stringify({
+    format: 1,
+    message: "Дневник готов к проверке",
+    actions: [
+      {
+        type: "note.save",
+        target: note,
+        expected_revision: 0,
+        payload: {
+          kind: "note",
+          title: "Дневник расширения",
+          text: "{{text}}",
+        },
+      },
+    ],
+  });
+  const zip = execFileSync(
+    process.env.TAVERNA_PYTHON || "python",
+    [resolve("e2e/support/plugin_fixture.py")],
+    { input: JSON.stringify({ manifest, source }) },
+  );
+  const csrf = (
+    await (await page.request.get(appUrl + "/api/v1/session")).json()
+  ).csrf;
+  const headers = { "X-Taverna-CSRF": csrf, "Content-Type": "application/zip" };
+  const preview = await (
+    await page.request.post(appUrl + "/api/v1/plugins/import-preview", {
+      data: zip,
+      headers,
+    })
+  ).json();
+  const install = await page.request.post(
+    appUrl +
+      `/api/v1/plugins/import?expected_revision=0&catalog_revision=${preview.catalog_revision}&approved_sha256=${preview.sha256}&confirmed=true`,
+    { data: zip, headers },
+  );
+  expect(install.ok()).toBe(true);
+  const row = await install.json();
+  const enabled = await page.request.put(appUrl + "/api/v1/plugins/" + id, {
+    headers: { "X-Taverna-CSRF": csrf },
+    data: {
+      expected_revision: row.revision,
+      catalog_revision: 1,
+      approved_sha256: preview.sha256,
+      enabled: true,
+      grants: [{ capability: "notes.write", scopes: ["new"] }],
+      trusted_full_access_ack: false,
+      confirmed: true,
+    },
+  });
+  expect(enabled.ok()).toBe(true);
+  await page.getByRole("button", { name: "Расширения", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Шаблон дневника · 1.0.0", exact: true })
+    .click();
+  const runner = page.getByLabel("Запуск выбранного расширения", {
+    exact: true,
+  });
+  await runner
+    .getByLabel("Текст дневника", { exact: true })
+    .fill("{{не_выполнять}} <script>bad()</script>");
+  await runner
+    .getByRole("button", { name: "Вычислить план расширения", exact: true })
+    .click();
+  const plan = runner.getByRole("article");
+  await expect(plan).toHaveCount(1, { timeout: 20000 });
+  await expect(plan).toContainText("Дневник готов к проверке");
+  expect(
+    (await page.request.get(appUrl + "/api/v1/tools/" + note)).status(),
+  ).toBe(404);
+  await expect(plan.locator("script")).toHaveCount(0);
+  await expect(
+    plan.getByRole("button", {
+      name: "Применить план расширения",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await plan
+    .getByLabel("Подтверждаю перечисленные изменения JSON этого плана", {
+      exact: true,
+    })
+    .check();
+  await plan
+    .getByRole("button", { name: "Применить план расширения", exact: true })
+    .click();
+  await expect(plan).toContainText("applied");
+  const saved = await (
+    await page.request.get(appUrl + "/api/v1/tools/" + note)
+  ).json();
+  expect(saved.payload.text).toBe("{{не_выполнять}} <script>bad()</script>");
+  await page.reload();
+  await page.getByRole("button", { name: "Расширения", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Шаблон дневника · 1.0.0", exact: true })
+    .click();
+  await expect(
+    page
+      .getByLabel("Запуск выбранного расширения", { exact: true })
+      .getByRole("article"),
+  ).toContainText("applied");
+  expect(
+    (await (await page.request.get(appUrl + "/api/v1/tools/" + note)).json())
+      .revision,
+  ).toBe(1);
 });
