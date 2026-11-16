@@ -1,0 +1,31 @@
+{
+  "commit": "6d2e57e",
+  "run_id": 43859901152,
+  "windows_job_id": 133273664575,
+  "result": "FAIL",
+  "backend_passed": 391,
+  "backend_failed": 6,
+  "seconds": 310.36,
+  "browser_and_frozen": "NOT_RUN due to backend gate",
+  "failed_tests": [
+    "test_real_command_exact_argv_binary_output_and_nonzero_status",
+    "test_real_output_flood_is_bounded_and_child_stopped[stdout]",
+    "test_real_output_flood_is_bounded_and_child_stopped[stderr]",
+    "test_real_command_timeout_retains_partial_bytes_without_claiming_no_effects",
+    "test_windows_cancellation_stops_real_command_child",
+    "test_windows_command_cannot_be_redirected_by_remapping_drive_after_pin"
+  ],
+  "direct_error": "OSError: [WinError 87] The parameter is incorrect at _winapi.CreateProcess",
+  "passed_native_kernel_cases": [
+    "share handles block directory/leaf replacement and in-place/hardlink writes",
+    "file/directory reparse rejection",
+    "implicit batch rejection"
+  ],
+  "observed_parameters": {
+    "executable": "volume GUID path from open image handle",
+    "cwd": "parent of volume GUID path"
+  },
+  "fix_under_test": "Keep pinned GUID executable, inherit host cwd on Windows instead of passing volume GUID cwd; no guest-controlled cwd",
+  "fix_source_sha256": "2b39d6a7dbd27b6b76ff7fa3658b364d135e34bcbbdd314aacb95bac7642de93",
+  "new_native_result": "NOT_RUN"
+}

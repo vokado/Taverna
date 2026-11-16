@@ -194,7 +194,10 @@ def run(request):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             executable=launch_path,
-            cwd=Path(launch_path if os.name == "nt" else request["executable"]).parent,
+            # CreateProcess does not accept a volume-GUID current directory.
+            # Keep the executable pinned by GUID, but inherit the managed host's
+            # working directory on Windows. No guest-controlled cwd is accepted.
+            cwd=None if os.name == "nt" else Path(request["executable"]).parent,
             shell=False,
             **flags,
         )
