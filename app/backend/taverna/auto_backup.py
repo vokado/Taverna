@@ -10,7 +10,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from .backup_api import BackupService, FILE_NAME
+from .backup_api import FILE_NAME, BackupService
 
 LOG = logging.getLogger("taverna.backups")
 
