@@ -95,10 +95,10 @@ def create_full_backup(
                     try:
                         # Large portraits and scene assets must not be materialized
                         # as one bytes object in RAM. Stream directly into ZIP.
-                        with path.open("rb") as source, archive.open(name, "w", force_zip64=True) as target:
+                        with path.open("rb") as source, archive.open(name, "w", force_zip64=True) as member:
                             while chunk := source.read(1024 * 1024):
                                 checksum.update(chunk)
-                                target.write(chunk)
+                                member.write(chunk)
                     except OSError as exc:
                         raise AppError("backup_asset_missing", "Файл материала отсутствует или недоступен.", 503) from exc
                     if checksum.hexdigest() != expected:
