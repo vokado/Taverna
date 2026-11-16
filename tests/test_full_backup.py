@@ -173,3 +173,28 @@ def test_unrelated_executable_is_rejected_even_when_it_has_valid_checksum(tmp_pa
     with pytest.raises(AppError) as error:
         verify_full_backup(altered)
     assert error.value.code == "invalid_full_backup"
+
+
+def test_restore_rechecks_bytes_when_zip_is_replaced_after_preflight(tmp_path, monkeypatch):
+    store, assets = sample_store(tmp_path)
+    archive = create_full_backup(store)
+    original_manifest = verify_full_backup(archive)
+
+    def replaced_after_verification(path):
+        with ZipFile(path) as source:
+            contents = {info.filename: source.read(info) for info in source.infolist()}
+        contents[assets[0]] = b"unexpected-replacement"
+        with ZipFile(path, "w", ZIP_DEFLATED) as output:
+            for name, value in contents.items():
+                output.writestr(name, value)
+        return original_manifest
+
+    monkeypatch.setattr(
+        "taverna.full_backup.verify_full_backup", replaced_after_verification
+    )
+    destination = tmp_path.parent / "changed-restore"
+    with pytest.raises(AppError) as exc:
+        restore_full_backup_to_new_directory(archive, destination)
+    assert exc.value.code == "invalid_full_backup"
+    assert not destination.exists()
+    assert not list(tmp_path.parent.glob(".changed-restore.*.restore"))
