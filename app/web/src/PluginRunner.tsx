@@ -51,6 +51,13 @@ type Preview = {
         sha256: string;
         bytes: number;
       }[];
+      external_command?: {
+        executable: string;
+        argv: string[];
+        sha256: string;
+        timeout_seconds: number;
+        fingerprint: string;
+      };
     };
     identity: { package_sha256: string };
   };
@@ -79,6 +86,10 @@ const states: Record<string, string> = {
   failed: "Ошибка",
   cancelled: "Отменено",
   interrupted: "Прервано",
+  started: "Команда запущена (действие может быть необратимо)",
+  observed: "Завершение процесса наблюдалось",
+  unknown: "Результат команды неизвестен — требуется сверка",
+  reconciled: "Результат сверен вручную",
 };
 type Job = {
   id: string;
@@ -128,7 +139,8 @@ export function PluginRunner({
     [ack, setAck] = useState(false),
     [job, setJob] = useState<Job | null>(null),
     [previews, setPreviews] = useState<Preview[]>([]),
-    [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
+    [confirmed, setConfirmed] = useState<Record<string, boolean>>({}),
+    [reconcileReason, setReconcileReason] = useState<Record<string, string>>({});
   const lock = useRef(false),
     retry = useRef<{ fingerprint: string; key: string } | null>(null);
   const identity = {
@@ -178,7 +190,7 @@ export function PluginRunner({
           setStatus(
             next.payload.error?.message_ru ||
               (next.payload.state === "completed"
-                ? "План подготовлен. Проверьте и подтвердите каждое изменение."
+                ? "Задача завершена. Проверьте актуальный план и журнал результата."
                 : "Вычисление остановлено; изменения JSON не применены."),
           );
           await refresh();
@@ -630,6 +642,59 @@ export function PluginRunner({
               SHA256 {f.sha256}
             </p>
           ))}
+          {p.payload.metadata.external_command && (
+            <section aria-label="Предпросмотр внешней команды">
+              <h5>Внешняя команда — полный доступ к ОС</h5>
+              <p>
+                Исполняемый файл: {p.payload.metadata.external_command.executable}
+                {" · "}SHA256: {p.payload.metadata.external_command.sha256}
+              </p>
+              <p>
+                Максимальное время: {p.payload.metadata.external_command.timeout_seconds} с
+              </p>
+              <p>Аргументы по порядку, без shell:</p>
+              <pre>{JSON.stringify(p.payload.metadata.external_command.argv, null, 2)}</pre>
+              <p>
+                Отмена или ошибка не гарантируют отсутствия изменений внешней программы.
+                Повторный запуск этого плана запрещён.
+              </p>
+            </section>
+          )}
+          {["unknown", "started"].includes(p.payload.status) &&
+            p.payload.metadata.external_command && (
+              <section aria-label="Ручная сверка внешней команды">
+                <label>
+                  Результат проверки и причина (не менее 5 символов)
+                  <input
+                    value={reconcileReason[p.id] || ""}
+                    onChange={(e) =>
+                      setReconcileReason({ ...reconcileReason, [p.id]: e.target.value })
+                    }
+                  />
+                </label>
+                <button
+                  disabled={busy || (reconcileReason[p.id] || "").trim().length < 5}
+                  onClick={() =>
+                    void act(async () => {
+                      await request(
+                        `/plugins/previews/${p.id}/reconcile-command`,
+                        "POST",
+                        {
+                          expected_revision: p.revision,
+                          confirmed: true,
+                          outcome: "unknown",
+                          reason: reconcileReason[p.id],
+                        },
+                      );
+                      await refresh();
+                      setStatus("Ручная отметка записана. Команда НЕ запускалась повторно.");
+                    })
+                  }
+                >
+                  Отметить как сверенное (исход неизвестен)
+                </button>
+              </section>
+            )}
           {p.payload.status === "pending" && (
             <>
               <label>
@@ -640,25 +705,45 @@ export function PluginRunner({
                     setConfirmed({ ...confirmed, [p.id]: e.target.checked })
                   }
                 />
-                Подтверждаю перечисленные изменения JSON этого плана
+                {p.payload.metadata.external_command
+                  ? "Подтверждаю запуск внешней программы с полным доступом и риск необратимых действий"
+                  : "Подтверждаю перечисленные изменения JSON этого плана"}
               </label>
               <button
                 disabled={busy || !confirmed[p.id]}
                 onClick={() =>
                   void act(async () => {
-                    await request(`/plugins/previews/${p.id}/accept`, "POST", {
-                      expected_revision: p.revision,
-                      confirmed: true,
-                    });
+                    if (p.payload.metadata.external_command) {
+                      const next = await request<Job>(
+                        `/plugins/previews/${p.id}/execute-command`,
+                        "POST",
+                        {
+                          expected_revision: p.revision,
+                          confirmed: true,
+                          full_access_warning_ack: true,
+                          fingerprint: p.payload.metadata.external_command.fingerprint,
+                        },
+                      );
+                      setJob(next);
+                    } else {
+                      await request(`/plugins/previews/${p.id}/accept`, "POST", {
+                        expected_revision: p.revision,
+                        confirmed: true,
+                      });
+                    }
                     setConfirmed({ ...confirmed, [p.id]: false });
                     await refresh();
                     setStatus(
-                      "План применён атомарно; запись результата сохранена.",
+                      p.payload.metadata.external_command
+                        ? "Внешняя команда поставлена в очередь. Ожидайте записи результата."
+                        : "План применён атомарно; запись результата сохранена.",
                     );
                   })
                 }
               >
-                Применить план расширения
+                {p.payload.metadata.external_command
+                  ? "Запустить проверенную внешнюю команду"
+                  : "Применить план расширения"}
               </button>
               <button
                 disabled={busy}
