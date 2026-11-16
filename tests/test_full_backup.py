@@ -2,7 +2,6 @@
 
 These tests do not claim scheduled backups, restore UI or Windows 11 acceptance.
 """
-from pathlib import Path
 from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
 
