@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import secrets
+from contextlib import asynccontextmanager
 from pathlib import Path
 from uuid import uuid4
 
@@ -63,13 +64,24 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     sessions = Sessions()
     store = JsonStore(config.root)
     generation = GenerationService(store)
+
+    @asynccontextmanager
+    async def lifespan(app):
+        async with generation.lifespan(app):
+            backup_task = asyncio.create_task(app.state.backups.automatic_loop())
+            try:
+                yield
+            finally:
+                backup_task.cancel()
+                await asyncio.gather(backup_task, return_exceptions=True)
+
     app = FastAPI(
         title="Таверна",
         version=__version__,
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
-        lifespan=generation.lifespan,
+        lifespan=lifespan,
     )
     app.state.sessions = sessions
     app.state.config = config

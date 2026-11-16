@@ -18,17 +18,18 @@ test("резервная копия: создание, контроль и ск�
     "создана и проверена",
     { timeout: 20000 },
   );
-  await expect(region.locator("li")).toHaveCount(1);
-  const filename = (await region.locator("li strong").textContent()) || "";
+  const manual = region.locator("li").filter({ hasText: "taverna-manual-" });
+  await expect(manual).toHaveCount(1);
+  const filename = (await manual.locator("strong").textContent()) || "";
   expect(filename).toMatch(/^taverna-manual-\d{8}T\d{6}Z-[0-9a-f]{32}\.zip$/);
 
-  await region.getByRole("button", { name: "Проверить" }).click();
+  await manual.getByRole("button", { name: "Проверить" }).click();
   await expect(region.getByRole("status")).toContainText("Архив проверен", {
     timeout: 15000,
   });
 
   const received = page.waitForEvent("download");
-  await region.getByRole("button", { name: "Скачать" }).click();
+  await manual.getByRole("button", { name: "Скачать" }).click();
   const download = await received;
   expect(download.suggestedFilename()).toBe(filename);
 });
