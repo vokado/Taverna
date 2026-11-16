@@ -212,7 +212,14 @@ def restore_full_backup_to_new_directory(archive_path: Path, target_root: Path) 
                 temp = output.with_name(f".{output.name}.{uuid4().hex}.tmp")
                 try:
                     with archive.open(name) as source, temp.open("xb") as sink:
-                        shutil.copyfileobj(source, sink, length=1024 * 1024)
+                        # The ZIP could have been replaced after initial verification.
+                        # Recheck extracted bytes before any restored file is published.
+                        hashed = hashlib.sha256()
+                        while chunk := source.read(1024 * 1024):
+                            hashed.update(chunk)
+                            sink.write(chunk)
+                        if hashed.hexdigest() != manifest["files"][name]:
+                            raise _invalid()
                         sink.flush()
                         os.fsync(sink.fileno())
                     os.replace(temp, output)
