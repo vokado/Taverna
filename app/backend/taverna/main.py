@@ -68,6 +68,7 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     @asynccontextmanager
     async def lifespan(app):
         async with generation.lifespan(app):
+            await asyncio.to_thread(app.state.plugins.recover_external)
             backup_task = asyncio.create_task(app.state.backups.automatic_loop())
             try:
                 yield
