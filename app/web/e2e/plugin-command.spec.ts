@@ -99,7 +99,7 @@ test("Внешняя команда: отдельное подтверждени
     await manager.getByRole("button", { name: "Команда с подтверждением · 1.0.0" }).click();
     const runner = manager.getByLabel("Запуск выбранного расширения", { exact: true });
     await runner.getByRole("button", { name: "Вычислить план расширения" }).click();
-    const commandView = runner.getByRole("section", {
+    const commandView = runner.getByRole("region", {
       name: "Предпросмотр внешней команды",
     });
     await expect(commandView).toBeVisible({ timeout: 20000 });
