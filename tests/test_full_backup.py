@@ -2,6 +2,7 @@
 
 These tests do not claim scheduled backups, restore UI or Windows 11 acceptance.
 """
+import json
 from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -13,7 +14,7 @@ from taverna.full_backup import (
     restore_full_backup_to_new_directory,
     verify_full_backup,
 )
-from taverna.storage import JsonStore, Mutation, digest, document, safe_path
+from taverna.storage import JsonStore, Mutation, digest, document, encoded, safe_path
 
 
 def attach(store, relative, body):
@@ -139,9 +140,6 @@ def test_bad_relative_path_is_rejected_before_archive_publication(tmp_path):
 
 
 def test_missing_referenced_asset_is_rejected_even_with_rewritten_manifest(tmp_path):
-    import json
-    from taverna.storage import encoded
-
     store, assets = sample_store(tmp_path)
     original = create_full_backup(store)
     with ZipFile(original) as source:
@@ -160,9 +158,6 @@ def test_missing_referenced_asset_is_rejected_even_with_rewritten_manifest(tmp_p
 
 
 def test_unrelated_executable_is_rejected_even_when_it_has_valid_checksum(tmp_path):
-    import json
-    from taverna.storage import encoded
-
     store, _ = sample_store(tmp_path)
     original = create_full_backup(store)
     with ZipFile(original) as source:
