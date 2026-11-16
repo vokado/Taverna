@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from threading import RLock
 
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
@@ -24,6 +25,7 @@ class BackupService:
     def __init__(self, store: JsonStore):
         self.store = store
         self.directory = store.root / "backups"
+        self.lock = RLock()
 
     def _file(self, name: str) -> Path:
         if not FILE_NAME.fullmatch(name):
@@ -43,8 +45,9 @@ class BackupService:
         return {"items": sorted(files, key=lambda x: x["name"], reverse=True)}
 
     def create(self, reason: str):
-        path = create_full_backup(self.store, reason=reason)
-        return {"name": path.name, "bytes": path.stat().st_size}
+        with self.lock:
+            path = create_full_backup(self.store, reason=reason)
+            return {"name": path.name, "bytes": path.stat().st_size}
 
     def verify(self, name: str):
         manifest = verify_full_backup(self._file(name))
