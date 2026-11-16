@@ -102,7 +102,14 @@ def portable_parts(key: str) -> list[str]:
         or p.endswith((" ", "."))
         or not re.fullmatch(r"[\w.\-]+", p)
         or p.split(".")[0].upper()
-        in {"CON", "PRN", "AUX", "NUL", *(f"COM{i}" for i in range(10)), *(f"LPT{i}" for i in range(10))}
+        in {
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+            *(f"COM{i}" for i in (*range(10), "¹", "²", "³")),
+            *(f"LPT{i}" for i in (*range(10), "¹", "²", "³")),
+        }
         for p in parts
     ):
         raise AppError("invalid_path", "Недопустимый путь.")

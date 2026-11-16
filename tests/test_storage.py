@@ -239,3 +239,9 @@ def test_segment_pages_read_nearest_end_with_variable_byte_sizes(tmp_path, monke
         assert segments.page(sid, offset, limit)["items"] == messages[offset : offset + limit]
     # No new index or migration: the original JSON head is sufficient.
     assert set(store.get(segments._key(sid))["payload"]) == {"count", "segments"}
+
+
+@pytest.mark.parametrize("name", ["COM¹.txt", "LPT²", "COM³", "LPT³.log"])
+def test_superscript_dos_device_names_rejected_on_all_platforms(tmp_path, name):
+    with pytest.raises(AppError):
+        safe_path(tmp_path, name)
