@@ -111,7 +111,9 @@ test("Редактор: главы, версии, сохранённый чер�
       .click();
     await expect(
       editor.getByText("Предложение готово", { exact: true }),
-    ).toBeVisible();
+      // Native CI trace reaches completed just after5s; wait for the async
+      // result rather than applying the default short locator deadline.
+    ).toBeVisible({ timeout: 20000 });
     await expect(
       editor.getByRole("textbox", { name: "Текст главы", exact: true }),
     ).toHaveValue("Старая проза о море.");
