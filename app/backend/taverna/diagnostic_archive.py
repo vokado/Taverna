@@ -78,7 +78,11 @@ class DiagnosticService:
             if include_logs:
                 # Explicit opt-in only. Keep filenames anonymous and never follow links.
                 folder: Path = self.store.root / "logs"
-                files = sorted(folder.glob("*.log"), key=lambda p: p.name)[:_MAX_LOG_FILES]
+                files = (
+                    sorted(folder.glob("*.log"), key=lambda p: p.name)[:_MAX_LOG_FILES]
+                    if not folder.is_symlink()
+                    else []
+                )
                 for index, path in enumerate(files):
                     if path.is_symlink() or not path.is_file():
                         continue
@@ -102,8 +106,6 @@ class DiagnosticService:
                 media_type="application/zip",
                 headers={
                     "Content-Disposition": f'attachment; filename="{name}"',
-                    "Cache-Control": "no-store",
-                    "X-Content-Type-Options": "nosniff",
                 },
             )
 
