@@ -9,7 +9,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 import shutil
 import stat
 import tempfile
@@ -43,7 +42,6 @@ def _update_error(code: str, text: str, status: int = 422) -> AppError:
     return AppError(code, text, status)
 
 
-_INVALID_WIN_CHARS = re.compile(r'[<>:"\\\\|?*\\x00-\\x1f]')
 _RESERVED_WIN = {
     "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$",
     *(f"COM{i}" for i in range(10)),
@@ -60,7 +58,7 @@ def _archive_parts(name: str) -> list[str]:
         if (
             part in ("", ".", "..")
             or part.endswith((" ", "."))
-            or _INVALID_WIN_CHARS.search(part)
+            or any(ord(c) < 32 or ord(c) == 92 or c in '<>:"|?*' for c in part)
             or part.split(".")[0].upper() in _RESERVED_WIN
         ):
             raise _update_error("update_archive_unsafe", "Недопустимый путь в архиве.")
