@@ -15,6 +15,7 @@ from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
 
 from . import __version__
+from .automations import AutomationService
 from .backup_api import BackupService
 from .characters import CharacterService
 from .chat import ChatService
@@ -69,12 +70,15 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     async def lifespan(app):
         async with generation.lifespan(app):
             await asyncio.to_thread(app.state.plugins.recover_external)
+            await app.state.automations.recover()
             backup_task = asyncio.create_task(app.state.backups.automatic_loop())
+            rule_task = asyncio.create_task(app.state.automations.loop())
             try:
                 yield
             finally:
                 backup_task.cancel()
-                await asyncio.gather(backup_task, return_exceptions=True)
+                rule_task.cancel()
+                await asyncio.gather(backup_task, rule_task, return_exceptions=True)
 
     app = FastAPI(
         title="Таверна",
@@ -117,6 +121,8 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.include_router(tool_router(app.state.tools))
     app.state.plugins = PluginService(app.state.plugin_registry, app.state.tools, generation.queue)
     app.include_router(plugin_router(app.state.plugin_registry, generation.queue, app.state.plugins))
+    app.state.automations = AutomationService(app.state.plugins)
+    app.include_router(app.state.automations.router())
     app.state.images = ImageService(app.state.media)
     app.include_router(image_router(app.state.images))
     app.include_router(image_drafts_router(app.state.images))

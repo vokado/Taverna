@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { request } from "./api";
+import { Automations } from "./Automations";
 import { Backups } from "./Backups";
 import { GenerationPanel } from "./GenerationPanel";
 import { GenerationHistory } from "./GenerationHistory";
@@ -253,6 +254,7 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["manuscripts", "Литературный редактор"],
           ["tools", "Материалы и инструменты"],
           ["plugins", "Расширения"],
+          ["automations", "Автоматизация"],
           ["backups", "Резервные копии"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
@@ -304,6 +306,8 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                               ? "Материалы и инструменты"
                               : page === "plugins"
                                 ? "Расширения"
+                                : page === "automations"
+                                  ? "Автоматизация"
                                 : page === "backups"
                                   ? "Резервные копии"
                                   : page === "profiles"
@@ -629,6 +633,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         </div>
         <div hidden={page !== "backups"}>
           <Backups visible={page === "backups"} />
+        </div>
+        <div hidden={page !== "automations"}>
+          <Automations visible={page === "automations"} />
         </div>
         <div hidden={page !== "profiles"}>
           <Profiles />
