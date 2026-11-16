@@ -6,10 +6,9 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 import pytest
-from taverna.automations import RuleFire, RuleInput, RuleToggle
+from taverna.automations import RuleInput, RuleToggle
 from taverna.core import AppError, Config
 from taverna.main import create_app
-from taverna.storage import Mutation, document
 from test_plugin_packages import package
 from test_plugin_registry import configure, install
 
