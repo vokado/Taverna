@@ -8,7 +8,13 @@ from fastapi import APIRouter, Header, Query, Request
 from pydantic import Field
 
 from .core import AppError
-from .plugin_actions import PluginDecision, PluginFilePreview, PluginRun
+from .plugin_actions import (
+    PluginCommandDecision,
+    PluginCommandReconcile,
+    PluginDecision,
+    PluginFilePreview,
+    PluginRun,
+)
 from .plugin_models import PluginGrant
 from .world_models import Strict
 
@@ -129,6 +135,14 @@ def router(registry, queue=None, service=None):
         return await asyncio.to_thread(
             service.decide, str(preview_id), body.expected_revision, body.confirmed, False
         )
+
+    @api.post("/previews/{preview_id}/execute-command")
+    async def execute_command(preview_id: UUID, body: PluginCommandDecision):
+        return await service.approve_external(str(preview_id), body)
+
+    @api.post("/previews/{preview_id}/reconcile-command")
+    async def reconcile_command(preview_id: UUID, body: PluginCommandReconcile):
+        return await asyncio.to_thread(service.reconcile_external, str(preview_id), body)
 
     @api.get("/{pid}/entry")
     def entry(pid: UUID):
