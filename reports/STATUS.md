@@ -2,7 +2,7 @@
 
 Допуск на 01–16: получен 2026-11-15. D-01–15: APPROVED.
 
-Независимая ревизия: I/O/index/fork/journal исправлены и измерены до/после. Последний CI43864934556/4bb413b Ubuntu/Windows/frozen SUCCESS:22 command-kernel preflight,399 backend,20 browser. Два GUID launch FAIL сохранены и исправлены suspended-image вариантом. Шаблоны/генераторы tools.run и command kernel подтверждены native; command owner API/ledger ещё не подключён. Релиз1.0 не принят; обязательные14–16 остаются в работе.
+Независимая ревизия: I/O/index/fork/journal исправлены и измерены до/после. Последний CI43864934556/4bb413b Ubuntu/Windows/frozen SUCCESS:22 command-kernel preflight,399 backend,20 browser. Два GUID launch FAIL сохранены и исправлены suspended-image вариантом. Шаблоны/генераторы tools.run и command kernel подтверждены native; owner-confirmed command API/ledger реализован как отдельная подтверждаемая команда (CI43947214111 SUCCESS Ubuntu/Windows/22 browser/frozen). Остальные внешние эффекты и automation остаются незавершёнными. Релиз1.0 не принят; обязательные14–16 остаются в работе.
 
 | Этап | Реализация / проверки |
 |---|---|
@@ -19,8 +19,8 @@
 | 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;CI43740639796/2ab1475 Ubuntu/Windows/frozen SUCCESS,целевая среда BLOCKED |
 | 12 | Библиотека/слои/варианты/аудио/drafts/ZIP и Comfy image adapter/lease/cancel реализованы;190 backend/12 browser Linux PASS;CI43750969808/e67c4cd Ubuntu/Windows/frozen SUCCESS; окончательный выбор движка/RTX5070/LM Studio BLOCKED |
 | 13 | Рукописи/AI previews/4формата экспорта/materials/tools реализованы; после исправлений CI43777643165/9c4a672 Ubuntu/Windows/frozen SUCCESS,221 backend/16 browser; target/live AI BLOCKED |
-| 14 | IN_PROGRESS: manager/grants/WASM/trusted host/shared queue/atomic plans, selected external reads, tools.run templates/names, native command kernel. CI4bb413b SUCCESS22 kernel/399 backend/20 browser/frozen. Owner external command API/ledger, write/network/rules/scheduler ещё не завершены |
-| 15 | Полная упаковка/backup/manual update/documentation NOT_STARTED; базовый Windows portable pipeline с01 уже действует |
+| 14 | IN_PROGRESS: manager/grants/WASM/trusted host/shared queue/atomic plans, selected external reads, tools.run templates/names, native command kernel и owner-confirmed command.exec с started/unknown/reconcile/no-replay ledger. CI43947214111 Ubuntu/Windows SUCCESS (406/417 backend,22 browser, frozen). Внешние filesystem.write/network, смешанные планы, rules/macros/scheduler ещё не завершены |
+| 15 | IN_PROGRESS: полные проверенные JSON+media/library/plugins ZIP-резервные копии, безопасный offline restore в новый каталог, ежедневное резервирование с retention и потоковая упаковка крупных файлов реализованы и прошли Windows/Ubuntu CI. Мастер восстановления, ручные ZIP-обновления и финальная документация/упаковка ещё открыты |
 | 16 | Финальная приёмка NOT_STARTED; обязательные hardware/clean Windows11/live LM Studio критерии BLOCKED |
 
 Первый официальный 1.0 не готов. Неполные внутренние сборки не являются релизом.
