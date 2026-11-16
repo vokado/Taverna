@@ -91,13 +91,18 @@ def create_full_backup(
                     archive.writestr(name, data)
                 for name, expected in sorted(assets.items()):
                     path = safe_path(store.root, name)
+                    checksum = hashlib.sha256()
                     try:
-                        raw = path.read_bytes()
+                        # Large portraits and scene assets must not be materialized
+                        # as one bytes object in RAM. Stream directly into ZIP.
+                        with path.open("rb") as source, archive.open(name, "w", force_zip64=True) as target:
+                            while chunk := source.read(1024 * 1024):
+                                checksum.update(chunk)
+                                target.write(chunk)
                     except OSError as exc:
                         raise AppError("backup_asset_missing", "Файл материала отсутствует или недоступен.", 503) from exc
-                    if digest(raw) != expected:
+                    if checksum.hexdigest() != expected:
                         raise AppError("backup_asset_corrupt", "Контрольная сумма материала не совпадает.", 503)
-                    archive.writestr(name, raw)
                     checksums[name] = expected
                 archive.writestr(
                     MANIFEST,
