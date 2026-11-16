@@ -2,7 +2,6 @@
 
 import hashlib
 import io
-import json
 import stat
 from pathlib import Path
 from zipfile import ZipFile, ZipInfo
