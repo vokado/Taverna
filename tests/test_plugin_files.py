@@ -1,5 +1,6 @@
 import base64
 import os
+from pathlib import Path
 
 import pytest
 from taverna.core import AppError
@@ -216,3 +217,42 @@ def test_root_redirect_after_validation_does_not_authorize_application_target(tm
     with pytest.raises(AppError) as error:
         files.read(identity, str(scope), "secret.txt")
     assert error.value.code == "plugin_file_changed"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows 8.3 alias requires native NTFS API")
+def test_windows_short_directory_alias_matches_long_open_handle(tmp_path):
+    import ctypes
+    from ctypes import wintypes
+
+    files, identity, scope = setup(tmp_path)
+    path = scope / "Материал.txt"
+    path.write_bytes(b"approved snapshot")
+    function = ctypes.WinDLL("kernel32", use_last_error=True).GetShortPathNameW
+    function.argtypes = [wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
+    function.restype = wintypes.DWORD
+    buffer = ctypes.create_unicode_buffer(32768)
+    count = function(str(scope), buffer, len(buffer))
+    if not count or count >= len(buffer):
+        pytest.skip("8.3 alias creation is disabled on this volume")
+    alias = Path(buffer.value)
+    if alias == scope.resolve():
+        pytest.skip("Volume exposes no distinct 8.3 alias for fixture directory")
+    row = files.registry.get(identity["plugin_id"])
+    # The manifest requested the long path; a new package explicitly requests
+    # its alias rather than silently widening an already granted request.
+    raw = package(
+        {
+            "id": row["id"],
+            "version": "1.0.1",
+            "requests": [{"capability": "filesystem.read", "reason": "8.3 path", "scopes": [str(alias)]}],
+        }
+    )
+    row = install(files.registry, raw)
+    row = configure(files.registry, row, grants=[{"capability": "filesystem.read", "scopes": [str(alias)]}])
+    identity.update(
+        plugin_revision=row["revision"],
+        permission_epoch=row["payload"]["permission_epoch"],
+        package_sha256=row["payload"]["package_sha256"],
+        catalog_revision=files.registry.list()["catalog_revision"],
+    )
+    assert files.read(identity, str(alias), path.name)["sha256"] == digest(b"approved snapshot")

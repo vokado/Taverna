@@ -84,12 +84,32 @@ class PluginFiles:
         if not any(g["capability"] == "filesystem.read" and scope in g["scopes"] for g in grants):
             raise AppError("plugin_scope_denied", "Нет разрешения чтения выбранного каталога.", 403)
         parts = relative_parts(name)
-        self.registry.validate_grants(row["payload"])
         try:
-            # Keep the granted lexical root. Resolving a newly substituted root
-            # symlink here would authorize its new target before handle checking.
-            root = Path(scope).absolute()
-            path = root
+            # Windows handles report long canonical names even when a grant uses
+            # an 8.3 alias (e.g. RUNNER~1). Capture that spelling BEFORE validating
+            # the live path and bind it to the same directory identity. Resolving
+            # after validation could authorize a substituted symlink target.
+            lexical_root = Path(scope).absolute()
+            initial_root = lexical_root.stat(follow_symlinks=False)
+            root = lexical_root.resolve(strict=True)
+            canonical_root = root.stat(follow_symlinks=False)
+            if not stat.S_ISDIR(initial_root.st_mode) or (initial_root.st_dev, initial_root.st_ino) != (
+                canonical_root.st_dev,
+                canonical_root.st_ino,
+            ):
+                raise AppError("plugin_file_changed", "Разрешённый каталог изменился при проверке.", 409)
+            self.registry.validate_grants(row["payload"])
+            application = self.registry.store.root.resolve()
+            if root.is_relative_to(application) or application.is_relative_to(root):
+                raise AppError(
+                    "plugin_scope_forbidden",
+                    "Каталог программы и его предки не доступны файловому broker.",
+                    403,
+                )
+            current_root = lexical_root.stat(follow_symlinks=False)
+            if (current_root.st_dev, current_root.st_ino) != (initial_root.st_dev, initial_root.st_ino):
+                raise AppError("plugin_file_changed", "Разрешённый каталог подменён после проверки.", 409)
+            path = lexical_root
             for part in parts:
                 path /= part
                 if is_redirect(path):
