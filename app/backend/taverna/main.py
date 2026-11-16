@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
 
 from . import __version__
+from .backup_api import BackupService
 from .characters import CharacterService
 from .chat import ChatService
 from .chat_api import router as chat_router
@@ -73,6 +74,8 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.sessions = sessions
     app.state.config = config
     app.state.store = store
+    app.state.backups = BackupService(store)
+    app.include_router(app.state.backups.router())
     app.state.generation = generation
     app.include_router(generation.router())
     app.include_router(generation.profiles.router())
