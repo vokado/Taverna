@@ -154,10 +154,20 @@ def verify_full_backup(path: Path) -> dict:
             published = json.loads(archive.read("data/config/store-manifest.json"))
             if published.get("generation") != manifest.get("generation"):
                 raise _invalid()
+            # Compare against the graph of *published* JSON and its referenced
+            # immutable assets. Neither a missing media file nor an unrelated
+            # extra executable may be silently accepted during restore.
+            document_data = {}
             for entry in published["entries"].values():
                 name = "data/" + entry["object"]
                 if files.get(name) != entry["sha256"]:
                     raise _invalid()
+                document_data[name] = archive.read(name)
+            expected_assets = _assets(document_data)
+            if set(files) != {"data/config/store-manifest.json", *document_data, *expected_assets}:
+                raise _invalid()
+            if any(files[name] != sha for name, sha in expected_assets.items()):
+                raise _invalid()
             total = 0
             for info in infos:
                 if info.filename == MANIFEST:
