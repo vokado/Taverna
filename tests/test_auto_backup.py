@@ -59,6 +59,13 @@ async def test_scheduler_retries_after_error_without_crashing(tmp_path):
     task = asyncio.create_task(scheduler.run())
     try:
         await asyncio.wait_for(ready.wait(), 3)
+        # The worker signals from a thread before the scheduler resumes and clears
+        # its error; assert the completed retry, not the intermediate notification.
+        async def retry_finished():
+            while scheduler.last_error_code is not None:
+                await asyncio.sleep(0.01)
+
+        await asyncio.wait_for(retry_finished(), 3)
         assert count >= 2
         assert scheduler.last_error_code is None
         assert scheduler.last_checked_at
