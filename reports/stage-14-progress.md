@@ -17,3 +17,19 @@ Wasmtime50.0.1 wheel WindowsAMD64 существует; PyPI SHA256 a89995812304
 Осталось14: versioned manifest/import/dependencies/compatibility/enable/disable/delete; scopes/grants/revoke/кодовые hashes и UI предупреждений; broker и previews/receipts внешних/внутренних действий; единая queue integration, правила/macros/планировщик, durable outbox/catch-up/idempotence, background memory/index/backup integration15; реальные Windows hostile tests и полный пользовательский UI. Никакого заглушечного manager/успешного placeholder backup нет. Соответствующие критерии PLG/AUTO не закрыты, matrix parent NOT_RUN.
 
 Параллельно проверяется исправление13 9c4a672 в CI43777643165; предыдущий Windows13 failure и его причины/исправления в stage-13.md. Аппаратные LMStudio/RTX5070/image-engine/финальная приёмка остаются BLOCKED.
+
+## Подтверждение первоначального host
+
+CI43778582262 для08f99d4: SUCCESS Ubuntu/Windows,236 backend/16 browser, frozen smoke трёх EXE с настоящим WASM и отказом WASI. Артефакт14187382997 (48 878 025байт). Это подтверждение первоначального host; новый registry/UI/OS Job Object ниже в этот запуск НЕ входили.
+
+## Промежуточная контрольная точка: registry и управление
+
+Дата2026-11-16. Этап14 IN_PROGRESS. Реализованы versioned manifest, ZIP preview без исполнения, immutable checksum code, catalog CAS, зависимости/совместимость/циклы, выключение зависимых, отдельные grants/epoch/revoke, удаление с подтверждением и очисткой файлов. Обновление сбрасывает доверие и права. В UI есть просмотр кода, импорт, отдельное full-access подтверждение Python, настройка и отзыв прав, восстановление raw drafts. Включение не запускает код. API отменяет устаревшие plugin jobs в общей очереди; production compute/effect handlers ещё не подключены.
+
+Linux:264 backend PASS107.14s,2 явных Windows-only SKIP (junction и завершение потомка Job Object);17 browser PASS2.8m; TypeScript/build/Ruff PASS,40 contracts. Доказательства reports/evidence/stage-14-registry-*.txt и stage-14-registry-build.json. Новые native/OS проверки ожидают следующего CI. Большой web chunk ~517kB отмечен для оптимизации15, численный SLA не приписывается.
+
+Host получает OS resource ceiling512MiB: Linux RLIMIT_AS, Windows Job Object process+family commit и8 процессов/kill-on-close с QueryInformationJobObject проверкой. Это ограничение ресурсов, не sandbox для full-access Python. Его код способен обходить ограничения при полном доверии. Ошибка установки лимитов блокирует исполнение. Доверенный SDK поддерживает run(request), stdlib/core dependencies и bundled helpers; штатный CLI python.exe не обещается. Frozen smoke дополнен реальными импортами helper/math/statistics/httpx и проверкой лимитов.
+
+Storage path проверки используют lstat для reparse points, ZIP syntax validation выделена в чистую portable_parts без обращения к live filesystem. Main JSON/CAS/recovery формат не меняется; schema plugin_registration v1 и40 contracts. Полная регрессия после этих изменений указана выше.
+
+Осталось: production compute/effect broker с previews/receipts, отдельные внешние операции и проверка scopes, правила/macros/scheduler/durable events, maintenance/backup15. PLG-001–005 parent NOT_RUN до полной интеграции/целевых испытаний. Hardware и подписанная приёмка BLOCKED; релиз не готов.

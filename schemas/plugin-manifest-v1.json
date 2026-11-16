@@ -1,0 +1,213 @@
+{
+  "$defs": {
+    "CapabilityRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "enum": [
+            "own.read",
+            "own.write",
+            "notes.read",
+            "notes.write",
+            "books.read",
+            "books.write",
+            "filesystem.read",
+            "filesystem.write",
+            "network.request",
+            "tools.run",
+            "commands.exec"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "scopes": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "capability",
+        "reason"
+      ],
+      "title": "CapabilityRequest",
+      "type": "object"
+    },
+    "PluginDependency": {
+      "additionalProperties": false,
+      "properties": {
+        "plugin_id": {
+          "format": "uuid",
+          "title": "Plugin Id",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plugin_id",
+        "version"
+      ],
+      "title": "PluginDependency",
+      "type": "object"
+    },
+    "PluginField": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "type": {
+          "default": "text",
+          "enum": [
+            "text",
+            "number",
+            "checkbox",
+            "select"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "options": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Options",
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "label"
+      ],
+      "title": "PluginField",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": 1,
+      "default": 1,
+      "title": "Format",
+      "type": "integer"
+    },
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    },
+    "api_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Api Version",
+      "type": "integer"
+    },
+    "application_versions": {
+      "default": ">=0.1.0.dev1,<2",
+      "maxLength": 200,
+      "title": "Application Versions",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "maxLength": 8000,
+      "title": "Description",
+      "type": "string"
+    },
+    "license": {
+      "default": "",
+      "maxLength": 300,
+      "title": "License",
+      "type": "string"
+    },
+    "runtime": {
+      "enum": [
+        "declarative",
+        "wasm",
+        "trusted_python"
+      ],
+      "title": "Runtime",
+      "type": "string"
+    },
+    "entry": {
+      "maxLength": 250,
+      "minLength": 1,
+      "title": "Entry",
+      "type": "string"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/$defs/PluginField"
+      },
+      "maxItems": 50,
+      "title": "Fields",
+      "type": "array"
+    },
+    "dependencies": {
+      "items": {
+        "$ref": "#/$defs/PluginDependency"
+      },
+      "maxItems": 50,
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "requests": {
+      "items": {
+        "$ref": "#/$defs/CapabilityRequest"
+      },
+      "maxItems": 32,
+      "title": "Requests",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "version",
+    "runtime",
+    "entry"
+  ],
+  "title": "PluginManifest",
+  "type": "object"
+}

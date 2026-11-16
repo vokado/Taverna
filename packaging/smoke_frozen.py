@@ -1,6 +1,7 @@
 """Native Windows smoke of the actual packaged EXEs after relocation, without Python on PATH."""
 
 import base64
+import io
 import json
 import os
 import subprocess
@@ -151,6 +152,101 @@ def main():
                             assert result["result"] == {"actions": []}
                         else:
                             assert result["code"] == "plugin_import_denied"
+                    folder = root / "diagnostics" / "Python с пробелами"
+                    folder.mkdir(parents=True, exist_ok=True)
+                    (folder / "helper.py").write_text('value="проверено"', encoding="utf-8")
+                    entry = folder / "main.py"
+                    code = 'import math, statistics, httpx\nimport helper\ndef run(request): return {"actions": [], "value":helper.value,"median":statistics.median([1,2,3]),"sqrt":math.isqrt(81),"httpx":httpx.__version__}'
+                    entry.write_text(code, encoding="utf-8")
+                    envelope = {
+                        "runtime": "trusted_python",
+                        "trusted_full_access": True,
+                        "entry_path": str(entry),
+                        "input": {},
+                        "code": base64.b64encode(code.encode()).decode(),
+                    }
+                    host = subprocess.run(
+                        [str(root / "Taverna-PluginHost.exe")],
+                        input=json.dumps(envelope).encode(),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        cwd=root,
+                        env=env,
+                        timeout=30,
+                        check=True,
+                    )
+                    result = json.loads(host.stdout)
+                    assert result["ok"] is True, result
+                    assert (
+                        result["result"]["value"] == "проверено"
+                        and result["result"]["median"] == 2
+                        and result["result"]["sqrt"] == 9
+                    )
+                    assert (
+                        result["host_limits"]["process_count"] == 8
+                        and result["host_limits"]["process_commit_bytes"] == 512 * 1024 * 1024
+                    )
+                    pid = str(uuid4())
+                    out = io.BytesIO()
+                    with ZipFile(out, "w") as package:
+                        package.writestr(
+                            "manifest.json",
+                            json.dumps(
+                                {
+                                    "id": pid,
+                                    "name": "Внутренний smoke",
+                                    "version": "1.0.0",
+                                    "runtime": "declarative",
+                                    "entry": "main.json",
+                                }
+                            ),
+                        )
+                        package.writestr(
+                            "main.json",
+                            json.dumps({"format": 1, "actions": [], "message": "Metadata smoke only"}),
+                        )
+                    raw = out.getvalue()
+                    preview = client.post(
+                        base + "/api/v1/plugins/import-preview",
+                        content=raw,
+                        headers={"X-Taverna-CSRF": csrf},
+                        timeout=10,
+                    )
+                    assert preview.status_code == 200, preview.text
+                    checked = preview.json()
+                    installed = client.post(
+                        base + "/api/v1/plugins/import",
+                        content=raw,
+                        headers={"X-Taverna-CSRF": csrf},
+                        params={
+                            "expected_revision": checked["expected_revision"],
+                            "catalog_revision": checked["catalog_revision"],
+                            "approved_sha256": checked["sha256"],
+                            "confirmed": True,
+                        },
+                        timeout=10,
+                    )
+                    assert installed.status_code == 200 and installed.json()["payload"]["enabled"] is False, (
+                        installed.text
+                    )
+                    catalog = client.get(base + "/api/v1/plugins", timeout=10).json()
+                    enabled = client.put(
+                        base + "/api/v1/plugins/" + pid,
+                        json={
+                            "expected_revision": 1,
+                            "catalog_revision": catalog["catalog_revision"],
+                            "approved_sha256": checked["sha256"],
+                            "enabled": True,
+                            "grants": [],
+                            "trusted_full_access_ack": False,
+                            "confirmed": True,
+                        },
+                        headers={"X-Taverna-CSRF": csrf},
+                        timeout=10,
+                    )
+                    assert enabled.status_code == 200 and enabled.json()["payload"]["enabled"] is True, (
+                        enabled.text
+                    )
                     assert not list(root.rglob("*.sqlite*"))
                     assert client.get(base + "/api/v1/diagnostics/storage").json()["ok"]
                     assert (
@@ -164,7 +260,7 @@ def main():
                     assert not info.exists()
                 print(
                     executable,
-                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated WASM host/shutdown",
+                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated host/OS limits/Python helpers/plugin registry/shutdown",
                 )
             finally:
                 if process.poll() is None:

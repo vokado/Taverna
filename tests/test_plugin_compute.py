@@ -146,3 +146,56 @@ async def test_input_limit_applies_before_starting_any_runtime():
                 trusted_full_access=runtime == "trusted_python",
             )
         assert error.value.code == "plugin_input_limit"
+
+
+@pytest.mark.asyncio
+async def test_os_memory_limit_is_active_before_trusted_guest_code():
+    code = b'def run(request):\n try: data=bytearray(600*1024*1024)\n except MemoryError: return {"actions": [], "allocation_rejected": True}\n return {"actions": [], "allocation_rejected": False}\n'
+    result = await compute(code, {}, runtime="trusted_python", trusted_full_access=True)
+    assert result["result"]["allocation_rejected"] is True
+    assert result["host_limits"]
+
+
+@pytest.mark.asyncio
+async def test_windows_job_stops_trusted_ordinary_descendant_on_host_crash(tmp_path):
+    import ctypes
+    import os
+
+    if os.name != "nt":
+        pytest.skip("Windows job-object descendant test requires Windows")
+    pid_file = tmp_path / "descendant.pid"
+    code = (
+        'import subprocess,sys,os\nfrom pathlib import Path\nchild=subprocess.Popen([sys.executable,"-c","import time; time.sleep(60)"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\nPath('
+        + repr(str(pid_file))
+        + ").write_text(str(child.pid))\nos._exit(12)"
+    ).encode()
+    with pytest.raises(AppError) as error:
+        await compute(code, {}, runtime="trusted_python", trusted_full_access=True)
+    assert error.value.code == "plugin_host_crashed"
+    pid = int(pid_file.read_text())
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong]
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+    kernel.WaitForSingleObject.restype = ctypes.c_ulong
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    handle = kernel.OpenProcess(0x00100000, False, pid)
+    if handle:
+        try:
+            assert kernel.WaitForSingleObject(handle, 5000) == 0
+        finally:
+            kernel.CloseHandle(handle)
+
+
+@pytest.mark.asyncio
+async def test_trusted_python_entry_context_supports_packaged_helpers(tmp_path):
+    folder = tmp_path / "Плагин с пробелами"
+    folder.mkdir()
+    (folder / "helper.py").write_text('value="проверено"', encoding="utf-8")
+    code = 'import helper\ndef run(request): return {"actions": [],"value":helper.value,"entry":__file__}'.encode()
+    entry = folder / "main.py"
+    entry.write_bytes(code)
+    result = await compute(code, {}, runtime="trusted_python", trusted_full_access=True, entry_path=entry)
+    assert result["result"]["value"] == "проверено" and result["result"]["entry"] == str(entry)
+    with pytest.raises(AppError):
+        await compute(guest(), {}, entry_path=entry)

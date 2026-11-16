@@ -42,6 +42,7 @@ async def compute(
     fuel=1000000,
     timeout=5,
     cancel=None,
+    entry_path=None,
 ):
     if len(code) > MAX_MODULE or not 0.1 <= timeout <= 30:
         raise AppError("plugin_resource_limit", "Превышен размер модуля или допустимый deadline.", 422)
@@ -53,6 +54,10 @@ async def compute(
         raise AppError(
             "plugin_trust_required", "Python требует явного доверия и предупреждения о полном доступе.", 403
         )
+    if entry_path is not None and (
+        runtime != "trusted_python" or not trusted_full_access or not Path(entry_path).is_absolute()
+    ):
+        raise AppError("plugin_trust_required", "Путь Python entry разрешён только доверенному host.", 403)
     if cancel and cancel.is_set():
         raise AppError("plugin_cancelled", "Вычисление расширения отменено.", 409)
     try:
@@ -66,6 +71,7 @@ async def compute(
                 "input": request,
                 "fuel": fuel,
                 "trusted_full_access": trusted_full_access,
+                **({"entry_path": str(entry_path)} if entry_path is not None else {}),
             },
             ensure_ascii=False,
             allow_nan=False,

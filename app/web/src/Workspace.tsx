@@ -16,6 +16,7 @@ import { MediaLibrary } from "./MediaLibrary";
 import { Manuscripts } from "./Manuscripts";
 import { Materials } from "./Materials";
 import { Tools } from "./Tools";
+import { Plugins } from "./Plugins";
 
 type Colors = {
   background: string;
@@ -250,6 +251,7 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
           ["media", "Медиабиблиотека"],
           ["manuscripts", "Литературный редактор"],
           ["tools", "Материалы и инструменты"],
+          ["plugins", "Расширения"],
           ["settings", "Настройки"],
         ].map(([id, label]) => (
           <button
@@ -298,9 +300,11 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
                             ? "Литературный редактор"
                             : page === "tools"
                               ? "Материалы и инструменты"
-                              : page === "profiles"
-                                ? "Профили и промпты"
-                                : "Рабочее пространство"}
+                              : page === "plugins"
+                                ? "Расширения"
+                                : page === "profiles"
+                                  ? "Профили и промпты"
+                                  : "Рабочее пространство"}
             </h1>
             <p>Локальные истории и персонажи</p>
           </div>
@@ -615,6 +619,9 @@ export function Workspace({ shutdown }: { shutdown: () => void }) {
         </div>
         <div hidden={page !== "chat"}>
           <Chat openStory={openStory} active={page === "chat"} />
+        </div>
+        <div hidden={page !== "plugins"}>
+          <Plugins visible={page === "plugins"} />
         </div>
         <div hidden={page !== "profiles"}>
           <Profiles />

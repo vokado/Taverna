@@ -83,7 +83,17 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def safe_path(root: Path, key: str) -> Path:
+def is_redirect(path: Path) -> bool:
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return False
+    return stat.S_ISLNK(info.st_mode) or bool(
+        getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    )
+
+
+def portable_parts(key: str) -> list[str]:
     if "\\" in key or ":" in key or not key or PurePosixPath(key).is_absolute():
         raise AppError("invalid_path", "Недопустимый путь.")
     parts = key.split("/")
@@ -96,15 +106,16 @@ def safe_path(root: Path, key: str) -> Path:
         for p in parts
     ):
         raise AppError("invalid_path", "Недопустимый путь.")
+    return parts
+
+
+def safe_path(root: Path, key: str) -> Path:
+    parts = portable_parts(key)
     current = root
     for part in parts:
         current = current / part
-        if current.is_symlink():
-            raise AppError("invalid_path", "Ссылки за пределы каталога запрещены.")
-        if current.exists():
-            attributes = getattr(current.stat(), "st_file_attributes", 0)
-            if attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400):
-                raise AppError("invalid_path", "Перенаправления файловой системы запрещены.")
+        if is_redirect(current):
+            raise AppError("invalid_path", "Ссылки и перенаправления файловой системы запрещены.")
     if not current.resolve().is_relative_to(root.resolve()):
         raise AppError("invalid_path", "Путь выходит за каталог программы.")
     return current
@@ -263,7 +274,7 @@ class JsonStore:
         current = self._manifest()
         # Directory name is sortable generation + UUID. Only committed, incomplete intents roll forward.
         for directory in sorted(self.journal.iterdir()):
-            if not directory.is_dir() or directory.is_symlink():
+            if is_redirect(directory) or not directory.is_dir():
                 continue
             if not (directory / "commit.json").exists() or (directory / "complete.json").exists():
                 continue

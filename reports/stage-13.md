@@ -37,3 +37,7 @@ BLOCKED: настоящий LMStudio/реальные LLM качество/бю�
 Регрессия также обнаружила гонку: AppError запускал recover_cancel, затем task.cancel прерывал этот sibling except block, оставляя очистку незавершённой до следующего inference job. Новый детерминированный тест воспроизвёл преждевременное завершение handler до фикса. Теперь cleanup имеет собственную задачу и обязательно дожидается её результата даже при повторной отмене; known terminal либо uncertain lease фиксируется до передачи очереди. Unknown не превращается в confirmed stop, глобальные interrupt/free/unload не добавлены.
 
 После исправлений **221 backend PASS101.02s**, **16 browser PASS2.6m**,33 image/generation target PASS11.28s, Ruff/build PASS. Исходный221 охватывает весь набор этапов01–13; независимые ещё не интегрированные worker-тесты14 учитываются отдельно, не приписываются этому коммиту. Evidence stage-13-fixed-backend.txt / stage-13-fixed-browser.txt / stage-13-cancel-regression.txt / stage-13-local-http-context.json / stage-13-fixed-build.json. Windows-повтор ожидается после коммита исправления; аппаратные BLOCKED остаются. Старые219/15 относятся к исходной контрольной точке, не заменяют данные Windows failure или этого повторного запуска.
+
+## Подтверждение исправленной Windows-сборки
+
+CI43777643165 для9c4a672: SUCCESS Ubuntu/Windows,221 backend и16 browser, frozen smoke. Артефакт14187442193 (38 902 822байт). Проверка чистой Windows11/RTX5070/реального LM Studio остаётся BLOCKED. Предшествующий failure не удалён из отчёта.

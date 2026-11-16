@@ -6498,7 +6498,8 @@
             "schema": {
               "enum": [
                 "material",
-                "tool"
+                "tool",
+                "plugin"
               ],
               "type": "string",
               "title": "Kind"
@@ -6539,7 +6540,8 @@
             "schema": {
               "enum": [
                 "material",
-                "tool"
+                "tool",
+                "plugin"
               ],
               "type": "string",
               "title": "Kind"
@@ -6598,7 +6600,8 @@
             "schema": {
               "enum": [
                 "material",
-                "tool"
+                "tool",
+                "plugin"
               ],
               "type": "string",
               "title": "Kind"
@@ -6624,6 +6627,274 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins": {
+      "get": {
+        "summary": "List Plugins",
+        "operationId": "list_plugins_api_v1_plugins_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins/import-preview": {
+      "post": {
+        "summary": "Preview",
+        "operationId": "preview_api_v1_plugins_import_preview_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins/import": {
+      "post": {
+        "summary": "Install",
+        "operationId": "install_api_v1_plugins_import_post",
+        "parameters": [
+          {
+            "name": "expected_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "title": "Expected Revision"
+            }
+          },
+          {
+            "name": "catalog_revision",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "title": "Catalog Revision"
+            }
+          },
+          {
+            "name": "approved_sha256",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "title": "Approved Sha256"
+            }
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Confirmed"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins/{pid}/entry": {
+      "get": {
+        "summary": "Entry",
+        "operationId": "entry_api_v1_plugins__pid__entry_get",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins/{pid}": {
+      "get": {
+        "summary": "Get",
+        "operationId": "get_api_v1_plugins__pid__get",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Configure",
+        "operationId": "configure_api_v1_plugins__pid__put",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigurePlugin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove",
+        "operationId": "remove_api_v1_plugins__pid__delete",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePlugin"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -9604,6 +9875,56 @@
           "settings"
         ],
         "title": "ConfigureImage"
+      },
+      "ConfigurePlugin": {
+        "properties": {
+          "catalog_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Catalog Revision"
+          },
+          "approved_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Approved Sha256"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "grants": {
+            "items": {
+              "$ref": "#/components/schemas/PluginGrant"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Grants"
+          },
+          "trusted_full_access_ack": {
+            "type": "boolean",
+            "title": "Trusted Full Access Ack",
+            "default": false
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "catalog_revision",
+          "approved_sha256",
+          "expected_revision"
+        ],
+        "title": "ConfigurePlugin"
       },
       "ConfigureRpg": {
         "properties": {
@@ -13111,6 +13432,48 @@
         ],
         "title": "PatchValidation"
       },
+      "PluginGrant": {
+        "properties": {
+          "capability": {
+            "type": "string",
+            "enum": [
+              "own.read",
+              "own.write",
+              "notes.read",
+              "notes.write",
+              "books.read",
+              "books.write",
+              "filesystem.read",
+              "filesystem.write",
+              "network.request",
+              "tools.run",
+              "commands.exec"
+            ],
+            "title": "Capability"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Scopes"
+          },
+          "full_access_warning_ack": {
+            "type": "boolean",
+            "title": "Full Access Warning Ack",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "capability",
+          "scopes"
+        ],
+        "title": "PluginGrant"
+      },
       "ProfileWrite": {
         "properties": {
           "expected_revision": {
@@ -13596,6 +13959,38 @@
           "reason"
         ],
         "title": "ReleaseImage"
+      },
+      "RemovePlugin": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "catalog_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Catalog Revision"
+          },
+          "approved_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Approved Sha256"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "catalog_revision",
+          "approved_sha256"
+        ],
+        "title": "RemovePlugin"
       },
       "ResolveRequest": {
         "properties": {

@@ -29,6 +29,7 @@ export function useTemplateDraft(
         manuscript: "рукописи",
         material: "материала",
         tool: "инструмента",
+        plugin: "разрешений расширения",
       } as Record<string, string>
     )[kind] || "шаблона";
   const [id, setId] = useState<string>(() => crypto.randomUUID());

@@ -6,11 +6,12 @@ from pydantic import Field
 
 from .draft_shapes import relaxed
 from .library_models import MaterialMetadata
+from .plugin_api import PluginEditor
 from .storage import Mutation, document
 from .tool_models import ToolEntry
 from .world_models import Strict
 
-Kind = Literal["material", "tool"]
+Kind = Literal["material", "tool", "plugin"]
 
 
 class OwnerDraft(Strict):
@@ -23,7 +24,11 @@ class OwnerDraft(Strict):
 
 def router(store):
     api = APIRouter(prefix="/api/v1/owner-drafts")
-    shapes = {"material": relaxed(MaterialMetadata), "tool": relaxed(ToolEntry)}
+    shapes = {
+        "material": relaxed(MaterialMetadata),
+        "tool": relaxed(ToolEntry),
+        "plugin": relaxed(PluginEditor),
+    }
 
     @api.get("/{kind}")
     def read(kind: Kind):

@@ -21,6 +21,7 @@ from taverna.main import create_app
 from taverna.manuscript_models import Manuscript
 from taverna.media_models import Asset, AssetMetadata, Composition, Layer, MediaState, Variant
 from taverna.memory_ai import MemorySettings
+from taverna.plugin_models import PluginManifest, PluginRecord
 from taverna.profiles import ProfileSettings
 from taverna.prompts import CONTEXT_SCHEMA
 from taverna.rpg_models import ActorSheet, DiceRequest, RandomTable, RpgAction, RpgSettings, RpgState
@@ -37,6 +38,8 @@ with TemporaryDirectory() as temporary:
         "openapi.json": create_app(Config(Path(temporary))).openapi(),
         "document-v1.json": BASE_SCHEMA,
         "manuscript-v1.json": Manuscript.model_json_schema(),
+        "plugin-manifest-v1.json": PluginManifest.model_json_schema(),
+        "plugin-registration-v1.json": PluginRecord.model_json_schema(),
         "material-v1.json": Material.model_json_schema(),
         "tool-entry-v1.json": ToolEntry.model_json_schema(),
         "profile-settings-v1.json": ProfileSettings.model_json_schema(),

@@ -128,7 +128,7 @@ class BoundedLog(io.StringIO):
         return len(value)
 
 
-def run_trusted(code, request, authorized):
+def run_trusted(code, request, authorized, entry_path=None):
     if authorized is not True:
         raise HostError(
             "plugin_trust_required", "Python исполняется только после явного подтверждения полного доступа."
@@ -136,6 +136,14 @@ def run_trusted(code, request, authorized):
     log = BoundedLog()
     with contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
         namespace = {"__name__": "taverna_trusted_plugin"}
+        if entry_path is not None:
+            from pathlib import Path
+
+            path = Path(entry_path)
+            if not path.is_absolute():
+                raise HostError("plugin_input_invalid", "Python entry должен иметь абсолютный путь.")
+            namespace["__file__"] = str(path)
+            sys.path.insert(0, str(path.parent))
         exec(compile(code.decode("utf-8"), "<trusted-plugin>", "exec"), namespace)
         function = namespace.get("run")
         if not callable(function):
@@ -149,13 +157,27 @@ def run_trusted(code, request, authorized):
 
 def main():
     try:
+        from .plugin_limits import apply_limits
+
+        try:
+            limits = apply_limits()
+        except (OSError, ValueError) as exc:
+            raise HostError(
+                "plugin_limits_unavailable",
+                "Host не смог обеспечить обязательные ограничения ресурсов; код не исполнялся.",
+            ) from exc
         raw = sys.stdin.buffer.read(MAX_ENVELOPE + 1)
         if len(raw) > MAX_ENVELOPE:
             raise HostError("plugin_input_limit", "Превышен размер сообщения host.")
         envelope = json.loads(raw)
-        if set(envelope) - {"runtime", "code", "input", "fuel", "trusted_full_access"} or not isinstance(
-            envelope.get("input"), dict
-        ):
+        if set(envelope) - {
+            "runtime",
+            "code",
+            "input",
+            "fuel",
+            "trusted_full_access",
+            "entry_path",
+        } or not isinstance(envelope.get("input"), dict):
             raise HostError("plugin_input_invalid", "Неверный формат сообщения host.")
         code = base64.b64decode(envelope["code"], validate=True)
         if len(code) > MAX_MODULE:
@@ -164,12 +186,16 @@ def main():
         if type(fuel) is not int or not 10000 <= fuel <= 10000000:
             raise HostError("plugin_fuel_limit", "Недопустимый вычислительный бюджет.")
         if envelope["runtime"] == "wasm":
+            if envelope.get("entry_path") is not None:
+                raise HostError("plugin_input_invalid", "WASM не получает путь к файлам host.")
             result = run_wasm(code, envelope["input"], fuel)
         elif envelope["runtime"] == "trusted_python":
-            result = run_trusted(code, envelope["input"], envelope.get("trusted_full_access"))
+            result = run_trusted(
+                code, envelope["input"], envelope.get("trusted_full_access"), envelope.get("entry_path")
+            )
         else:
             raise HostError("plugin_runtime_invalid", "Неизвестный runtime расширения.")
-        response = {"ok": True, **result}
+        response = {"ok": True, **result, "host_limits": limits}
     except HostError as exc:
         response = {"ok": False, "code": exc.code, "message_ru": exc.message}
     except BaseException as exc:
