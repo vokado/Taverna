@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import secrets
+from contextlib import asynccontextmanager
 from pathlib import Path
 from uuid import uuid4
 
@@ -14,6 +15,7 @@ from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
 
 from . import __version__
+from .auto_backup import AutomaticBackups
 from .backup_api import BackupService
 from .characters import CharacterService
 from .chat import ChatService
@@ -63,19 +65,34 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     sessions = Sessions()
     store = JsonStore(config.root)
     generation = GenerationService(store)
+    backups = BackupService(store)
+    automatic_backups = AutomaticBackups(backups)
+
+    @asynccontextmanager
+    async def lifespan(current_app):
+        async with generation.lifespan(current_app):
+            # The scheduler is part of the server lifetime, not a Windows service.
+            task = asyncio.create_task(automatic_backups.run())
+            try:
+                yield
+            finally:
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+
     app = FastAPI(
         title="Таверна",
         version=__version__,
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
-        lifespan=generation.lifespan,
+        lifespan=lifespan,
     )
     app.state.sessions = sessions
     app.state.config = config
     app.state.store = store
-    app.state.backups = BackupService(store)
-    app.include_router(app.state.backups.router())
+    app.state.backups = backups
+    app.state.automatic_backups = automatic_backups
+    app.include_router(backups.router())
     app.state.generation = generation
     app.include_router(generation.router())
     app.include_router(generation.profiles.router())
@@ -189,6 +206,10 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
             "stage": "14",
             "message_ru": "Внутренняя сборка. Разработка полного релиза 1.0.",
         }
+
+    @app.get("/api/v1/backups/automatic/status")
+    def automatic_backup_status():
+        return automatic_backups.status()
 
     @app.get("/api/v1/capabilities")
     def capabilities():
