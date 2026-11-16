@@ -99,3 +99,7 @@
 ### I-14-07: результат двух native испытаний и корректировка
 
 2026-11-16. Direct volume-GUID CreateProcess отвергнут по6d2e57e/d6d1fa4 (391 PASS/6 FAIL, WinError87), гипотеза cwd отклонена. Выбран следующий внутренний OS trial: normalized DOS launch, CREATE_SUSPENDED, exact native-image check перед ResumeThread с owner/suspend count, native parent/file identity locks. Это сохраняет image binding при DOS remap вместо небезопасного запуска без проверки; никаких новых runtime/очередей/сторонних библиотек. Статус IMPLEMENTED_UNVERIFIED до нового native trial, public command API/ledger остаются незавершёнными. Evidence/ограничения reports/stage-14-progress.md и docs/PLUGIN_SECURITY.md. Архитектура/пользовательские требования/D-01–15 не изменяются, новое согласование владельца не приписывается.
+
+### I-14-07: native результат4bb413b
+
+2026-11-16, kernel mechanism VERIFIED на доступных source/software/frozen проверках: CI43864934556 SUCCESS,22 kernel/399 backend/20 browser, реальная команда frozen host. Выбран suspended-image вариант; два прямых GUID trial оставлены как FAIL evidence. Public command capability/ledger IN_PROGRESS, это не приёмка функции целиком/релиза. I-14-NATIVE-01 закрыт4bb413b. Подробные ограничения/хеши reports/evidence/stage-14-command-native-result.json.

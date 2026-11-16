@@ -1,0 +1,28 @@
+{
+  "commit": "4bb413b262881489d57eedeb4a9860e5a8a7dceb",
+  "run_id": 43864934556,
+  "url": "https://github.com/vokado/Taverna/actions/runs/43864934556",
+  "windows_job_id": 133290939470,
+  "ubuntu": "SUCCESS",
+  "windows": "SUCCESS",
+  "windows_kernel_preflight": {
+    "passed": 22,
+    "seconds": 3.8
+  },
+  "windows_backend": {
+    "passed": 399,
+    "seconds": 221.39
+  },
+  "windows_browser": {
+    "passed": 20,
+    "duration_reported": "2.1m"
+  },
+  "frozen": "PASS; relocated main/diagnostics/managed host, actual pinned command kernel execution with restricted PATH",
+  "artifact": {
+    "id": 14226110686,
+    "bytes": 58161422,
+    "name": "Taverna-Internal-Windows-x64"
+  },
+  "kernel_sha256": "f0b76b8d393d5894d3111920121b32dd89eb400691bfa0c49acfecdbf3084f58",
+  "limits": "Windows runner software proof only; public owner command API/ledger NOT_IMPLEMENTED; Windows11/RTX5070/real LM Studio/image generator/acceptance not confirmed"
+}
