@@ -111,3 +111,19 @@ PLG-003/TOOLS-001–003/AUTO-005, этап14 IN_PROGRESS. Новый tool.names 
 Target tests/test_plugin_names.py/test_plugin_tools.py/test_materials_tools.py:39 PASS16.09s, evidence/stage-14-tool-names-target.txt (6 новых cases). Сравнение с настоящим существующим owner generator, real queue/storage, оба declarative/WASM; это не LLM/GPU mock acceptance. Browser scenario дополнен вторым выбранным инструментом/видимым набором имён/receipt; frozen WASM smoke дополнен тем же действием. Полная регрессия и новый native прогон учитываются отдельно. External file write/network/commands и rules/macros/scheduler/maintenance/backup15 остаются обязательными и незавершёнными.
 
 Полная Linux regression names:374 backend PASS/3 Windows-only SKIP121.31s,20 browser PASS2.7m, Ruff/types/build/41contracts PASS. Evidence stage-14-tool-names-backend.txt/browser.txt/build.json; source hashes связывают результат с проверенным кодом. Native нового варианта пока NOT_RUN; этап14 не завершён,15–16 не объявляются выполненными.
+
+## Native подтверждение tools.run
+
+CI43835625725/be1f93b SUCCESS Ubuntu/Windows: Windows job133191413367,371 backend PASS222.29s,20 browser PASS2.0m, frozen main/diagnostic/host PASS, включая real WASM→template→note/own в одной транзакции. Artifact14211196528,58147914байт.
+
+CI43836775699/9722ffb SUCCESS Ubuntu/Windows: Windows job133195247244,377 backend PASS268.94s,20 browser PASS3.0m, frozen main/diagnostic/host PASS, включая names + template + own и double accept. Artifact14212530047,58151332байт. Windows runner подтверждает source/software/frozen механизмы; clean Windows11/RTX5070/real LM Studio/image-engine и приёмка не подменяются этими результатами.
+
+## Command kernel: техническое испытание, API/ledger ещё не подключены
+
+PLG-003/SEC-006/AUTO-004–005. Новая stdlib-only функция plugin_command_worker.run исполняется фиксированным bridge внутри прежнего managed host, без нового EXE/runtime/очереди/storage слоя. До реализации зафиксирован контракт docs/PLUGIN_SECURITY.md. Kernel не является публичной командой приложения и не обходит будущий owner-confirmed started/unknown ledger. Capability commands.exec не объявляется завершённой.
+
+Точный executable SHA256/argv/deadline; shell=False, Windows только local native .exe. Родительские directory handles deny-delete, leaf deny-write/delete, reparse/ADS/devices отвергаются. Запуск Windows привязан к GetFinalPathNameByHandleW/VOLUME_NAME_GUID, чтобы remapping DOS drive не подменил executable после проверки. Libraries/dependencies полного OS executable не объявляются pinned или sandboxed. Linux использует открытый fd, не обещает Windows share/family guarantees. stdout/stderr32КиБ каждый, base64 без текстового перекодирования; timeout/output_limit/nonzero/ошибка чтения не означают отсутствие выполненных внешних действий. Уже совершённый эффект виден в тесте timeout, автоматического replay нет.
+
+Target Linux14 PASS/6 Windows-only SKIP3.02s (real host + actual child commands, hash mismatch/no effect, exact argv/метасимволы, binary stderr, nonzero exit, stdout/stderr flood, partial output/timeout). Windows prepared: parent/leaf/hardlink sharing, file/dir reparse, DOS remap перед реальным CreateProcess, implicit batch deny, addressed cancel→real child stopped. PyInstaller включает kernel, frozen smoke запускает whoami без печати account/output. Этот native trial пока NOT_RUN, не выдан за подтверждённое поведение. Полная Linux regression выполняется; внешние owner API/preview/started+unknown/reconcile/no replay, FS-write/network и automation остаются следующими обязательными работами.
+
+Полная локальная command kernel regression:388 backend PASS/9 Windows-only SKIP100.58s,4 targeted plugin browser PASS23.8s, Ruff PASS. Source hashes/scope — stage-14-command-kernel-build.json. Windows native trial требует следующего CI; общий этап14 и внешний command API/ledger не объявляются завершёнными.

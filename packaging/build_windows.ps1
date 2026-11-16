@@ -6,7 +6,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Ошибка сборки Taverna.exe' }
 python -m PyInstaller --noconfirm --clean --onedir --console --name Taverna-Diagnostics --paths app/backend packaging/diagnostics.py
 if ($LASTEXITCODE -ne 0) { throw 'Ошибка диагностической сборки' }
 Copy-Item dist/Taverna-Diagnostics/* dist/Taverna/ -Recurse -Force
-python -m PyInstaller --noconfirm --clean --onedir --console --name Taverna-PluginHost --paths app/backend --collect-all wasmtime --hidden-import taverna.main --hidden-import urllib.request --hidden-import statistics packaging/plugin_host.py
+python -m PyInstaller --noconfirm --clean --onedir --console --name Taverna-PluginHost --paths app/backend --collect-all wasmtime --hidden-import taverna.main --hidden-import taverna.plugin_command_worker --hidden-import urllib.request --hidden-import statistics packaging/plugin_host.py
 if ($LASTEXITCODE -ne 0) { throw 'Ошибка host расширений' }
 Copy-Item dist/Taverna-PluginHost/* dist/Taverna/ -Recurse -Force
 New-Item dist/Taverna/app/web -ItemType Directory -Force | Out-Null

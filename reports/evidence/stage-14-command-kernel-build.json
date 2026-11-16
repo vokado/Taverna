@@ -1,0 +1,28 @@
+{
+  "base_commit": "9722ffb536c155dd7c0191336901961deda18faa",
+  "source_sha256": {
+    "app/backend/taverna/plugin_command_worker.py": "8bad6c8f3244aa7ee6cff0ef6417d1048437827c903f635df42c915848718af2",
+    "tests/test_plugin_command_worker.py": "8bfecb0c8ff4b31c31c55c997acd601c4769c1ebbdef1270b090558e134c3ef3",
+    "packaging/build_windows.ps1": "2e1c07d264db8cfb187cf4793c90d160df067bd87feec1471a3e08da59bcbdfd",
+    "packaging/smoke_frozen.py": "ad78939893a60da8598a7d9d1a826a12de0f4d67512db2701b7aa5d7f486e7b2"
+  },
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "backend": {
+    "result": "PASS",
+    "passed": 388,
+    "skipped_windows_only": 9,
+    "seconds": 100.58,
+    "command": ".venv/bin/pytest -q"
+  },
+  "browser_target": {
+    "result": "PASS",
+    "passed": 4,
+    "seconds": 23.8,
+    "command": "TAVERNA_PYTHON=/workspace/work/Taverna/.venv/bin/python npm run test:e2e -- plugins.spec.ts"
+  },
+  "ruff": "PASS",
+  "web_unchanged_from": "9722ffb",
+  "native_command_trial": "NOT_RUN; next CI required",
+  "owner_command_api_and_ledger": "NOT_IMPLEMENTED"
+}

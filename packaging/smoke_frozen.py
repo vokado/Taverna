@@ -1,6 +1,7 @@
 """Native Windows smoke of the actual packaged EXEs after relocation, without Python on PATH."""
 
 import base64
+import hashlib
 import io
 import json
 import os
@@ -176,6 +177,37 @@ def main():
                         timeout=15,
                     )
                     assert expired.returncode == 124, "Frozen host did not enforce its own deadline"
+                    # Command kernel trial only: no plugin API bypass or claim that
+                    # owner confirmation/effect ledger have already been integrated.
+                    command_exe = Path(os.environ["SystemRoot"]) / "System32" / "whoami.exe"
+                    command_trial = {
+                        "runtime": "trusted_python",
+                        "trusted_full_access": True,
+                        "timeout_seconds": 10,
+                        "code": base64.b64encode(b"from taverna.plugin_command_worker import run\n").decode(),
+                        "input": {
+                            "executable": str(command_exe),
+                            "sha256": hashlib.sha256(command_exe.read_bytes()).hexdigest(),
+                            "argv": [],
+                            "timeout_seconds": 3,
+                        },
+                    }
+                    command_host = subprocess.run(
+                        [str(root / "Taverna-PluginHost.exe")],
+                        input=json.dumps(command_trial).encode(),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        cwd=root,
+                        env=env,
+                        timeout=20,
+                        check=True,
+                    )
+                    command_result = json.loads(command_host.stdout)
+                    # Do not print the account name or command output in CI logs.
+                    assert command_result["ok"] is True
+                    assert command_result["result"]["state"] == "exited"
+                    assert command_result["result"]["return_code"] == 0
+                    assert command_result["result"]["stdout_base64"]
                     folder = root / "diagnostics" / "Python с пробелами"
                     folder.mkdir(parents=True, exist_ok=True)
                     (folder / "helper.py").write_text('value="проверено"', encoding="utf-8")
