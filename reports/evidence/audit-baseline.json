@@ -1,0 +1,74 @@
+{
+  "commit": "e122473449c0f78cf74a3d6bb4a6ba4b96bd58c7",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "note": "Synthetic local corpus, real storage/queue/importer; no LM Studio/GPU; bytes are application atomic-write bytes, not physical disk writes. Run without concurrent local tests.",
+  "cases": {
+    "events": {
+      "fragments": 1000,
+      "source_utf8_bytes": 15000,
+      "counters": {
+        "atomic_writes": 6006,
+        "atomic_write_bytes": 307830689,
+        "fsync_calls": 12012,
+        "object_reads": 2002,
+        "recovery_calls": 2002,
+        "seconds": 340.4877448280022
+      },
+      "samples": [
+        {
+          "fragments": 100,
+          "elapsed_seconds": 4.677206635999028,
+          "footprint": {
+            "files": 506,
+            "total_bytes": 1724151,
+            "journal_bytes": 1622890,
+            "manifest_bytes": 30888,
+            "live_entries": 101,
+            "index_entries": 0,
+            "intent_files": 101,
+            "object_files": 201
+          }
+        },
+        {
+          "fragments": 500,
+          "elapsed_seconds": 91.16984077000234,
+          "footprint": {
+            "files": 2506,
+            "total_bytes": 39117551,
+            "journal_bytes": 38612290,
+            "manifest_bytes": 152888,
+            "live_entries": 501,
+            "index_entries": 0,
+            "intent_files": 501,
+            "object_files": 1001
+          }
+        },
+        {
+          "fragments": 1000,
+          "elapsed_seconds": 339.7778247850074,
+          "footprint": {
+            "files": 5006,
+            "total_bytes": 154484312,
+            "journal_bytes": 153474044,
+            "manifest_bytes": 305390,
+            "live_entries": 1001,
+            "index_entries": 0,
+            "intent_files": 1001,
+            "object_files": 2001
+          }
+        }
+      ],
+      "after": {
+        "files": 5011,
+        "total_bytes": 154791452,
+        "journal_bytes": 153780172,
+        "manifest_bytes": 305695,
+        "live_entries": 1002,
+        "index_entries": 0,
+        "intent_files": 1002,
+        "object_files": 2003
+      }
+    }
+  }
+}

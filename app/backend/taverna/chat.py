@@ -313,9 +313,7 @@ class ChatService:
             raise AppError("inactive_branch", "Ветвь больше не активна.", 409)
         if parent["revision"] != expected_revision:
             raise AppError("branch_conflict", "Ветвь изменилась.", 409)
-        originals = self._prefix(story_id, parent["id"], through_id)
-        if before_all:
-            originals = []
+        originals = [] if before_all else self._prefix(story_id, parent["id"], through_id)
         if drop_last and originals:
             originals = originals[:-1]
         if replacement is not None and not originals:
@@ -347,82 +345,90 @@ class ChatService:
         if replacement is not None:
             copies[-1]["text"] = replacement
             copies[-1]["version"] += 1
-        changes = []
-        cloned_states = {}
-        state_payloads = {}
+        source_guards = {}
+        # One manifest/read snapshot for all immutable source states. Reopening
+        # the complete store for every state made long-history forks quadratic.
+        with self.store.view() as fork_view:
+            current_parent = fork_view.get(self.branch_key(story_id, parent["id"]))
+            if not current_parent or current_parent["revision"] != expected_revision:
+                raise AppError("branch_conflict", "Ветвь изменилась при подготовке копии.", 409)
+            changes = []
+            cloned_states = {}
+            state_payloads = {}
 
-        def clone_state(state_id):
-            if state_id in cloned_states:
-                return cloned_states[state_id]
-            original_state = self.store.get(self.state_key(story_id, state_id))
-            if original_state is None:
-                raise AppError("state_missing", "Снимок состояния утрачен.", 503)
-            payload = copy.deepcopy(original_state["payload"])
-            payload["branch_id"] = bid
-            for fact in [*payload.get("memory", {}).values(), *payload.get("relationships", {}).values()]:
-                if isinstance(fact, dict):
-                    fact["source_ids"] = [
-                        mapping.get(source, source) for source in fact.get("source_ids", [])
-                    ]
-                    fact["branch_id"] = bid
-                    if isinstance(fact.get("provenance"), dict):
-                        fact["provenance"]["source_hashes"] = {
-                            mapping.get(source, source): checksum
-                            for source, checksum in fact["provenance"].get("source_hashes", {}).items()
-                        }
-            for cloner in self.state_cloners.values():
-                cloner(payload, mapping, bid, original_state["payload"]["branch_id"])
-            state = document("branch_state", payload)
-            changes.append(Mutation(self.state_key(story_id, state["id"]), state, 0))
-            state_payloads[state["id"]] = state["payload"]
-            cloned_states[state_id] = state["id"]
-            return state["id"]
+            def clone_state(state_id):
+                if state_id in cloned_states:
+                    return cloned_states[state_id]
+                original_state = fork_view.get(self.state_key(story_id, state_id))
+                if original_state is None:
+                    raise AppError("state_missing", "Снимок состояния утрачен.", 503)
+                source_guards[self.state_key(story_id, state_id)] = original_state["revision"]
+                payload = copy.deepcopy(original_state["payload"])
+                payload["branch_id"] = bid
+                for fact in [*payload.get("memory", {}).values(), *payload.get("relationships", {}).values()]:
+                    if isinstance(fact, dict):
+                        fact["source_ids"] = [
+                            mapping.get(source, source) for source in fact.get("source_ids", [])
+                        ]
+                        fact["branch_id"] = bid
+                        if isinstance(fact.get("provenance"), dict):
+                            fact["provenance"]["source_hashes"] = {
+                                mapping.get(source, source): checksum
+                                for source, checksum in fact["provenance"].get("source_hashes", {}).items()
+                            }
+                for cloner in self.state_cloners.values():
+                    cloner(payload, mapping, bid, original_state["payload"]["branch_id"])
+                state = document("branch_state", payload)
+                changes.append(Mutation(self.state_key(story_id, state["id"]), state, 0))
+                state_payloads[state["id"]] = state["payload"]
+                cloned_states[state_id] = state["id"]
+                return state["id"]
 
-        initial_id = parent["payload"]["initial_state_id"]
-        initial_clone = clone_state(initial_id)
-        previous_state_id = initial_id
-        head_state_id = initial_clone
-        for index, (original, cloned) in enumerate(zip(originals, copies, strict=True)):
-            state_id = (
-                parent["payload"]["state_id"]
-                if original["id"] == parent["payload"]["head_message_id"]
-                else original["state_id"]
+            initial_id = parent["payload"]["initial_state_id"]
+            initial_clone = clone_state(initial_id)
+            previous_state_id = initial_id
+            head_state_id = initial_clone
+            for index, (original, cloned) in enumerate(zip(originals, copies, strict=True)):
+                state_id = (
+                    parent["payload"]["state_id"]
+                    if original["id"] == parent["payload"]["head_message_id"]
+                    else original["state_id"]
+                )
+                # An edited message cannot inherit consequences of its old contents.
+                if replacement is not None and index == len(copies) - 1:
+                    state_id = previous_state_id
+                head_state_id = clone_state(state_id)
+                cloned["state_id"] = head_state_id
+                previous_state_id = state_id
+            if restore_state_id is not None:
+                head_state_id = clone_state(restore_state_id)
+                if copies:
+                    copies[-1]["state_id"] = head_state_id
+            for collection in ("chapters", "bookmarks", "checkpoints"):
+                for anchor in parent["payload"][collection]:
+                    source_message = anchor["message_id"]
+                    if source_message is not None and source_message not in mapping:
+                        continue
+                    if replacement is not None and originals and source_message == originals[-1]["id"]:
+                        continue
+                    cloned_anchor = {
+                        **copy.deepcopy(anchor),
+                        "id": str(uuid4()),
+                        "source_anchor_id": anchor["id"],
+                        "message_id": mapping.get(source_message),
+                        "state_id": clone_state(anchor["state_id"]),
+                    }
+                    branch["payload"][collection].append(cloned_anchor)
+            branch["payload"].update(
+                state_id=head_state_id,
+                initial_state_id=initial_clone,
+                head_message_id=copies[-1]["id"] if copies else None,
+                participants=copy.deepcopy(state_payloads[head_state_id]["scene"]["participants"]),
+                speaker_order=copy.deepcopy(state_payloads[head_state_id]["scene"]["speaker_order"]),
             )
-            # An edited message cannot inherit consequences of its old contents.
-            if replacement is not None and index == len(copies) - 1:
-                state_id = previous_state_id
-            head_state_id = clone_state(state_id)
-            cloned["state_id"] = head_state_id
-            previous_state_id = state_id
-        if restore_state_id is not None:
-            head_state_id = clone_state(restore_state_id)
-            if copies:
-                copies[-1]["state_id"] = head_state_id
-        for collection in ("chapters", "bookmarks", "checkpoints"):
-            for anchor in parent["payload"][collection]:
-                source_message = anchor["message_id"]
-                if source_message is not None and source_message not in mapping:
-                    continue
-                if replacement is not None and originals and source_message == originals[-1]["id"]:
-                    continue
-                cloned_anchor = {
-                    **copy.deepcopy(anchor),
-                    "id": str(uuid4()),
-                    "source_anchor_id": anchor["id"],
-                    "message_id": mapping.get(source_message),
-                    "state_id": clone_state(anchor["state_id"]),
-                }
-                branch["payload"][collection].append(cloned_anchor)
-        branch["payload"].update(
-            state_id=head_state_id,
-            initial_state_id=initial_clone,
-            head_message_id=copies[-1]["id"] if copies else None,
-            participants=copy.deepcopy(state_payloads[head_state_id]["scene"]["participants"]),
-            speaker_order=copy.deepcopy(state_payloads[head_state_id]["scene"]["speaker_order"]),
-        )
-        branch["refs"] = list(
-            {self.state_key(story_id, initial_clone), self.state_key(story_id, head_state_id)}
-        )
+            branch["refs"] = list(
+                {self.state_key(story_id, initial_clone), self.state_key(story_id, head_state_id)}
+            )
         if copies:
             changes += self.segments.plan_append(bid, copies)
         story["payload"]["active_branch"] = bid
@@ -432,7 +438,7 @@ class ChatService:
             Mutation(self.branch_key(story_id, bid), branch, 0),
             Mutation(self.story_key(story_id), story, story["revision"]),
         ]
-        self.store.transaction(changes)
+        self.store.transaction(changes, guards=source_guards)
         return {"story": self.story(story_id), "branch": self.branch(story_id, bid)}
 
     def switch(self, story_id, branch_id, expected_revision):

@@ -30,6 +30,8 @@ class JobQueue:
         self.foreground_pending = 0
         self.preemptible_kinds = {"memory_extract", "memory_search", "memory_index", "memory_maintenance"}
         self.preempted = set()
+        self.stream_pending: dict[str, dict] = {}
+        self.stream_flushed: dict[str, float] = {}
 
     @staticmethod
     def key(job_id: str):
@@ -54,6 +56,8 @@ class JobQueue:
             self.active = None
             self.foreground_pending = 0
             self.preempted.clear()
+            self.stream_pending.clear()
+            self.stream_flushed.clear()
             self.worker = None
         rows, _ = await asyncio.to_thread(self.store.scan, "jobs/records/")
         for row in rows:
@@ -186,10 +190,17 @@ class JobQueue:
             raise AppError("job_not_found", "Задача не найдена.", 404)
         return value
 
-    async def emit(self, job_id: str, event_type: str, payload: dict, *, state=None, result=None, error=None):
-        async with self.guard:
-            job = await self.get(job_id)
-            sequence = job["payload"]["event_count"] + 1
+    async def _publish(self, job_id, events, *, state=None, result=None, error=None):
+        """Publish under guard; only durable events receive IDs or reach SSE."""
+        job = await self.get(job_id)
+        if job["payload"]["state"] in TERMINAL:
+            self.stream_pending.pop(job_id, None)
+            self.stream_flushed.pop(job_id, None)
+            return
+        sequence = job["payload"]["event_count"]
+        changes = []
+        for event_type, payload in events:
+            sequence += 1
             event = document(
                 "job_event",
                 {
@@ -200,26 +211,83 @@ class JobQueue:
                     "data": payload,
                 },
             )
-            job["payload"]["event_count"] = sequence
-            if state:
-                job["payload"].update(state=state, result=result, error=error)
-            await asyncio.to_thread(
-                self.store.transaction,
-                [
-                    Mutation(self.key(job_id), job, job["revision"]),
-                    Mutation(f"jobs/events/{job_id}/{sequence:08}.json", event, 0),
-                ],
+            changes.append(Mutation(f"jobs/events/{job_id}/{sequence:08}.json", event, 0))
+        job["payload"]["event_count"] = sequence
+        if state:
+            job["payload"].update(state=state, result=result, error=error)
+        # A cancelled await must not leave a committed buffer marked as pending:
+        # the terminal event would otherwise publish its text twice.
+        commit = asyncio.create_task(
+            asyncio.to_thread(
+                self.store.transaction, [Mutation(self.key(job_id), job, job["revision"]), *changes]
             )
+        )
+        cancelled = False
+        while True:
+            try:
+                await asyncio.shield(commit)
+                break
+            except asyncio.CancelledError:
+                cancelled = True
+        self.stream_pending.pop(job_id, None)
+        if not state and events[-1][0] in ("delta", "reasoning"):
+            self.stream_flushed[job_id] = asyncio.get_running_loop().time()
+        else:
+            self.stream_flushed.pop(job_id, None)
+        if cancelled:
+            raise asyncio.CancelledError
+
+    def _pending_event(self, job_id):
+        pending = self.stream_pending.get(job_id)
+        return [(pending["kind"], {"text": "".join(pending["parts"])})] if pending else []
+
+    async def emit(self, job_id: str, event_type: str, payload: dict, *, state=None, result=None, error=None):
+        async with self.guard:
+            now = asyncio.get_running_loop().time()
+            stream = (
+                not state
+                and event_type in ("delta", "reasoning")
+                and set(payload) == {"text"}
+                and isinstance(payload["text"], str)
+            )
+            pending = self.stream_pending.get(job_id)
+            if stream and job_id in self.stream_flushed and (not pending or pending["kind"] == event_type):
+                if pending is None:
+                    pending = {"kind": event_type, "parts": [], "bytes": 0, "since": now}
+                    self.stream_pending[job_id] = pending
+                pending["parts"].append(payload["text"])
+                pending["bytes"] += len(payload["text"].encode("utf-8"))
+                if (
+                    pending["bytes"] < 8192
+                    and len(pending["parts"]) < 64
+                    and now - self.stream_flushed[job_id] < 0.05
+                ):
+                    return
+                events = self._pending_event(job_id)
+            else:
+                events = [*self._pending_event(job_id), (event_type, payload)]
+            await self._publish(job_id, events, state=state, result=result, error=error)
 
     async def events(self, job_id: str, after=0, limit=100) -> list[dict]:
-        job = await self.get(job_id)
         if after < 0 or not 1 <= limit <= 200:
             raise AppError("invalid_page", "Некорректная страница событий.")
-        result = []
-        for n in range(after + 1, min(after + limit, job["payload"]["event_count"]) + 1):
-            event = await asyncio.to_thread(self.store.get, f"jobs/events/{job_id}/{n:08}.json")
-            result.append(event["payload"])
-        return result
+        key = self.key(job_id)
+        async with self.guard:
+            pending = self.stream_pending.get(job_id)
+            if pending and asyncio.get_running_loop().time() - pending["since"] >= 0.05:
+                await self._publish(job_id, self._pending_event(job_id))
+
+        def read_page():
+            with self.store.view() as view:
+                job = view.get(key)
+                if job is None:
+                    raise AppError("job_not_found", "Задача не найдена.", 404)
+                return [
+                    view.get(f"jobs/events/{job_id}/{n:08}.json")["payload"]
+                    for n in range(after + 1, min(after + limit, job["payload"]["event_count"]) + 1)
+                ]
+
+        return await asyncio.to_thread(read_page)
 
     async def cancel(self, job_id: str):
         event = self.cancellations.get(job_id)

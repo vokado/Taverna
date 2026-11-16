@@ -93,6 +93,18 @@ def is_redirect(path: Path) -> bool:
     )
 
 
+_WINDOWS_RESERVED = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        *(f"COM{i}" for i in (*range(10), "¹", "²", "³")),
+        *(f"LPT{i}" for i in (*range(10), "¹", "²", "³")),
+    }
+)
+
+
 def portable_parts(key: str) -> list[str]:
     if "\\" in key or ":" in key or not key or PurePosixPath(key).is_absolute():
         raise AppError("invalid_path", "Недопустимый путь.")
@@ -101,15 +113,7 @@ def portable_parts(key: str) -> list[str]:
         p in ("", ".", "..")
         or p.endswith((" ", "."))
         or not re.fullmatch(r"[\w.\-]+", p)
-        or p.split(".")[0].upper()
-        in {
-            "CON",
-            "PRN",
-            "AUX",
-            "NUL",
-            *(f"COM{i}" for i in (*range(10), "¹", "²", "³")),
-            *(f"LPT{i}" for i in (*range(10), "¹", "²", "³")),
-        }
+        or p.split(".")[0].upper() in _WINDOWS_RESERVED
         for p in parts
     ):
         raise AppError("invalid_path", "Недопустимый путь.")
@@ -193,7 +197,9 @@ class JsonStore:
         self.journal = self.data / "transactions"
         with self.locked():
             if not self.pointer.exists():
-                if any(self.journal.glob("*/commit.json")):
+                if any(self.journal.glob("*/commit.json")) or any(
+                    self.journal.glob("history/*/*/commit.json")
+                ):
                     raise AppError(
                         "manifest_corrupt", "Манифест утрачен. Восстановите контрольную копию.", 503
                     )
@@ -227,8 +233,11 @@ class JsonStore:
         except (jsonschema.ValidationError, ValueError, TypeError) as exc:
             raise AppError("invalid_document", "Документ не соответствует схеме.", 422) from exc
 
-    def _logical(self, key: str):
-        safe_path(self.data, key)
+    def _logical(self, key: str, *, check_path=True):
+        if check_path:
+            safe_path(self.data, key)
+        else:
+            portable_parts(key)
         if (
             key.split("/")[0] not in CATEGORIES
             or not key.endswith(".json")
@@ -246,14 +255,14 @@ class JsonStore:
         ):
             raise AppError("manifest_corrupt", "Манифест хранилища повреждён. Требуется восстановление.", 503)
         for key, entry in value["entries"].items():
-            self._logical(key)
+            self._logical(key, check_path=False)
             if (
                 not isinstance(entry, dict)
                 or not re.fullmatch(r"[0-9a-f]{64}", entry.get("sha256", ""))
                 or not isinstance(entry.get("revision"), int)
             ):
                 raise AppError("manifest_corrupt", "Запись манифеста повреждена.", 503)
-            safe_path(self.data, entry["object"])
+            portable_parts(entry["object"])
             if not entry["object"].endswith("." + entry["sha256"] + ".json"):
                 raise AppError("manifest_corrupt", "Недопустимое имя объекта хранилища.", 503)
         return value
@@ -277,35 +286,174 @@ class JsonStore:
         except (OSError, ValueError, KeyError) as exc:
             raise AppError("document_corrupt", "Документ повреждён или отсутствует.", 503) from exc
 
+    def _receipt(self, directory):
+        raw = safe_path(
+            self.data, str((directory / "intent.json").relative_to(self.data)).replace("\\", "/")
+        ).read_bytes()
+        intent = json.loads(raw)
+        if not isinstance(intent, dict):
+            raise ValueError("intent object required")
+        marker = safe_path(
+            self.data, str((directory / "commit.json").relative_to(self.data)).replace("\\", "/")
+        )
+        if marker.exists() and digest(raw) != json.loads(marker.read_bytes())["intent_sha256"]:
+            raise ValueError("intent checksum")
+        generation = int(directory.name[:16])
+        txid = str(UUID(directory.name[17:]))
+        if intent.get("format", 1) == 1:
+            if (
+                intent["after"]["generation"] != generation
+                or str(UUID(intent["after"]["transaction_id"])) != txid
+            ):
+                raise ValueError("receipt identity")
+        elif (
+            intent.get("format") != 2
+            or intent["generation"] != generation
+            or str(UUID(intent["transaction_id"])) != txid
+        ):
+            raise ValueError("unsupported journal or receipt identity")
+        return intent
+
+    def _apply_intent(self, intent, before):
+        if intent.get("format", 1) == 1:
+            return self._validate_manifest(intent["after"])
+        if intent["generation"] != before["generation"] + 1 or intent["before_sha256"] != digest(
+            encoded(before)
+        ):
+            raise ValueError("delta base mismatch")
+        after = {
+            **before,
+            "generation": intent["generation"],
+            "transaction_id": intent["transaction_id"],
+            "entries": dict(before["entries"]),
+        }
+        if set(intent["updated"]) != set(intent["changed"]):
+            raise ValueError("delta keys mismatch")
+        for key, value in intent["updated"].items():
+            if value is None:
+                after["entries"].pop(key, None)
+            else:
+                after["entries"][key] = value
+        self._validate_manifest(after)
+        if digest(encoded(after)) != intent["after_sha256"]:
+            raise ValueError("delta result checksum")
+        return after
+
+    def _archive_complete(self, directory):
+        txid = str(UUID(directory.name[17:]))
+        target = safe_path(self.data, f"transactions/history/{txid[:2]}/{directory.name}")
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(directory, target)
+        except OSError:
+            # An antivirus/Windows sharing lock may defer this optimization;
+            # complete remains authoritative in the active directory.
+            return
+        if os.name != "nt":
+            for parent in (self.journal, target.parent):
+                fd = os.open(parent, os.O_RDONLY)
+                try:
+                    os.fsync(fd)
+                finally:
+                    os.close(fd)
+
+    def _checkpoint(self, before):
+        folder = safe_path(self.data, "transactions/checkpoints")
+        candidates = []
+        if folder.exists():
+            for path in folder.iterdir():
+                match = re.fullmatch(r"(\d{16})\.[a-f0-9]{64}\.json", path.name)
+                if match and int(match[1]) <= before["generation"]:
+                    candidates.append((int(match[1]), path.name))
+        latest = max(candidates) if candidates else None
+        if latest is None or before["generation"] - latest[0] >= 128:
+            raw = encoded(before)
+            name = f"{before['generation']:016}.{digest(raw)}.json"
+            atomic_write(safe_path(self.data, "transactions/checkpoints/" + name), raw)
+            return name
+        return latest[1]
+
+    def _historical_manifest(self, intent):
+        if intent.get("format", 1) == 1:
+            return self._validate_manifest(intent["after"])
+        name = intent["checkpoint"]
+        if not re.fullmatch(r"\d{16}\.[a-f0-9]{64}\.json", name):
+            raise ValueError("checkpoint name")
+        raw = safe_path(self.data, "transactions/checkpoints/" + name).read_bytes()
+        if digest(raw) != name.split(".")[1]:
+            raise ValueError("checkpoint checksum")
+        current = self._validate_manifest(json.loads(raw))
+        receipts = []
+        history = safe_path(self.data, "transactions/history")
+        if history.exists():
+            for bucket in history.iterdir():
+                if not is_redirect(bucket) and bucket.is_dir():
+                    receipts.extend(bucket.iterdir())
+        receipts.extend(self.journal.iterdir())
+        selected = []
+        for directory in receipts:
+            match = re.fullmatch(r"(\d{16})-[a-fA-F0-9-]{32,36}", directory.name)
+            if (
+                match
+                and current["generation"] < int(match[1]) <= intent["generation"]
+                and not is_redirect(directory)
+            ):
+                if (directory / "commit.json").exists():
+                    selected.append(directory)
+        for directory in sorted(selected, key=lambda d: d.name):
+            delta = self._receipt(directory)
+            if delta["before_sha256"] != digest(encoded(current)):
+                raise ValueError("historical generation chain")
+            current = self._apply_intent(delta, current)
+        if (
+            current["generation"] != intent["generation"]
+            or digest(encoded(current)) != intent["after_sha256"]
+        ):
+            raise ValueError("historical manifest mismatch")
+        return current
+
     def _recover(self):
         current = self._manifest()
-        # Directory name is sortable generation + UUID. Only committed, incomplete intents roll forward.
+        # Only active intents need recovery. Completed receipts remain JSON in
+        # history for idempotency and audit, but are never rescanned per read.
         for directory in sorted(self.journal.iterdir()):
-            if is_redirect(directory) or not directory.is_dir():
+            if (
+                directory.name in ("history", "checkpoints")
+                or is_redirect(directory)
+                or not directory.is_dir()
+            ):
                 continue
-            if not (directory / "commit.json").exists() or (directory / "complete.json").exists():
+            if not (directory / "commit.json").exists():
                 continue
             try:
-                raw = (directory / "intent.json").read_bytes()
-                marker = json.loads((directory / "commit.json").read_bytes())
-                if digest(raw) != marker["intent_sha256"]:
-                    raise ValueError("intent checksum")
-                intent = json.loads(raw)
-                after = self._validate_manifest(intent["after"])
-                if after["generation"] > current["generation"]:
+                if (directory / "complete.json").exists():
+                    self._archive_complete(directory)
+                    continue
+                intent = self._receipt(directory)
+                generation = (
+                    intent["after"]["generation"] if intent.get("format", 1) == 1 else intent["generation"]
+                )
+                if generation > current["generation"]:
                     if intent["before_sha256"] != digest(encoded(current)):
                         raise ValueError("generation mismatch")
+                    after = self._apply_intent(intent, current)
                     for key in intent["changed"]:
                         if key in after["entries"]:
                             self._read(after["entries"][key])
                     atomic_write(self.pointer, encoded(after))
                     current = after
+                elif (
+                    generation == current["generation"]
+                    and intent.get("format") == 2
+                    and intent["after_sha256"] != digest(encoded(current))
+                ):
+                    raise ValueError("published delta checksum")
                 atomic_write(directory / "complete.json", encoded({"recovered": True, "at": now()}))
+                self._archive_complete(directory)
             except (OSError, ValueError, KeyError, TypeError) as exc:
                 raise AppError(
                     "transaction_recovery_required", "Незавершённая транзакция требует восстановления.", 503
                 ) from exc
-
         return current
 
     def get(self, key: str) -> dict | None:
@@ -373,8 +521,8 @@ class JsonStore:
             raise AppError("invalid_transaction", "Транзакция пуста или содержит повторные пути.")
         txid = transaction_id or str(uuid4())
         try:
-            UUID(txid)
-        except ValueError as exc:
+            txid = str(UUID(txid))
+        except (ValueError, TypeError, AttributeError) as exc:
             raise AppError("invalid_transaction", "Недопустимый идентификатор транзакции.") from exc
         fingerprint = digest(
             encoded([{"key": c.key, "value": c.value, "expected": c.expected_revision} for c in changes])
@@ -384,15 +532,31 @@ class JsonStore:
         with self.locked():
             self._recover()
             before = self._manifest()
-            # Repeated transaction must match exactly; a reused id is never a new write.
-            for directory in self.journal.glob(f"*-{txid}"):
-                intent = json.loads((directory / "intent.json").read_bytes())
-                if intent["fingerprint"] != fingerprint:
+            # Look up a receipt by UUID bucket without scanning every completed
+            # transaction. Legacy active receipts are handled by recovery above.
+            bucket = safe_path(self.data, f"transactions/history/{txid[:2]}")
+            directories = list(self.journal.iterdir())
+            if bucket.exists():
+                directories.extend(bucket.iterdir())
+            for directory in directories:
+                if directory.name[17:].lower().replace("-", "") != txid.replace("-", ""):
+                    continue
+                if not (directory / "intent.json").exists():
+                    continue
+                try:
+                    intent = self._receipt(directory)
+                    if intent["fingerprint"] != fingerprint:
+                        raise AppError(
+                            "idempotency_conflict", "Идентификатор уже использован для другой операции.", 409
+                        )
+                    if (directory / "commit.json").exists():
+                        return self._historical_manifest(intent)
+                except (OSError, ValueError, KeyError, TypeError) as exc:
                     raise AppError(
-                        "idempotency_conflict", "Идентификатор уже использован для другой операции.", 409
-                    )
-                if (directory / "commit.json").exists():
-                    return intent["after"]
+                        "transaction_recovery_required",
+                        "Журнал повторной операции повреждён; требуется восстановление.",
+                        503,
+                    ) from exc
             for key, expected in (guards or {}).items():
                 self._logical(key)
                 actual = before["entries"].get(key, {}).get("revision", 0)
@@ -406,8 +570,12 @@ class JsonStore:
                     )
             if before_commit:
                 before_commit()
-            after = json.loads(encoded(before))
-            after.update(generation=before["generation"] + 1, transaction_id=txid)
+            after = {
+                **before,
+                "entries": dict(before["entries"]),
+                "generation": before["generation"] + 1,
+                "transaction_id": txid,
+            }
             for change in changes:
                 self._logical(change.key)
                 previous = before["entries"].get(change.key)
@@ -456,12 +624,29 @@ class JsonStore:
                         )
             directory = self.journal / f"{after['generation']:016}-{txid}"
             directory.mkdir(exist_ok=True)
-            intent = {
+            after_raw = encoded(after)
+            common = {
                 "before_sha256": digest(encoded(before)),
-                "after": after,
                 "changed": [c.key for c in changes],
                 "fingerprint": fingerprint,
             }
+            intent = {
+                **common,
+                "format": 2,
+                "generation": after["generation"],
+                "transaction_id": txid,
+                "after_sha256": digest(after_raw),
+                "updated": {c.key: after["entries"].get(c.key) for c in changes},
+                "checkpoint": "0" * 16 + "." + "0" * 64 + ".json",
+            }
+            # Retain the existing v1 representation where its full manifest is
+            # smaller than a delta header (e.g. repeated edits to one tiny key).
+            # Both representations have the same commit/recovery protocol.
+            full_bytes = len(after_raw) + len(encoded({**common, "after": None})) - 4
+            if full_bytes <= len(encoded(intent)):
+                intent = {**common, "after": after}
+            else:
+                intent["checkpoint"] = self._checkpoint(before)
             raw_intent = encoded(intent)
             atomic_write(directory / "intent.json", raw_intent)
             self.fault("prepared")
@@ -469,10 +654,12 @@ class JsonStore:
                 before_commit()
             atomic_write(directory / "commit.json", encoded({"intent_sha256": digest(raw_intent)}))
             self.fault("committed")
-            atomic_write(self.pointer, encoded(after))
+            atomic_write(self.pointer, after_raw)
             self.fault("published")
             atomic_write(directory / "complete.json", encoded({"at": now()}))
             self.fault("complete")
+            self._archive_complete(directory)
+            self.fault("archived")
             return after
 
     def snapshot(self) -> dict[str, bytes]:

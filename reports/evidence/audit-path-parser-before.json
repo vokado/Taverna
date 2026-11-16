@@ -1,0 +1,11 @@
+{
+  "iterations": 20000,
+  "samples_seconds": [
+    0.43603436699777376,
+    0.3489742549863877,
+    0.36639635400206316
+  ],
+  "source_function_sha256": "7603946a79e5b10a869e39be7550525977a63d4b80679cdcc6f7f7293eb8a424",
+  "note": "Pure syntax parser microbenchmark; no file I/O or model calls",
+  "profile_2000_calls": "         314001 function calls in 0.099 seconds\n\n   Ordered by: cumulative time\n   List reduced from 20 to 10 due to restriction <10>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n     2000    0.002    0.000    0.099    0.000 storage.py:96(portable_parts)\n     2000    0.001    0.000    0.090    0.000 {built-in method builtins.any}\n    10000    0.044    0.000    0.089    0.000 storage.py:100(<genexpr>)\n   112000    0.016    0.000    0.016    0.000 storage.py:111(<genexpr>)\n   112000    0.013    0.000    0.013    0.000 storage.py:110(<genexpr>)\n     8000    0.003    0.000    0.011    0.000 __init__.py:169(fullmatch)\n     8000    0.004    0.000    0.006    0.000 __init__.py:280(_compile)\n     8000    0.003    0.000    0.003    0.000 {method 'fullmatch' of 're.Pattern' objects}\n     2000    0.000    0.000    0.003    0.000 pathlib.py:343(__new__)\n    10000    0.003    0.000    0.003    0.000 {method 'split' of 'str' objects}\n\n\n"
+}

@@ -34,8 +34,13 @@ class MemoryIndex:
         return digest(
             encoded(
                 {
-                    "format_version": 1,
+                    "format_version": 2,
                     "state_id": snap["state"]["id"],
+                    "records": [
+                        (key, value.get("version"), text_hash(str(value.get("text", ""))))
+                        for key, value in snap["records"].items()
+                        if isinstance(value, dict)
+                    ],
                     "messages": [
                         (m["id"], m["version"], text_hash(m["text"])) for m in snap["messages"].values()
                     ],
@@ -43,81 +48,176 @@ class MemoryIndex:
             )
         )
 
-    def source_entries(self, snap):
+    def source_entries(self, snap, cached=None):
+        cached = cached or {}
         entries = []
+
+        def entry(kind, source):
+            checksum = text_hash(source["text"])
+            old = cached.get((kind, source["id"]))
+            return {
+                "id": source["id"],
+                "kind": kind,
+                "text_sha256": checksum,
+                "tokens": old["tokens"]
+                if old and old.get("text_sha256") == checksum
+                else sorted(words(source["text"])),
+            }
+
         for record in snap["records"].values():
             try:
                 MemoryRecord.model_validate(record)
             except ValueError:
                 continue
-            entries.append({"id": record["id"], "kind": "record", "tokens": sorted(words(record["text"]))})
-        entries.extend(
-            {"id": m["id"], "kind": "message", "tokens": sorted(words(m["text"]))}
-            for m in snap["messages"].values()
-        )
+            entries.append(entry("record", record))
+        entries.extend(entry("message", message) for message in snap["messages"].values())
         return entries
 
     def rebuild(self, snap):
         fingerprint = self.fingerprint(snap)
         key = self.key(snap["branch"]["id"])
-        try:
-            old = self.store.get(key)
-        except AppError:
-            discard_derived(self.store, [key])
-            old = None
-        entries = self.source_entries(snap)
-        changes = []
-        shards = []
-        for start in range(0, len(entries), 256):
-            shard_key = f"indexes/memory/{snap['branch']['id']}/{fingerprint}/shard-{start // 256:06}.json"
-            try:
-                existing = self.store.get(shard_key)
-            except AppError:
-                discard_derived(self.store, [key, shard_key])
-                old = None
-                existing = None
-            if existing is None:
-                changes.append(
-                    Mutation(
-                        shard_key,
-                        document("memory_index_shard", {"entries": entries[start : start + 256]}),
-                        0,
-                    )
+        prefix = key.removesuffix("head.json")
+        guard = {
+            self.service.chat.branch_key(snap["story"]["id"], snap["branch"]["id"]): snap["branch"][
+                "revision"
+            ]
+        }
+        # Replacing a corrupt immutable object requires discarding its derived
+        # logical entry first. Source documents and other branch caches stay intact.
+        for _attempt in range(2):
+            existing, cached, corrupt = {}, {}, set()
+            with self.store.view() as view:
+                owned = {
+                    k: entry["revision"]
+                    for k, entry in view.manifest["entries"].items()
+                    if k.startswith(prefix)
+                }
+                try:
+                    old = view.get(key)
+                except AppError:
+                    corrupt.add(key)
+                    old = None
+                if old and (
+                    old["kind"] != "memory_index" or not isinstance(old["payload"].get("shards"), list)
+                ):
+                    corrupt.add(key)
+                    old = None
+                shard_keys = list(old["payload"].get("shards", [])) if old else []
+                shard_keys.extend(
+                    k
+                    for k in owned
+                    if k.removeprefix(prefix).startswith(("messages-", "records-")) and k not in shard_keys
                 )
-            shards.append(shard_key)
-        head = old or document("memory_index", {})
-        head["payload"] = {
+                for shard_key in shard_keys:
+                    if not isinstance(shard_key, str) or not shard_key.startswith(prefix) or shard_key == key:
+                        corrupt.add(key)
+                        continue
+                    try:
+                        shard = view.get(shard_key)
+                        if not shard or shard["kind"] != "memory_index_shard":
+                            corrupt.update((key, shard_key))
+                            continue
+                        existing[shard_key] = shard
+                        for item in shard["payload"]["entries"]:
+                            if (
+                                item["kind"] not in ("record", "message")
+                                or not isinstance(item["tokens"], list)
+                                or any(not isinstance(token, str) for token in item["tokens"])
+                            ):
+                                raise ValueError("invalid cached token entry")
+                            cached[item["kind"], item["id"]] = item
+                    except (AppError, KeyError, TypeError, ValueError):
+                        corrupt.update((key, shard_key))
+            if not corrupt:
+                break
+            self.store.transaction([Mutation(k, None, owned[k]) for k in corrupt if k in owned], guards=guard)
+        else:
+            raise AppError(
+                "index_rebuild_conflict",
+                "Производный индекс меняется или повреждён; используется поиск по источникам.",
+                409,
+            )
+        entries = self.source_entries(snap, cached)
+        changes, shards = [], []
+        # Separate record/message runs prevent a new fact from shifting every
+        # history shard. Existing tokens and unchanged shard objects are reused.
+        for kind, label in (("record", "records"), ("message", "messages")):
+            group = [e for e in entries if e["kind"] == kind]
+            for start in range(0, len(group), 256):
+                shard_key = f"{prefix}{label}-{start // 256:06}.json"
+                payload = {"entries": group[start : start + 256]}
+                previous = existing.get(shard_key)
+                if previous is None and shard_key in owned:
+                    # A shard left by an interrupted old rebuild can still be
+                    # replaced safely, but its identity must be retained.
+                    previous = self.store.get(shard_key)
+                if previous is None or previous["payload"] != payload:
+                    value = previous or document("memory_index_shard", payload)
+                    value["payload"] = payload
+                    changes.append(Mutation(shard_key, value, owned.get(shard_key, 0)))
+                shards.append(shard_key)
+        changes.extend(
+            Mutation(k, None, revision) for k, revision in owned.items() if k != key and k not in shards
+        )
+        payload = {
             "story_id": snap["story"]["id"],
             "branch_id": snap["branch"]["id"],
             "fingerprint": fingerprint,
             "shards": shards,
             "entry_count": len(entries),
-            "format_version": 1,
+            "format_version": 2,
         }
-        head["refs"] = shards
-        changes.append(Mutation(key, head, old["revision"] if old else 0))
-        self.store.transaction(
-            changes,
-            guards={
-                self.service.chat.branch_key(snap["story"]["id"], snap["branch"]["id"]): snap["branch"][
-                    "revision"
-                ]
-            },
-        )
+        if not changes and old and old["payload"] == payload and old["refs"] == shards:
+            return old
+        head = old or document("memory_index", payload)
+        head["payload"], head["refs"] = payload, shards
+        changes.append(Mutation(key, head, owned.get(key, 0)))
+        self.store.transaction(changes, guards=guard)
         return self.store.get(key)
 
     def entries(self, snap):
+        fingerprint = self.fingerprint(snap)
         try:
-            head = self.store.get(self.key(snap["branch"]["id"]))
-            if head is None or head["payload"]["fingerprint"] != self.fingerprint(snap):
-                head = self.rebuild(snap)
-            result = []
-            with self.store.view() as view:
-                for key in head["payload"]["shards"]:
-                    result.extend(view.get(key)["payload"]["entries"])
-            return result
+            for attempt in range(2):
+                # Head and shards must belong to the same storage generation.
+                with self.store.view() as view:
+                    head = view.get(self.key(snap["branch"]["id"]))
+                    if head and head["payload"]["fingerprint"] == fingerprint:
+                        result = []
+                        for key in head["payload"]["shards"]:
+                            if not key.startswith(self.key(snap["branch"]["id"]).removesuffix("head.json")):
+                                raise AppError(
+                                    "invalid_index", "Индекс ссылается за пределы своей ветви.", 409
+                                )
+                            items = view.get(key)["payload"]["entries"]
+                            if not isinstance(items, list):
+                                raise AppError(
+                                    "invalid_index", "Структура производного индекса повреждена.", 409
+                                )
+                            for item in items:
+                                if (
+                                    not isinstance(item, dict)
+                                    or item.get("kind") not in ("record", "message")
+                                    or not isinstance(item.get("id"), str)
+                                    or not isinstance(item.get("tokens"), list)
+                                    or any(not isinstance(token, str) for token in item["tokens"])
+                                ):
+                                    raise AppError(
+                                        "invalid_index",
+                                        "Производные токены повреждены; используется источник.",
+                                        409,
+                                    )
+                            result.extend(items)
+                        if len(result) != head["payload"].get("entry_count"):
+                            raise AppError(
+                                "invalid_index", "Количество производных записей не совпадает.", 409
+                            )
+                        return result
+                if attempt == 0:
+                    self.rebuild(snap)
+            return self.source_entries(snap)
         except (AppError, KeyError, TypeError):
-            # A derived cache cannot disable source-based text search.
+            # A derived cache cannot disable source-based, access-filtered search.
             return self.source_entries(snap)
 
     def search(self, snap, query, actor=None, *, include_messages=False, limit=50, **filters):

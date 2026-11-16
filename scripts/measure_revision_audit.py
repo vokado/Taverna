@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import copy
+import hashlib
 import json
 import os
 import platform
@@ -230,7 +231,7 @@ def index_case(root, count, updates):
     }
 
 
-async def event_case(root, count):
+async def event_case(root, count, interval_ms=0):
     store = JsonStore(root)
     queue = JobQueue(store)
     # A storage-only queue record; no LLM adapter and no synthetic inference result.
@@ -251,6 +252,8 @@ async def event_case(root, count):
     with counters(store) as total:
         for i in range(count):
             await queue.emit(job["id"], "delta", {"text": "Таверна "})
+            if interval_ms:
+                await asyncio.sleep(interval_ms / 1000)
             if (i + 1) in {100, 500, 1000, count}:
                 samples.append(
                     {
@@ -262,6 +265,7 @@ async def event_case(root, count):
         await queue.emit(job["id"], "completed", {}, state="completed", result={"measurement": True})
     return {
         "fragments": count,
+        "fragment_interval_ms": interval_ms,
         "source_utf8_bytes": count * len("Таверна ".encode()),
         "counters": total,
         "samples": samples,
@@ -272,11 +276,17 @@ async def event_case(root, count):
 def growth_case(root, count, unique):
     store = JsonStore(root)
     samples = []
+    repeated = document("measurement", {"counter": 0, "text": "данные" * 16})
     with counters(store) as total:
         started = time.perf_counter()
         for i in range(count):
             key = f"config/measurement-{i if unique else 0}.json"
-            value = document("measurement", {"counter": i, "text": "данные" * 16})
+            value = (
+                document("measurement", {"counter": i, "text": "данные" * 16})
+                if unique
+                else copy.deepcopy(repeated)
+            )
+            value["payload"]["counter"] = i
             store.transaction([Mutation(key, value, 0 if unique else i)])
             if (i + 1) in {100, 500, 1000, count}:
                 samples.append(
@@ -304,11 +314,17 @@ def main():
     )
     parser.add_argument("--operations", type=int, default=2000)
     parser.add_argument("--fragments", type=int, default=1000)
+    parser.add_argument("--fragment-interval-ms", type=float, default=0)
     parser.add_argument("--index-updates", type=int, default=20)
     parser.add_argument("--histories", type=int, nargs="+", default=[1000, 5000, 10000])
     args = parser.parse_args()
     result = {
         "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "source_sha256": {
+            name: hashlib.sha256((Path(storage.__file__).parent / name).read_bytes()).hexdigest()
+            for name in ("storage.py", "jobs.py", "chat.py", "memory_index.py", "prompts.py")
+        },
+        "arguments": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
         "platform": platform.platform(),
         "python": platform.python_version(),
         "note": "Synthetic local corpus, real storage/queue/importer; no LM Studio/GPU; bytes are application atomic-write bytes, not physical disk writes. Run without concurrent local tests.",
@@ -324,7 +340,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix="taverna-revision-audit-") as folder:
         root = Path(folder)
         if args.part in ("all", "events"):
-            save("events", asyncio.run(event_case(root / "events", args.fragments)))
+            save(
+                "events", asyncio.run(event_case(root / "events", args.fragments, args.fragment_interval_ms))
+            )
         if args.part in ("all", "growth"):
             for unique in (False, True):
                 save(
