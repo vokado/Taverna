@@ -36,6 +36,8 @@ class PluginPackages:
                     raise ValueError("archive limit")
                 seen = set()
                 for entry in entries:
+                    if entry.orig_filename != entry.filename:
+                        raise ValueError("ZIP filename was normalized or truncated")
                     name = entry.filename.rstrip("/") if entry.is_dir() else entry.filename
                     if name != unicodedata.normalize("NFC", name):
                         raise ValueError("noncanonical filename")

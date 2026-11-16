@@ -33,3 +33,7 @@ Host получает OS resource ceiling512MiB: Linux RLIMIT_AS, Windows Job Ob
 Storage path проверки используют lstat для reparse points, ZIP syntax validation выделена в чистую portable_parts без обращения к live filesystem. Main JSON/CAS/recovery формат не меняется; schema plugin_registration v1 и40 contracts. Полная регрессия после этих изменений указана выше.
 
 Осталось: production compute/effect broker с previews/receipts, отдельные внешние операции и проверка scopes, правила/macros/scheduler/durable events, maintenance/backup15. PLG-001–005 parent NOT_RUN до полной интеграции/целевых испытаний. Hardware и подписанная приёмка BLOCKED; релиз не готов.
+
+### Windows CI43786462006: дефект ZIP-нормализации
+
+Для f07ae08 Windows backend:265 PASS,1 FAIL248.52s, failure `test_windows_paths_and_case_collisions_rejected[folder\\evil]`; последующие browser/frozen NOT_RUN на Windows. ZipInfo на Windows заменяет обратный слеш, а test writer тоже менял его до записи: fixture не сохраняла опасное исходное имя. Parser теперь отвергает orig_filename != filename (включая усечение NUL), test writer сохраняет raw filename независимо от ОС. Linux целевая регрессия26PASS/1WindowsSKIP3.23s. Повтор Windows ожидается; исходная ошибка не скрывается. Новая compute/broker работа ведётся отдельно, в этот fix commit не включена.

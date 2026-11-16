@@ -30,7 +30,11 @@ def package(manifest=None, entry=None, extra=None):
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for name, raw in files.items():
-            archive.writestr(name, raw)
+            info = zipfile.ZipInfo(name)
+            # ZipInfo normalizes OS separators on Windows; preserve deliberately
+            # hostile raw ZIP names for the parser test on every platform.
+            info.filename = name
+            archive.writestr(info, raw, compress_type=zipfile.ZIP_DEFLATED)
     return out.getvalue()
 
 
