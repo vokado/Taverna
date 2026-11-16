@@ -137,3 +137,46 @@ def test_bad_relative_path_is_rejected_before_archive_publication(tmp_path):
         create_full_backup(store)
     assert error.value.code == "backup_source_invalid"
     assert not list((tmp_path / "backups").glob("*.zip"))
+
+
+def test_missing_referenced_asset_is_rejected_even_with_rewritten_manifest(tmp_path):
+    import json
+    from taverna.storage import encoded
+
+    store, assets = sample_store(tmp_path)
+    original = create_full_backup(store)
+    with ZipFile(original) as source:
+        contents = {info.filename: source.read(info) for info in source.infolist()}
+    del contents[assets[0]]
+    manifest = json.loads(contents["backup-manifest.json"])
+    del manifest["files"][assets[0]]
+    contents["backup-manifest.json"] = encoded(manifest)
+    altered = tmp_path / "altered.zip"
+    with ZipFile(altered, "w", ZIP_DEFLATED) as zipped:
+        for name, raw in contents.items():
+            zipped.writestr(name, raw)
+    with pytest.raises(AppError) as error:
+        verify_full_backup(altered)
+    assert error.value.code == "invalid_full_backup"
+
+
+def test_unrelated_executable_is_rejected_even_when_it_has_valid_checksum(tmp_path):
+    import json
+    from taverna.storage import encoded
+
+    store, _ = sample_store(tmp_path)
+    original = create_full_backup(store)
+    with ZipFile(original) as source:
+        contents = {info.filename: source.read(info) for info in source.infolist()}
+    manifest = json.loads(contents["backup-manifest.json"])
+    path = "plugins/unrelated.py"
+    contents[path] = b"print('untrusted payload')"
+    manifest["files"][path] = digest(contents[path])
+    contents["backup-manifest.json"] = encoded(manifest)
+    altered = tmp_path / "extra.zip"
+    with ZipFile(altered, "w", ZIP_DEFLATED) as zipped:
+        for name, raw in contents.items():
+            zipped.writestr(name, raw)
+    with pytest.raises(AppError) as error:
+        verify_full_backup(altered)
+    assert error.value.code == "invalid_full_backup"
