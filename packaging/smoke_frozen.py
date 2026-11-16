@@ -499,5 +499,37 @@ def main():
                     process.wait()
 
 
+        # Exercise the actual *frozen* updater in CLI mode after both
+        # instances have stopped. The original installation must survive.
+        updater = root / "Taverna-Updater.exe"
+        assert updater.is_file(), "Portable ZIP omitted the manual updater"
+        upgraded = Path(outside) / "Обновлённая Таверна"
+        old_exe_sha = hashlib.sha256((root / "Taverna.exe").read_bytes()).hexdigest()
+        upgrade = subprocess.run(
+            [
+                str(updater), "--source", str(root),
+                "--archive", str(archive.resolve()),
+                "--destination", str(upgraded),
+                "--sha256", hashlib.sha256(archive.read_bytes()).hexdigest(),
+            ],
+            cwd=root,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=180,
+        )
+        assert upgrade.returncode == 0, (
+            "Frozen manual updater failed before creating a valid independent copy"
+        )
+        assert (upgraded / "Taverna.exe").is_file()
+        assert (upgraded / "Taverna-PluginHost.exe").is_file()
+        assert (upgraded / "app/web/dist/index.html").is_file()
+        assert (upgraded / "data/config/store-manifest.json").is_file()
+        assert (root / "Taverna.exe").is_file()
+        assert hashlib.sha256((root / "Taverna.exe").read_bytes()).hexdigest() == old_exe_sha
+        assert list((root / "backups").glob("taverna-pre-update-*.zip"))
+        print("Taverna-Updater.exe PASS: checked SHA, new independent folder, source retained")
+
+
 if __name__ == "__main__":
     main()
