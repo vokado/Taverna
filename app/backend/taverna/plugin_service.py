@@ -5,15 +5,18 @@ from __future__ import annotations
 import asyncio
 import base64
 import copy
+import hashlib
 import json
 import math
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import UUID, uuid4
 
 from .core import AppError
 from .plugin_actions import PluginPlan, PluginRun
+from .plugin_command_worker import BRIDGE, pinned_executable
 from .plugin_compute import compute
 from .plugin_files import PluginFiles
 from .plugin_registry import CATALOG
@@ -28,6 +31,7 @@ class PluginService:
         self.files = PluginFiles(registry)
         self.store.register("plugin_plan", 1, PluginPlan.model_json_schema())
         queue.handlers["plugin_compute"] = self.run
+        queue.handlers["plugin_effect"] = self.execute_external
         queue.preemptible_kinds.add("plugin_compute")
 
     @staticmethod
@@ -247,7 +251,24 @@ class PluginService:
             raise AppError("plugin_output_limit", "План расширения больше256КиБ.", 413)
         await asyncio.to_thread(self.current, payload)
         rendered_tools = []
-        changes, write_guards = await asyncio.to_thread(self.plan_effects, row, plan, rendered_tools)
+        command_actions = [a for a in plan["actions"] if a["type"] == "command.exec"]
+        if command_actions:
+            # External effects are not transactional with JSON effects. This first
+            # broker contract requires one separately confirmed action per preview.
+            if len(command_actions) != 1 or len(plan["actions"]) != 1:
+                raise AppError(
+                    "plugin_external_mixed",
+                    "Внешнюю команду требуется подтвердить отдельным планом.", 422
+                )
+            command = command_actions[0]
+            await asyncio.to_thread(self.validate_external, row, command)
+            metadata["external_command"] = {
+                **command,
+                "fingerprint": hashlib.sha256(encoded(command)).hexdigest(),
+            }
+            changes, write_guards = [], {}
+        else:
+            changes, write_guards = await asyncio.to_thread(self.plan_effects, row, plan, rendered_tools)
         metadata["tool_previews"] = rendered_tools
         self.merge_guards(guards, write_guards)
         metadata["external_sources"] = [
@@ -281,6 +302,178 @@ class PluginService:
             self.store.transaction, [Mutation(self.proposal_key(preview["id"]), preview, 0)], guards=guards
         )
         return {"proposal_id": preview["id"], "status": "pending", "message": plan["message"]}
+
+    def validate_external(self, row, command):
+        self.permit(row, "commands.exec", command["executable"])
+        if not any(
+            grant["capability"] == "commands.exec"
+            and grant["full_access_warning_ack"]
+            and command["executable"] in grant["scopes"]
+            for grant in row["payload"]["grants"]
+        ):
+            raise AppError(
+                "plugin_trust_required", "Подтвердите полный доступ конкретной команды.", 403
+            )
+        # The command kernel verifies the pinned file ID and digest again at
+        # launch; this check is needed before publishing a trusted preview.
+        with pinned_executable(command["executable"], command["sha256"]):
+            pass
+
+    @staticmethod
+    def external_payload(preview):
+        command = preview["payload"].get("metadata", {}).get("external_command")
+        if not command:
+            raise AppError("plugin_command_missing", "У плана отсутствует внешняя команда.", 409)
+        return command
+
+    def external_job_key(self, preview_id):
+        return "plugin-effect/" + str(UUID(str(preview_id)))
+
+    async def approve_external(self, preview_id, body):
+        if not body.confirmed or not body.full_access_warning_ack:
+            raise AppError(
+                "confirmation_required", "Подтвердите необратимую внешнюю команду и её полный доступ.", 422
+            )
+        key = self.proposal_key(preview_id)
+        preview = await asyncio.to_thread(self.store.get, key)
+        if not preview or preview["kind"] != "plugin_preview":
+            raise AppError("plugin_preview_missing", "План расширения не найден.", 404)
+        command = self.external_payload(preview)
+        if command["fingerprint"] != body.fingerprint:
+            raise AppError("plugin_command_changed", "Команда отличается от подтверждённой.", 409)
+        if preview["payload"]["status"] == "rejected":
+            raise AppError("plugin_preview_used", "Отклонённый план нельзя запустить.", 409)
+        if preview["payload"]["status"] == "pending":
+            if preview["revision"] != body.expected_revision:
+                raise AppError("plugin_preview_conflict", "План изменился. Обновите просмотр.", 409)
+            row = await asyncio.to_thread(self.current, preview["payload"]["identity"])
+            await asyncio.to_thread(self.validate_external, row, command)
+        # Server-owned key: different client keys cannot replay the same preview.
+        return await self.queue.enqueue(
+            "plugin_effect",
+            {"preview_id": str(preview_id), "fingerprint": body.fingerprint},
+            priority=10,
+            idempotency_key=self.external_job_key(preview_id),
+            identity={"preview_id": str(preview_id), "fingerprint": body.fingerprint},
+            scope={"plugin_id": preview["payload"]["identity"]["plugin_id"]},
+        )
+
+    async def execute_external(self, payload, cancel, emit):
+        key = self.proposal_key(payload["preview_id"])
+        preview = await asyncio.to_thread(self.store.get, key)
+        if not preview or preview["kind"] != "plugin_preview":
+            raise AppError("plugin_preview_missing", "План расширения не найден.", 404)
+        body = preview["payload"]
+        command = self.external_payload(preview)
+        if body["status"] != "pending" or command["fingerprint"] != payload["fingerprint"]:
+            raise AppError("plugin_preview_used", "Команда уже обработана или изменена.", 409)
+        row = await asyncio.to_thread(self.current, body["identity"])
+        await asyncio.to_thread(self.validate_external, row, command)
+        if cancel.is_set():
+            raise AppError("plugin_cancelled", "Команда отменена до начала запуска.", 409)
+        # Resolve the durable queue job ID, so status and command identity can
+        # be reconciled after a crash without resubmitting the OS command.
+        idempotency = hashlib.sha256(self.external_job_key(payload["preview_id"]).encode()).hexdigest()
+        job_key = await asyncio.to_thread(self.store.get, "jobs/keys/" + idempotency + ".json")
+        if job_key is None:
+            raise AppError("plugin_job_missing", "Запись задачи отсутствует.", 503)
+        job_id = job_key["payload"]["job_id"]
+        body["status"] = "started"
+        body["external_job_id"] = job_id
+        await asyncio.to_thread(
+            self.store.transaction,
+            [Mutation(key, preview, preview["revision"])],
+            guards=body["guards"],
+            before_commit=lambda: self._before_command(cancel),
+        )
+        await emit("external_started", {"preview_id": preview["id"], "irreversible": True})
+        outcome = None
+        try:
+            request = {k: command[k] for k in ("executable", "sha256", "argv", "timeout_seconds")}
+            response = await compute(
+                BRIDGE,
+                request,
+                runtime="trusted_python",
+                trusted_full_access=True,
+                timeout=min(30, command["timeout_seconds"] + 6),
+                cancel=cancel,
+            )
+            outcome = response["result"]
+            status = "observed" if outcome.get("state") == "exited" else "unknown"
+            return_value = {"status": status, "preview_id": preview["id"], "outcome": outcome}
+        except BaseException:
+            # Failed/aborted/unknown host may already have performed the effect.
+            status = "unknown"
+            return_value = None
+            raise
+        finally:
+            # Store the observation regardless of changed grants. It describes
+            # an already-started external effect, not a fresh authorization.
+            def save():
+                current = self.store.get(key)
+                if current and current["payload"]["status"] == "started":
+                    current["payload"]["status"] = status
+                    current["payload"]["observed"] = outcome
+                    self.store.transaction([Mutation(key, current, current["revision"])])
+            await asyncio.shield(asyncio.to_thread(save))
+        return return_value
+
+    def recover_external(self):
+        """Turn interrupted started receipts into unknown; never re-run commands."""
+        rows, _ = self.store.scan("automations/plugin-previews/", tolerate_corrupt=True)
+        recovered = 0
+        for item in rows:
+            preview = item["value"]
+            if preview["payload"].get("status") != "started":
+                continue
+            job_id = preview["payload"].get("external_job_id")
+            job = self.store.get(self.queue.key(job_id)) if job_id else None
+            # Active jobs are never considered interrupted during an ordinary
+            # browser refresh; recovery runs only once at application startup.
+            if job and job["payload"]["state"] in ("queued", "running"):
+                continue
+            preview["payload"]["status"] = "unknown"
+            preview["payload"]["recovery_reason"] = "application_restarted"
+            self.store.transaction(
+                [Mutation(item["key"], preview, preview["revision"])]
+            )
+            recovered += 1
+        return recovered
+
+    def reconcile_external(self, preview_id, decision):
+        if not decision.confirmed:
+            raise AppError("confirmation_required", "Подтвердите ручную сверку результата.", 422)
+        key = self.proposal_key(preview_id)
+        preview = self.store.get(key)
+        if not preview or preview["kind"] != "plugin_preview":
+            raise AppError("plugin_preview_missing", "План расширения не найден.", 404)
+        self.external_payload(preview)
+        if preview["revision"] != decision.expected_revision:
+            raise AppError("plugin_preview_conflict", "Результат изменился. Обновите сведения.", 409)
+        if preview["payload"]["status"] not in ("unknown", "started"):
+            raise AppError("plugin_command_not_unknown", "Сверка разрешена только для неясного исхода.", 409)
+        job_id = preview["payload"].get("external_job_id")
+        job = self.store.get(self.queue.key(job_id)) if job_id else None
+        if job and job["payload"]["state"] in ("queued", "running"):
+            raise AppError(
+                "plugin_command_running",
+                "Нельзя сверять результат, пока исходная команда ещё выполняется.", 409
+            )
+        preview["payload"]["status"] = "reconciled"
+        preview["payload"]["reconciliation"] = {
+            "outcome": decision.outcome,
+            "reason": decision.reason,
+            "at": datetime.now(timezone.utc).isoformat(),
+            "by": "local_owner",
+            "manually_reported": True,
+        }
+        self.store.transaction([Mutation(key, preview, decision.expected_revision)])
+        return self.store.get(key)
+
+    @staticmethod
+    def _before_command(cancel):
+        if cancel.is_set():
+            raise AppError("plugin_cancelled", "Команда отменена до фиксации запуска.", 409)
 
     @staticmethod
     def merge_guards(target, more):
@@ -471,6 +664,8 @@ class PluginService:
         if p["status"] != "pending":
             raise AppError("plugin_preview_used", "План уже обработан.", 409)
         changes, guards = [], {}
+        if accept and p.get("metadata", {}).get("external_command"):
+            raise AppError("plugin_command_confirmation", "Внешняя команда требует отдельного подтверждения.", 409)
         if accept:
             self.current(p["identity"])
             guards = p["guards"]
