@@ -108,8 +108,36 @@ class NamesRun(NameRun):
     result_id: UUID
 
 
+
+class CommandExec(Strict):
+    """A concrete owner-approved OS command; never evaluated as a shell string."""
+
+    type: Literal["command.exec"]
+    executable: str = Field(min_length=1, max_length=4000)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    argv: list[str] = Field(default_factory=list, max_length=64)
+    timeout_seconds: float = Field(default=5, ge=0.1, le=20)
+
+    @model_validator(mode="after")
+    def valid_command(self):
+        from .plugin_command_worker import validate
+
+        try:
+            validate(
+                {
+                    "executable": self.executable,
+                    "sha256": self.sha256,
+                    "argv": self.argv,
+                    "timeout_seconds": self.timeout_seconds,
+                }
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Некорректная внешняя команда: абсолютный executable/argv/hash/deadline") from exc
+        return self
+
+
 PluginAction = Annotated[
-    OwnSet | OwnDelete | NoteSave | BookSave | TemplateRun | NamesRun,
+    OwnSet | OwnDelete | NoteSave | BookSave | TemplateRun | NamesRun | CommandExec,
     Field(discriminator="type"),
 ]
 
@@ -123,3 +151,12 @@ class PluginPlan(Strict):
 class PluginDecision(Strict):
     expected_revision: int = Field(ge=1)
     confirmed: bool = False
+
+class PluginCommandDecision(PluginDecision):
+    fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+    full_access_warning_ack: bool = False
+
+
+class PluginCommandReconcile(PluginDecision):
+    reason: str = Field(min_length=5, max_length=2000)
+    outcome: Literal["completed", "failed", "unknown"]
