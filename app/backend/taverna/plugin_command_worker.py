@@ -20,6 +20,8 @@ from pathlib import Path
 
 MAX_EXECUTABLE = 256 * 1024 * 1024
 MAX_OUTPUT = 32 * 1024
+# WinSDK Process Creation Flags; subprocess does not export CREATE_SUSPENDED.
+CREATE_SUSPENDED = 0x00000004
 BRIDGE = b"from taverna.plugin_command_worker import run\n"
 
 
@@ -137,8 +139,6 @@ def pinned_executable(name, expected_sha256):
                 kernel.CloseHandle(handle)
                 raise
             stream = stack.enter_context(os.fdopen(fd, "rb"))
-            # DOS drive mappings can change independently of directory locks.
-            # Bind CreateProcess to the opened file's stable local volume path.
             kernel.GetFinalPathNameByHandleW.argtypes = [
                 wintypes.HANDLE,
                 wintypes.LPWSTR,
@@ -146,11 +146,47 @@ def pinned_executable(name, expected_sha256):
                 wintypes.DWORD,
             ]
             kernel.GetFinalPathNameByHandleW.restype = wintypes.DWORD
-            final_name = ctypes.create_unicode_buffer(32768)
-            count = kernel.GetFinalPathNameByHandleW(handle, final_name, len(final_name), 1)
-            if not count or count >= len(final_name) or not final_name.value.startswith("\\\\?\\Volume{"):
-                raise OSError("Cannot pin local executable volume path")
-            launch_path = final_name.value
+
+            def final_name(flags):
+                buffer = ctypes.create_unicode_buffer(32768)
+                count = kernel.GetFinalPathNameByHandleW(handle, buffer, len(buffer), flags)
+                if not count or count >= len(buffer):
+                    raise OSError("Cannot identify opened executable")
+                return buffer.value
+
+            # CreateProcess rejects volume-GUID application names on the tested
+            # Windows runner. Use the normalized physical DOS name, create the
+            # process suspended and verify its native image name before resume.
+            launch_path = final_name(0)
+            if not re.match(r"^\\\\\?\\[A-Za-z]:\\", launch_path):
+                raise ValueError("Opened executable has no local DOS path")
+            launch_path = launch_path[4:]
+            expected_image = final_name(2)
+            # A SUBST root only locks the mapped directory, not its physical
+            # ancestors. Pin the native hierarchy independently of DOS mappings.
+            native_parts = expected_image.split("\\")
+            if len(native_parts) < 4 or native_parts[:2] != ["", "Device"]:
+                raise ValueError("Expected a local native volume image path")
+            native_root = "\\\\?\\GLOBALROOT\\" + "\\".join(native_parts[1:3]) + "\\"
+            native_parent = native_root
+            for component in ["", *native_parts[3:-1]]:
+                if component:
+                    native_parent += component + "\\"
+                parent_handle = open_handle(native_parent, True)
+                stack.callback(kernel.CloseHandle, parent_handle)
+            native_handle = open_handle(native_root + "\\".join(native_parts[3:]), False)
+            try:
+                native_fd = msvcrt.open_osfhandle(native_handle, os.O_RDONLY | os.O_BINARY)
+            except BaseException:
+                kernel.CloseHandle(native_handle)
+                raise
+            with os.fdopen(native_fd, "rb") as native_stream:
+                original = os.fstat(stream.fileno())
+                actual = os.fstat(native_stream.fileno())
+                if (original.st_dev, original.st_ino) != (actual.st_dev, actual.st_ino):
+                    raise ValueError("Native path no longer refers to the pinned image")
+            if final_name(2) != expected_image:
+                raise ValueError("Pinned image moved while its ancestors were checked")
         else:
             # Linux checks support source tests. They do not emulate Windows share
             # locks or promise protection against a concurrent in-place file writer.
@@ -159,6 +195,7 @@ def pinned_executable(name, expected_sha256):
             fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
             stream = stack.enter_context(os.fdopen(fd, "rb"))
             launch_path = f"/proc/self/fd/{stream.fileno()}"
+            expected_image = None
         before = os.fstat(stream.fileno())
         if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_EXECUTABLE:
             raise ValueError("Invalid executable type or size")
@@ -176,31 +213,122 @@ def pinned_executable(name, expected_sha256):
             before.st_ctime_ns,
         ) != (after.st_size, after.st_mtime_ns, after.st_ctime_ns):
             raise ValueError("Executable no longer matches approved hash")
-        yield stream, launch_path
+        yield stream, launch_path, expected_image
+
+
+def resume_verified(process, expected_image, deadline):
+    """Resume the sole initial thread only after kernel-reported image matches.
+
+    Parent and file share locks remain held by pinned_executable. Compare native
+    names exactly: case folding could authorize a different case-sensitive file.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.QueryFullProcessImageNameW.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        wintypes.LPWSTR,
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    kernel.QueryFullProcessImageNameW.restype = wintypes.BOOL
+    buffer = ctypes.create_unicode_buffer(32768)
+    size = wintypes.DWORD(len(buffer))
+    if not kernel.QueryFullProcessImageNameW(int(process._handle), 1, buffer, ctypes.byref(size)):
+        raise ctypes.WinError(ctypes.get_last_error())
+    if not expected_image or buffer.value != expected_image:
+        raise ValueError("Suspended image does not match pinned executable")
+
+    class ThreadEntry(ctypes.Structure):
+        _fields_ = [
+            ("size", wintypes.DWORD),
+            ("usage", wintypes.DWORD),
+            ("tid", wintypes.DWORD),
+            ("pid", wintypes.DWORD),
+            ("base_priority", wintypes.LONG),
+            ("delta_priority", wintypes.LONG),
+            ("flags", wintypes.DWORD),
+        ]
+
+    kernel.CreateToolhelp32Snapshot.argtypes = [wintypes.DWORD, wintypes.DWORD]
+    kernel.CreateToolhelp32Snapshot.restype = wintypes.HANDLE
+    kernel.Thread32First.argtypes = [wintypes.HANDLE, ctypes.POINTER(ThreadEntry)]
+    kernel.Thread32First.restype = wintypes.BOOL
+    kernel.Thread32Next.argtypes = [wintypes.HANDLE, ctypes.POINTER(ThreadEntry)]
+    kernel.Thread32Next.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    snapshot = kernel.CreateToolhelp32Snapshot(4, 0)
+    if snapshot == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    threads = []
+    try:
+        entry = ThreadEntry()
+        entry.size = ctypes.sizeof(entry)
+        if not kernel.Thread32First(snapshot, ctypes.byref(entry)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        while True:
+            if entry.pid == process.pid:
+                threads.append(entry.tid)
+            entry.size = ctypes.sizeof(entry)
+            if not kernel.Thread32Next(snapshot, ctypes.byref(entry)):
+                if ctypes.get_last_error() != 18:  # ERROR_NO_MORE_FILES
+                    raise ctypes.WinError(ctypes.get_last_error())
+                break
+    finally:
+        kernel.CloseHandle(snapshot)
+    if len(threads) != 1:
+        raise ValueError("Expected exactly one suspended initial thread")
+    kernel.OpenThread.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel.OpenThread.restype = wintypes.HANDLE
+    kernel.GetProcessIdOfThread.argtypes = [wintypes.HANDLE]
+    kernel.GetProcessIdOfThread.restype = wintypes.DWORD
+    kernel.ResumeThread.argtypes = [wintypes.HANDLE]
+    kernel.ResumeThread.restype = wintypes.DWORD
+    thread = kernel.OpenThread(0x42, False, threads[0])
+    if not thread:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        if kernel.GetProcessIdOfThread(thread) != process.pid:
+            raise ValueError("Initial thread owner changed")
+        if time.monotonic() >= deadline:
+            raise TimeoutError("Command deadline expired before initial thread resume")
+        if kernel.ResumeThread(thread) != 1:
+            raise ValueError("Initial thread suspension state changed")
+    finally:
+        kernel.CloseHandle(thread)
 
 
 def run(request):
     """Execute exactly the supplied vector. Nonzero/timeout never imply no effects."""
     validate(request)
-    with pinned_executable(request["executable"], request["sha256"]) as (stream, launch_path):
+    with pinned_executable(request["executable"], request["sha256"]) as (stream, launch_path, expected_image):
         flags = (
-            {"creationflags": subprocess.CREATE_NO_WINDOW}
+            {"creationflags": subprocess.CREATE_NO_WINDOW | CREATE_SUSPENDED}
             if os.name == "nt"
             else {"pass_fds": (stream.fileno(),)}
         )
+        deadline = time.monotonic() + request["timeout_seconds"]
         child = subprocess.Popen(
             [request["executable"], *request["argv"]],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             executable=launch_path,
-            # CreateProcess does not accept a volume-GUID current directory.
-            # Keep the executable pinned by GUID, but inherit the managed host's
-            # working directory on Windows. No guest-controlled cwd is accepted.
+            # No guest-controlled working directory is accepted.
             cwd=None if os.name == "nt" else Path(request["executable"]).parent,
             shell=False,
             **flags,
         )
+        if os.name == "nt":
+            try:
+                resume_verified(child, expected_image, deadline)
+            except BaseException:
+                child.kill()
+                child.wait(timeout=1)
+                child.stdout.close()
+                child.stderr.close()
+                raise
         overflow = threading.Event()
         read_error = threading.Event()
         buffers = {"stdout": bytearray(), "stderr": bytearray()}
@@ -223,7 +351,6 @@ def run(request):
         ]
         for reader in readers:
             reader.start()
-        deadline = time.monotonic() + request["timeout_seconds"]
         state = "exited"
         try:
             while child.poll() is None or any(reader.is_alive() for reader in readers):

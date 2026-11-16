@@ -70,7 +70,7 @@ async def test_real_command_timeout_retains_partial_bytes_without_claiming_no_ef
     marker = tmp_path / "effect-before-timeout"
     body = command(
         f'import os,time;from pathlib import Path;Path({str(marker)!r}).write_text("effect");os.write(1,b"started");time.sleep(60)',
-        timeout=0.5,
+        timeout=2,
     )
     result = await execute(body)
     assert result["state"] == "timeout" and marker.read_text() == "effect"
@@ -270,7 +270,7 @@ def test_windows_command_cannot_be_redirected_by_remapping_drive_after_pin(tmp_p
             mapped = False
             assert kernel.DefineDosDeviceW(8, drive, str(replacement))
             mapped = True
-            assert kwargs["executable"].startswith("\\\\?\\Volume{")
+            assert Path(kwargs["executable"]).resolve().is_relative_to(original.resolve())
             return popen(*args, **kwargs)
 
         monkeypatch.setattr(worker.subprocess, "Popen", remap_then_spawn)
@@ -279,3 +279,44 @@ def test_windows_command_cannot_be_redirected_by_remapping_drive_after_pin(tmp_p
     finally:
         if mapped:
             assert kernel.DefineDosDeviceW(2 | 8, drive, None), "Remove test drive mapping"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Requires Windows suspended-image verification")
+def test_windows_different_image_is_killed_before_initial_thread_resume(tmp_path, monkeypatch):
+    from taverna import plugin_command_worker as worker
+
+    marker = tmp_path / "not-executed"
+    body = command(f'from pathlib import Path;Path({str(marker)!r}).write_text("bad")')
+    popen = worker.subprocess.Popen
+    processes = []
+
+    def hijack(*args, **kwargs):
+        assert kwargs["creationflags"] & worker.CREATE_SUSPENDED
+        kwargs["executable"] = str(Path(os.environ["SystemRoot"]) / "System32" / "whoami.exe")
+        process = popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    monkeypatch.setattr(worker.subprocess, "Popen", hijack)
+    with pytest.raises(ValueError, match="Suspended image does not match"):
+        worker.run(body)
+    assert len(processes) == 1 and processes[0].poll() is not None
+    assert not marker.exists()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Requires native Windows executable paths")
+@pytest.mark.asyncio
+async def test_windows_command_path_with_cyrillic_and_spaces(tmp_path):
+    folder = tmp_path / "Папка с пробелами"
+    folder.mkdir()
+    path = folder / "Проверка.exe"
+    shutil.copyfile(Path(os.environ["SystemRoot"]) / "System32" / "whoami.exe", path)
+    body = {
+        "executable": str(path),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "argv": [],
+        "timeout_seconds": 3,
+    }
+    result = await execute(body)
+    assert result["state"] == "exited" and result["return_code"] == 0
+    assert result["stdout_base64"]  # Account output is not printed.

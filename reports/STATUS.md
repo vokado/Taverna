@@ -2,7 +2,7 @@
 
 Допуск на 01–16: получен 2026-11-15. D-01–15: APPROVED.
 
-Независимая ревизия: I/O/index/fork/journal исправлены и измерены до/после. CI43832734245/66c0569,43833545176/9972ad5 и43836775699/9722ffb Ubuntu/Windows/frozen SUCCESS; последний377 backend/20 browser. Шаблоны/генераторы tools.run подтверждены native. Command kernel native6d2e57e FAIL391/6 (CreateProcess WinError87); исправление cwd и повтор выполняются. Command API/ledger ещё не подключён. Релиз1.0 не принят; обязательные14–16 остаются в работе.
+Независимая ревизия: I/O/index/fork/journal исправлены и измерены до/после. CI43832734245/66c0569,43833545176/9972ad5 и43836775699/9722ffb Ubuntu/Windows/frozen SUCCESS; последний377 backend/20 browser. Шаблоны/генераторы tools.run подтверждены native. Command kernel native6d2e57e FAIL391/6 (CreateProcess WinError87); cwd hypothesis rejected, suspended-image trial и повтор выполняются. Command API/ledger ещё не подключён. Релиз1.0 не принят; обязательные14–16 остаются в работе.
 
 | Этап | Реализация / проверки |
 |---|---|
@@ -19,7 +19,7 @@
 | 11 | RPG7 modules/API/UI/drafts/replay/ZIP реализованы;159 backend и10 browser Linux PASS,Ruff/build PASS;CI43740639796/2ab1475 Ubuntu/Windows/frozen SUCCESS,целевая среда BLOCKED |
 | 12 | Библиотека/слои/варианты/аудио/drafts/ZIP и Comfy image adapter/lease/cancel реализованы;190 backend/12 browser Linux PASS;CI43750969808/e67c4cd Ubuntu/Windows/frozen SUCCESS; окончательный выбор движка/RTX5070/LM Studio BLOCKED |
 | 13 | Рукописи/AI previews/4формата экспорта/materials/tools реализованы; после исправлений CI43777643165/9c4a672 Ubuntu/Windows/frozen SUCCESS,221 backend/16 browser; target/live AI BLOCKED |
-| 14 | IN_PROGRESS: manager/grants/WASM/trusted host/shared queue/atomic plans, selected external reads, tools.run templates/names. CI9722ffb SUCCESS377/20/frozen. Command kernel native trial391 PASS/6 FAIL, cwd fix и повтор выполняются. External command API/ledger, write/network/rules/scheduler ещё не завершены |
+| 14 | IN_PROGRESS: manager/grants/WASM/trusted host/shared queue/atomic plans, selected external reads, tools.run templates/names. CI9722ffb SUCCESS377/20/frozen. Command kernel native trial391 PASS/6 FAIL, suspended-image trial и повтор выполняются. External command API/ledger, write/network/rules/scheduler ещё не завершены |
 | 15 | Полная упаковка/backup/manual update/documentation NOT_STARTED; базовый Windows portable pipeline с01 уже действует |
 | 16 | Финальная приёмка NOT_STARTED; обязательные hardware/clean Windows11/live LM Studio критерии BLOCKED |
 

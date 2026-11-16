@@ -1,0 +1,22 @@
+{
+  "base_commit": "d6d1fa4b96c3e9a01a748b24ab04224a41e3912e",
+  "source_sha256": {
+    "app/backend/taverna/plugin_command_worker.py": "f0b76b8d393d5894d3111920121b32dd89eb400691bfa0c49acfecdbf3084f58",
+    "tests/test_plugin_command_worker.py": "e5db6a2e8d04137473d07fa070967e7ea1e2831ac1f7569f2c95ddec5ee60bfc",
+    ".github/workflows/checks.yml": "cbbb874ac0edcf297575a14352a04392e9fa00843e57f753bd174884ebb51093",
+    "packaging/build_windows.ps1": "2e1c07d264db8cfb187cf4793c90d160df067bd87feec1471a3e08da59bcbdfd",
+    "packaging/smoke_frozen.py": "ad78939893a60da8598a7d9d1a826a12de0f4d67512db2701b7aa5d7f486e7b2"
+  },
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "backend": {
+    "result": "PASS",
+    "passed": 388,
+    "skipped_windows_only": 11,
+    "seconds": 101.98,
+    "command": ".venv/bin/pytest -q"
+  },
+  "ruff": "PASS",
+  "native_trial": "NOT_RUN; next CI required",
+  "owner_command_api_and_ledger": "NOT_IMPLEMENTED"
+}

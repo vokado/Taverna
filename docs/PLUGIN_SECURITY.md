@@ -75,3 +75,9 @@ Kernel принимает абсолютный executable/SHA256, bounded argv �
 Подробный контракт следующего подключения внешних эффектов: [PLUGIN_EXTERNAL_EFFECTS.md](PLUGIN_EXTERNAL_EFFECTS.md), статус DESIGN/NOT_IMPLEMENTED. Он не объявляет новый API выполненным и не заменяет обязательные испытания.
 
 Native command trial6d2e57e обнаружил WinError87 на CreateProcess с volume-GUID cwd; исправление сохраняет pinned image и наследует Windows cwd от managed host, не принимает cwd от гостя. Native повтор ожидается. Подробности/FAIL evidence: reports/stage-14-progress.md. Это не обещание sandbox для executable или его dependencies.
+
+#### Уточнение по реальным native отказам
+
+Оба6d2e57e иd6d1fa4 завершились391 PASS/6 FAIL: изменение cwd не помогло, прямой GUID application-name отвергается CreateProcess (WinError87). Эта гипотеза отклонена; описания GUID trial выше не являются текущей подтверждённой гарантией.
+
+Следующий trial в том же kernel использует normalized physical DOS image path с CREATE_SUSPENDED. До ResumeThread сервер сравнивает QueryFullProcessImageNameW(PROCESS_NAME_NATIVE) с native именем открытого проверенного файла точно, без case folding (важно для case-sensitive каталогов). Логические и физические native родители/файл остаются открыты с deny-delete/write; physical native путь дополнительно переоткрывается и сверяется по file identity. Это защищает SUBST/remapping и перенос native ancestors между проверкой и запуском. Любое несовпадение/ошибка/неожиданное число начальных threads/истёкший срок прекращает suspended процесс. Возобновляется только единственный начальный thread с проверенным owner PID и suspend count1. Это не sandbox остальных зависимостей/поведения полного OS executable. Native trial ещё требуется; до него API/ledger не подключается и готовность команды не объявляется.

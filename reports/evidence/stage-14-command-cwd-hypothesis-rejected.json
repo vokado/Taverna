@@ -1,0 +1,13 @@
+{
+  "commit": "d6d1fa4",
+  "run_id": 43861359462,
+  "windows_job_id": 133278717316,
+  "result": "FAIL",
+  "backend_passed": 391,
+  "backend_failed": 6,
+  "seconds": 296.04,
+  "browser_and_frozen": "NOT_RUN due to backend gate",
+  "direct_error": "WinError87 at CreateProcess; executable remains volume GUID, cwd is None",
+  "conclusion": "Removing GUID cwd did not resolve the failure; direct GUID application-name approach rejected on tested Windows runner",
+  "replacement_trial": "Normalized physical DOS path plus CREATE_SUSPENDED and exact native image verification before resuming the sole initial thread"
+}
