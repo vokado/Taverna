@@ -1,0 +1,21 @@
+# Контракт этапа14 — расширения и автоматизация
+
+2026-11-16. PLG-001–005/AUTO-001–005/SEC-006–007, части TOOLS/STOR/BACK. Допуск01–16/D-04/07/09/13 действует. Контрольная точка13:219 backend/15browser Linux PASS, новая Windows CI ожидается. Статус14 IN_PROGRESS; контракт и технические пробы не являются готовым plugin manager.
+
+## Исполнение и границы
+
+Выбран для технического испытания Wasmtime50.0.1 (Apache-2.0 WITH LLVM-exception, wheel WindowsAMD64 существует). Недоверенный исполняемый модуль — WebAssembly без WASI и любых imports, отдельный worker, JSON input/output; никакие каталоги, сеть, системные команды или Python не предоставляются гостю. Экспорты ABI v1: memory, alloc(i32)->i32, run(i32,i32)->i64; результат упакован как pointer<<32|byte_length. Ограничиваются исходный модуль, число функций, linear memory/таблицы/stack/fuel, вход/выход и wall deadline. Это не обещание защиты от неизвестного дефекта самого runtime/ОС. Точные испытанные ограничения/версии ведутся вместе с кодом; Linux не подтверждает Windows frozen worker.
+
+Функция возвращает план типизированных действий, не получает прямого storage/OS API. Broker повторно проверяет manifest/grants/code hash/epoch перед чтением и эффектом. Отдельные capabilities: данные приложения/собственная область, разрешённые каталоги чтение/запись, network, tools, commands; scopes/отзыв не смешиваются. Доступ к внешним каталогам и командам требует отдельного разрешения/предпросмотра. Внешняя команда сама исполняется с правами пользователя: это повышение доверия за пределы WASM и требует явного предупреждения/подтверждения точного executable/argv, без обещания ограничить её остальными guest grants. Прямые LM Studio lifecycle операции запрещены, моделью управляет владелец.
+
+Доверенный Python — отдельный процесс с явным предупреждением о полном доступе к файлам, сети, командам и данным пользователя. Manifest scopes не являются ОС-песочницей для Python; отзыв останавливает управляемый host и запрещает новые запуски, не отменяет уже выполненные действия/созданные потомки. Доверие привязано к конкретному checksum и сбрасывается при обновлении. Недоверенный Python не исполняется. Никакой автоматической загрузки dependencies/code из сети или pip install.
+
+Менеджер: bounded ZIP + versioned manifest UUID/version/API compatibility/dependencies/requested capabilities; import preview без исполнения, enable/disable/delete с подтверждением, независимые grants/revoke, dependency/cycle checks. Включение не означает запуск. Shared JSON registry/catalog CAS защищает межплагинные зависимости и конкурентное изменение прав. Restore не включает плагины автоматически.
+
+## Эффекты и автоматизация
+
+Одна JobQueue/EventBus, JSON ledger/outbox/receipts. Модель/модуль предлагает действия; backend валидирует, показывает preview, применяет разрешённое. Внутренний эффект и receipt атомарны; внешний эффект отмечается started до выполнения и при неизвестном исходе требует reconciliation, не слепого replay. Отключение/отзыв во время задачи проверяется до эффекта и публикации; результат старой ревизии/ветви не переносится автоматически.
+
+Правило имеет trigger/condition/action/limits/state/history/disable. Визуальные macros/templates запускают те же проверенные действия. Планировщик подаёт работы в общую очередь, ограничивает частоту/число/цепочку, имеет явную catch-up политику и стабильный event ID. Обслуживание памяти/сводок/индекса использует настоящие существующие обработчики; backup интегрируется с15, не имитируется успешной заглушкой. Не обещать exactly-once произвольной команды. Все обязательные функции остаются в объёме; незавершённая интеграция помечается явно.
+
+Проверки: hostile ZIP/manifest/versions/dependencies, unknown/WASI imports, memory/fuel/timeout/stack/oversize/trap/bad ABI, настоящий subprocess crash и bounded pipes, отсутствие вызовов OS/network из WASM, isolated native worker Windows, trust warning/hash invalidation/revoke race, scope/path/reparse/network/command checks, receipt/idempotency/crash/restart/unknown external outcome, cyclic rules/catch-up/durable event feed/maintenance. Проверки против реальной ОС/движков не подменяются fixtures. До пройденных испытаний соответствующие критерии IMPLEMENTED_UNVERIFIED/NOT_RUN/BLOCKED, не VERIFIED.

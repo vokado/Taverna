@@ -1,5 +1,6 @@
 """Native Windows smoke of the actual packaged EXEs after relocation, without Python on PATH."""
 
+import base64
 import json
 import os
 import subprocess
@@ -119,6 +120,37 @@ def main():
                             and exported.content
                             and "attachment" in exported.headers["content-disposition"]
                         )
+                    import wasmtime
+
+                    for wat, success in [
+                        (
+                            '(module (memory (export "memory") 1) (data (i32.const 0) "{\\22actions\\22:[]}") (func (export "alloc") (param i32) (result i32) i32.const 4096) (func (export "run") (param i32 i32) (result i64) i64.const 14))',
+                            True,
+                        ),
+                        ('(module (import "wasi_snapshot_preview1" "fd_write" (func)))', False),
+                    ]:
+                        envelope = {
+                            "runtime": "wasm",
+                            "code": base64.b64encode(wasmtime.wat2wasm(wat)).decode(),
+                            "input": {},
+                            "fuel": 10000,
+                        }
+                        host = subprocess.run(
+                            [str(root / "Taverna-PluginHost.exe")],
+                            input=json.dumps(envelope).encode(),
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=root,
+                            env=env,
+                            timeout=30,
+                            check=True,
+                        )
+                        result = json.loads(host.stdout)
+                        assert result["ok"] is success, result
+                        if success:
+                            assert result["result"] == {"actions": []}
+                        else:
+                            assert result["code"] == "plugin_import_denied"
                     assert not list(root.rglob("*.sqlite*"))
                     assert client.get(base + "/api/v1/diagnostics/storage").json()["ok"]
                     assert (
@@ -132,7 +164,7 @@ def main():
                     assert not info.exists()
                 print(
                     executable,
-                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/shutdown",
+                    "PASS: relocated portable, restricted PATH, HTTP/session/storage/media/documents/book exports/isolated WASM host/shutdown",
                 )
             finally:
                 if process.poll() is None:
