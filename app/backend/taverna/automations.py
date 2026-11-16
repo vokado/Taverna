@@ -11,7 +11,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Literal
-from uuid import UUID, uuid4, uuid5, NAMESPACE_URL
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from fastapi import APIRouter, Header
 from pydantic import Field, JsonValue, model_validator
