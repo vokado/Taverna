@@ -7,7 +7,6 @@ from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import pytest
-
 from taverna.core import AppError
 from taverna.full_backup import (
     create_full_backup,
