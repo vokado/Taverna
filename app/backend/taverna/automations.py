@@ -114,6 +114,8 @@ class AutomationService:
     def create(self, body: RuleInput):
         if not body.confirmed:
             raise AppError("confirmation_required", "Подтвердите создание правила.", 422)
+        if len(self.list()["items"]) >= 128:
+            raise AppError("automation_limit", "Достигнут предел в 128 правил.", 409)
         pid = str(body.plugin_id)
         row = self.registry.get(pid)
         if not row["payload"]["enabled"]:
@@ -246,6 +248,13 @@ class AutomationService:
         if p["state"] != "reserved":
             return event
         rule = self.get(p["rule_id"])
+        if not rule["payload"]["enabled"]:
+            p["state"] = "failed"
+            p["error_code"] = "automation_disabled"
+            self.store.transaction(
+                [Mutation(self.event_key(rule["id"], event["id"]), event, event["revision"])]
+            )
+            return self.store.get(self.event_key(rule["id"], event["id"]))
         identity = rule["payload"]["identity"]
         body = PluginRun(
             **identity,
