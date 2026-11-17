@@ -150,7 +150,7 @@ def main(argv=None) -> int:
             message = str(exc) if isinstance(exc, AppError) else "Восстановление не выполнено."
             if cli_restore:
                 if sys.stderr is not None:
-                    print(message, file=sys.stderr)
+                    print(message.encode("ascii", "backslashreplace").decode("ascii"), file=sys.stderr)
             else:
                 from tkinter import messagebox
 
@@ -158,7 +158,7 @@ def main(argv=None) -> int:
             return 1
         if cli_restore:
             if sys.stdout is not None:
-                print(json.dumps({"restored_to": str(output)}, ensure_ascii=False))
+                print(json.dumps({"restored_to": str(output)}, ensure_ascii=True))
         else:
             from tkinter import messagebox
 
@@ -199,7 +199,7 @@ def main(argv=None) -> int:
         return 1
     if cli:
         if sys.stdout is not None:
-            print(json.dumps(outcome, ensure_ascii=False))
+            print(json.dumps(outcome, ensure_ascii=True))
     else:
         from tkinter import messagebox
 
