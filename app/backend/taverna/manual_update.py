@@ -192,6 +192,8 @@ def prepare_update(
         raise _update_error("update_source", "Не найдена запущенная ранее портативная установка.")
     if not archive_path.is_file():
         raise _update_error("update_archive_missing", "Новый ZIP отсутствует.")
+    if expected_sha256 is not None:
+        expected_sha256 = expected_sha256.strip().lower()
     if expected_sha256 is not None and (
         len(expected_sha256) != 64
         or any(c not in "0123456789abcdef" for c in expected_sha256)
