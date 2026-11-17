@@ -51,7 +51,7 @@ _RESERVED_WIN = {
 
 def _archive_parts(name: str) -> list[str]:
     """Windows-compatible ZIP filename policy, allowing spaces in licenses."""
-    if not name or "\\\\" in name or name.startswith("/"):
+    if not name or chr(92) in name or name.startswith("/"):
         raise _update_error("update_archive_unsafe", "Недопустимый путь в архиве.")
     parts = name.split("/")
     for part in parts:
