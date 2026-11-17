@@ -178,7 +178,15 @@ def main(argv=None) -> int:
     if chosen is None:
         return 0
     try:
-        outcome = prepare_update(*chosen[:3], expected_sha256=chosen[3])
+        def report_phase(phase: str):
+            if cli and sys.stderr is not None:
+                print("UPDATER_PHASE:", phase, file=sys.stderr, flush=True)
+
+        outcome = prepare_update(
+            *chosen[:3],
+            expected_sha256=chosen[3],
+            progress=report_phase,
+        )
     except (AppError, OSError, ValueError) as exc:
         message = str(exc) if isinstance(exc, AppError) else "Обновление не выполнено."
         if cli:
