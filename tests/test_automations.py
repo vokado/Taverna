@@ -9,11 +9,12 @@ import pytest
 from taverna.automations import RuleInput, RuleToggle
 from taverna.core import AppError, Config
 from taverna.main import create_app
+from taverna.storage import JsonStore
 from test_plugin_packages import package
 from test_plugin_registry import configure, install
 
 
-def setup(tmp_path, *, trigger="interval", max_runs=2):
+def setup(tmp_path, *, trigger="interval", max_runs=2, conditions=None):
     app = create_app(Config(tmp_path))
     p = {
         "format": 1,
@@ -27,7 +28,8 @@ def setup(tmp_path, *, trigger="interval", max_runs=2):
             "runtime": "declarative",
             "entry": "main.json",
             "requests": [
-                {"capability": "own.write", "reason": "Точная запись", "scopes": ["memo"]}
+                {"capability": "own.write", "reason": "Точная запись", "scopes": ["memo"]},
+                {"capability": "own.read", "reason": "Проверка ревизии", "scopes": ["memo"]},
             ],
         },
         json.dumps(p, ensure_ascii=False).encode("utf-8"),
@@ -36,7 +38,10 @@ def setup(tmp_path, *, trigger="interval", max_runs=2):
     row = configure(
         app.state.plugin_registry,
         row,
-        grants=[{"capability": "own.write", "scopes": ["memo"]}],
+        grants=[
+            {"capability": "own.write", "scopes": ["memo"]},
+            {"capability": "own.read", "scopes": ["memo"]},
+        ],
     )
     body = RuleInput(
         name="План по расписанию",
@@ -44,6 +49,7 @@ def setup(tmp_path, *, trigger="interval", max_runs=2):
         trigger=trigger,
         interval_minutes=15 if trigger == "interval" else None,
         max_runs=max_runs,
+        conditions=conditions or [],
         confirmed=True,
     )
     rule = app.state.automations.create(body)
@@ -185,3 +191,63 @@ def test_trusted_python_never_registered_as_background_automation(tmp_path):
             RuleInput(name="Небезопасный макрос", plugin_id=UUID(row["id"]), confirmed=True)
         )
     assert app.state.automations.list()["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_rule_precondition_requires_matching_approved_plugin_own_revision(tmp_path):
+    condition = {"type": "own.revision", "target": "memo", "expected_revision": 0}
+    app, plugin, rule = setup(tmp_path, trigger="manual", conditions=[condition])
+    svc = app.state.automations
+    try:
+        # Revision 0 means absent record, not raw content inspection.
+        event = await svc.fire(rule["id"], confirmed=True, token="first")
+        job = await finished(app, event)
+        assert job["payload"]["state"] == "completed"
+        preview = app.state.store.get(
+            app.state.plugins.proposal_key(job["payload"]["result"]["proposal_id"])
+        )
+        app.state.plugins.decide(preview["id"], preview["revision"], True)
+        own = app.state.store.get(app.state.plugins.own_key(plugin["id"], "memo"))
+        assert own["revision"] == 1
+
+        # Conditions are checked before reserving any new event or quota.
+        with pytest.raises(AppError, match="условиям"):
+            await svc.fire(rule["id"], confirmed=True, token="second")
+        assert svc.get(rule["id"])["payload"]["runs_started"] == 1
+        assert len(svc.history(rule["id"])["items"]) == 1
+        assert JsonStore(tmp_path).integrity()["ok"]
+    finally:
+        await app.state.generation.queue.close()
+
+
+@pytest.mark.asyncio
+async def test_interval_rule_skips_unmet_precondition_without_spending_quota(tmp_path):
+    condition = {"type": "own.revision", "target": "memo", "expected_revision": 1}
+    app, plugin, rule = setup(tmp_path, conditions=[condition])
+    svc = app.state.automations
+    due = datetime.fromisoformat(rule["payload"]["next_due_at"]) + timedelta(minutes=1)
+    try:
+        await svc.tick(due)
+        assert not svc.history(rule["id"])["items"]
+        assert svc.get(rule["id"])["payload"]["runs_started"] == 0
+        assert app.state.store.get(app.state.plugins.own_key(plugin["id"], "memo")) is None
+    finally:
+        await app.state.generation.queue.close()
+
+
+def test_rule_rejects_own_revision_condition_without_matching_grant(tmp_path):
+    app, plugin, rule = setup(tmp_path, trigger="manual")
+    app.state.plugin_registry.configure(
+        plugin["id"], plugin["revision"],
+        app.state.plugin_registry.list()["catalog_revision"],
+        True, [{"capability": "own.write", "scopes": ["memo"]}], False,
+        plugin["payload"]["package_sha256"], True,
+    )
+    with pytest.raises(AppError):
+        app.state.automations.create(
+            RuleInput(
+                name="Отказано", plugin_id=UUID(plugin["id"]),
+                conditions=[{"target": "memo", "expected_revision": 0}],
+                confirmed=True,
+            )
+        )
