@@ -16,11 +16,7 @@ New-Item dist/Taverna/app/web -ItemType Directory -Force | Out-Null
 Copy-Item app/web/dist dist/Taverna/app/web/ -Recurse -Force
 Copy-Item README.md dist/Taverna/
 New-Item dist/Taverna/docs -ItemType Directory -Force | Out-Null
-Copy-Item docs/ARCHITECTURE.md dist/Taverna/docs/
-Copy-Item docs/MANUAL_UPDATE.md dist/Taverna/docs/
-Copy-Item docs/MEDIA_AND_IMAGES.md dist/Taverna/docs/
-Copy-Item docs/LITERARY_EDITOR.md dist/Taverna/docs/
-Copy-Item docs/PLUGIN_SECURITY.md dist/Taverna/docs/
+Copy-Item docs/*.md dist/Taverna/docs/ -Force
 Copy-Item docs/testing dist/Taverna/docs/ -Recurse -Force
 python scripts/collect_licenses.py
 if ($LASTEXITCODE -ne 0) { throw 'Неполный комплект лицензий' }
