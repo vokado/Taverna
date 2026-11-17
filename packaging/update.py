@@ -116,6 +116,14 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     restore = args.restore or bool(args.restore_archive or args.restore_destination)
+    cli_update_any = any((args.source, args.archive, args.destination, args.sha256))
+    cli_restore_any = any((args.restore_archive, args.restore_destination))
+    if restore and cli_update_any:
+        parser.error("Нельзя объединять обновление и восстановление в одном запуске.")
+    if not restore and cli_update_any and not all((args.source, args.archive, args.destination)):
+        parser.error("Укажите одновременно --source, --archive и --destination.")
+    if restore and cli_restore_any and not all((args.restore_archive, args.restore_destination)):
+        parser.error("Для восстановления укажите оба пути: --restore-archive и --restore-destination.")
     if not any((args.source, args.archive, args.destination, args.restore_archive, args.restore_destination)):
         import tkinter as tk
         from tkinter import messagebox
