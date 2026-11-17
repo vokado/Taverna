@@ -690,8 +690,14 @@ class PluginService:
         if p["status"] != "pending":
             raise AppError("plugin_preview_used", "План уже обработан.", 409)
         changes, guards = [], {}
-        if accept and p.get("metadata", {}).get("external_command"):
-            raise AppError("plugin_command_confirmation", "Внешняя команда требует отдельного подтверждения.", 409)
+        if accept and (
+            p.get("metadata", {}).get("external_command")
+            or p.get("metadata", {}).get("external_network")
+        ):
+            raise AppError(
+                "plugin_external_confirmation",
+                "Внешнее действие требует отдельного подтверждения.", 409
+            )
         if accept:
             self.current(p["identity"])
             guards = p["guards"]
