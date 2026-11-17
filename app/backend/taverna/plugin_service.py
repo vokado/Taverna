@@ -349,7 +349,7 @@ class PluginService:
     def external_job_key(self, preview_id):
         return "plugin-effect/" + str(UUID(str(preview_id)))
 
-    async def approve_external(self, preview_id, body):
+    async def approve_external(self, preview_id, body, action_type="command.exec"):
         if not body.confirmed or not body.full_access_warning_ack:
             raise AppError(
                 "confirmation_required", "Подтвердите внешнее действие и риск необратимых последствий.", 422
@@ -359,6 +359,8 @@ class PluginService:
         if not preview or preview["kind"] != "plugin_preview":
             raise AppError("plugin_preview_missing", "План расширения не найден.", 404)
         command = self.external_payload(preview)
+        if command["type"] != action_type:
+            raise AppError("plugin_external_type", "Для этого действия выбрана неправильная операция подтверждения.", 409)
         if command["fingerprint"] != body.fingerprint:
             raise AppError("plugin_command_changed", "Внешнее действие отличается от подтверждённого.", 409)
         if preview["payload"]["status"] == "rejected":
