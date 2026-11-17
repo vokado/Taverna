@@ -70,7 +70,7 @@ def test_update_creates_new_complete_copy_and_preserves_old_install(tmp_path):
     zip_path = write_zip(tmp_path)
     good_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     new = tmp_path / "new"
-    result = prepare_update(old, zip_path, new, expected_sha256=good_sha)
+    result = prepare_update(old, zip_path, new, expected_sha256="  " + good_sha.upper() + "  ")
     assert result["old_install_preserved"] and result["destination"] == str(new)
     assert (old / "Taverna.exe").read_bytes() == b"old program"
     assert (new / "Taverna.exe").read_bytes() == b"new program or web page"
