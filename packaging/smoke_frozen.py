@@ -527,8 +527,25 @@ def main():
         assert (upgraded / "data/config/store-manifest.json").is_file()
         assert (root / "Taverna.exe").is_file()
         assert hashlib.sha256((root / "Taverna.exe").read_bytes()).hexdigest() == old_exe_sha
-        assert list((root / "backups").glob("taverna-pre-update-*.zip"))
-        print("Taverna-Updater.exe PASS: checked SHA, new independent folder, source retained")
+        preserved_backups = list((root / "backups").glob("taverna-pre-update-*.zip"))
+        assert preserved_backups
+        restored = Path(outside) / "Восстановленные данные"
+        recovery = subprocess.run(
+            [
+                str(updater),
+                "--restore-archive", str(preserved_backups[0]),
+                "--restore-destination", str(restored),
+            ],
+            cwd=root,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=120,
+        )
+        assert recovery.returncode == 0, "Frozen updater recovery mode failed"
+        assert (restored / "data/config/store-manifest.json").is_file()
+        assert (root / "data/config/store-manifest.json").is_file()
+        print("Taverna-Updater.exe PASS: new-folder upgrade and non-destructive recovery")
 
 
 if __name__ == "__main__":
