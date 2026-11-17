@@ -142,8 +142,11 @@ def prepare_update(
     destination_root: Path,
     *,
     expected_sha256: str | None = None,
+    progress=None,
 ) -> dict:
     """Create an independent verified installation without modifying the old one."""
+    step = progress or (lambda message: None)
+    step("start")
     if Path(source_root).is_symlink() or Path(destination_root).is_symlink():
         raise _update_error("update_destination", "Не используйте ссылки для каталогов установки.")
     if Path(new_archive).is_symlink():
@@ -183,9 +186,11 @@ def prepare_update(
             actual_sha = hashed.hexdigest()
             if expected_sha256 is not None and actual_sha != expected_sha256:
                 raise _update_error("update_checksum", "Контрольная сумма ZIP не совпадает.")
+            step("checksum verified")
             bundle_file.seek(0)
             with ZipFile(bundle_file) as bundle:
                 entries = _safe_entries(bundle)
+                step("ZIP entries verified")
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 staging = Path(
                     tempfile.mkdtemp(
@@ -199,8 +204,10 @@ def prepare_update(
                     lock_path = source / "data/server.lock"
                     try:
                         with portalocker.Lock(lock_path, timeout=0):
+                            step("launcher lock acquired")
                             store = JsonStore(source)
                             backup = create_full_backup(store, reason="pre-update")
+                            step("full backup written")
                             for info, clean in entries:
                                 output = staging.joinpath(*_archive_parts(clean))
                                 if info.is_dir():
@@ -210,8 +217,11 @@ def prepare_update(
                                 with bundle.open(info) as reader, output.open("xb") as writer:
                                     while chunk := reader.read(1024 * 1024):
                                         writer.write(chunk)
+                            step("new code extracted")
                             _copy_user_tree(source, staging)
+                            step("user data copied")
                             generation = _verify_directory(staging)
+                            step("copied JSON verified")
                             (staging / "upgrade-record.json").write_text(
                                 json.dumps(
                                     {
@@ -233,6 +243,7 @@ def prepare_update(
                                     "Каталог назначения появился во время обновления.",
                                 )
                             os.replace(staging, destination)
+                            step("new installation published")
                     except portalocker.exceptions.LockException as exc:
                         raise _update_error(
                             "update_running",
