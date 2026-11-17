@@ -30,8 +30,11 @@ test("Медиа: импорт, теги, сцена, эмоция, настоя
     await library
       .getByRole("button", { name: "Подтвердить импорт медиа", exact: true })
       .click();
+    // Upload + draft synchronization can exceed Playwright's default 5s
+    // under concurrent Windows CI I/O. The operation must still complete.
     await expect(library.getByRole("status")).toContainText(
       "Медиа импортировано и проверено",
+      { timeout: 20000 },
     );
   }
   await importFile("background.png", "Гавань", "background");

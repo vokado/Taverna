@@ -19,6 +19,7 @@ from .plugin_actions import PluginPlan, PluginRun
 from .plugin_command_worker import BRIDGE, pinned_executable
 from .plugin_compute import compute
 from .plugin_files import PluginFiles
+from .plugin_network import execute as execute_network
 from .plugin_registry import CATALOG
 from .storage import Mutation, document, encoded, safe_path
 from .tool_models import NameRun, TemplatePreview
@@ -251,20 +252,24 @@ class PluginService:
             raise AppError("plugin_output_limit", "План расширения больше256КиБ.", 413)
         await asyncio.to_thread(self.current, payload)
         rendered_tools = []
-        command_actions = [a for a in plan["actions"] if a["type"] == "command.exec"]
-        if command_actions:
-            # External effects are not transactional with JSON effects. This first
-            # broker contract requires one separately confirmed action per preview.
-            if len(command_actions) != 1 or len(plan["actions"]) != 1:
+        external_actions = [
+            action for action in plan["actions"]
+            if action["type"] in ("command.exec", "network.request")
+        ]
+        if external_actions:
+            # External effects are not atomic with JSON: exactly one explicit,
+            # owner-confirmed effect per independent durable preview.
+            if len(external_actions) != 1 or len(plan["actions"]) != 1:
                 raise AppError(
                     "plugin_external_mixed",
-                    "Внешнюю команду требуется подтвердить отдельным планом.", 422
+                    "Внешнее действие требуется подтвердить отдельным планом.", 422
                 )
-            command = command_actions[0]
-            await asyncio.to_thread(self.validate_external, row, command)
-            metadata["external_command"] = {
-                **command,
-                "fingerprint": hashlib.sha256(encoded(command)).hexdigest(),
+            effect = external_actions[0]
+            await asyncio.to_thread(self.validate_external, row, effect)
+            field = "external_command" if effect["type"] == "command.exec" else "external_network"
+            metadata[field] = {
+                **effect,
+                "fingerprint": hashlib.sha256(encoded(effect)).hexdigest(),
             }
             changes, write_guards = [], {}
         else:
@@ -303,44 +308,61 @@ class PluginService:
         )
         return {"proposal_id": preview["id"], "status": "pending", "message": plan["message"]}
 
-    def validate_external(self, row, command):
-        self.permit(row, "commands.exec", command["executable"])
+    def validate_external(self, row, effect):
+        if effect["type"] == "network.request":
+            from .plugin_network import encode_request, validate_url
+
+            validate_url(effect["url"])
+            encode_request(effect["method"], effect.get("payload"))
+            if not any(
+                grant["capability"] == "network.request"
+                and effect["url"] in grant["scopes"]
+                for grant in row["payload"]["grants"]
+            ):
+                raise AppError(
+                    "plugin_scope_denied", "Нет точного разрешения на этот сетевой адрес.", 403
+                )
+            return
+        if effect["type"] != "command.exec":
+            raise AppError("plugin_external_invalid", "Неизвестное внешнее действие.", 422)
+        self.permit(row, "commands.exec", effect["executable"])
         if not any(
             grant["capability"] == "commands.exec"
             and grant["full_access_warning_ack"]
-            and command["executable"] in grant["scopes"]
+            and effect["executable"] in grant["scopes"]
             for grant in row["payload"]["grants"]
         ):
             raise AppError(
                 "plugin_trust_required", "Подтвердите полный доступ конкретной команды.", 403
             )
-        # The command kernel verifies the pinned file ID and digest again at
-        # launch; this check is needed before publishing a trusted preview.
-        with pinned_executable(command["executable"], command["sha256"]):
+        with pinned_executable(effect["executable"], effect["sha256"]):
             pass
 
     @staticmethod
     def external_payload(preview):
-        command = preview["payload"].get("metadata", {}).get("external_command")
-        if not command:
-            raise AppError("plugin_command_missing", "У плана отсутствует внешняя команда.", 409)
-        return command
+        metadata = preview["payload"].get("metadata", {})
+        effect = metadata.get("external_command") or metadata.get("external_network")
+        if not effect:
+            raise AppError("plugin_external_missing", "У плана отсутствует внешнее действие.", 409)
+        return effect
 
     def external_job_key(self, preview_id):
         return "plugin-effect/" + str(UUID(str(preview_id)))
 
-    async def approve_external(self, preview_id, body):
+    async def approve_external(self, preview_id, body, action_type="command.exec"):
         if not body.confirmed or not body.full_access_warning_ack:
             raise AppError(
-                "confirmation_required", "Подтвердите необратимую внешнюю команду и её полный доступ.", 422
+                "confirmation_required", "Подтвердите внешнее действие и риск необратимых последствий.", 422
             )
         key = self.proposal_key(preview_id)
         preview = await asyncio.to_thread(self.store.get, key)
         if not preview or preview["kind"] != "plugin_preview":
             raise AppError("plugin_preview_missing", "План расширения не найден.", 404)
         command = self.external_payload(preview)
+        if command["type"] != action_type:
+            raise AppError("plugin_external_type", "Для этого действия выбрана неправильная операция подтверждения.", 409)
         if command["fingerprint"] != body.fingerprint:
-            raise AppError("plugin_command_changed", "Команда отличается от подтверждённой.", 409)
+            raise AppError("plugin_command_changed", "Внешнее действие отличается от подтверждённого.", 409)
         if preview["payload"]["status"] == "rejected":
             raise AppError("plugin_preview_used", "Отклонённый план нельзя запустить.", 409)
         if preview["payload"]["status"] == "pending":
@@ -366,7 +388,7 @@ class PluginService:
         body = preview["payload"]
         command = self.external_payload(preview)
         if body["status"] != "pending" or command["fingerprint"] != payload["fingerprint"]:
-            raise AppError("plugin_preview_used", "Команда уже обработана или изменена.", 409)
+            raise AppError("plugin_preview_used", "Внешнее действие уже обработано или изменено.", 409)
         row = await asyncio.to_thread(self.current, body["identity"])
         await asyncio.to_thread(self.validate_external, row, command)
         if cancel.is_set():
@@ -389,17 +411,21 @@ class PluginService:
         await emit("external_started", {"preview_id": preview["id"], "irreversible": True})
         outcome = None
         try:
-            request = {k: command[k] for k in ("executable", "sha256", "argv", "timeout_seconds")}
-            response = await compute(
-                BRIDGE,
-                request,
-                runtime="trusted_python",
-                trusted_full_access=True,
-                timeout=min(30, command["timeout_seconds"] + 6),
-                cancel=cancel,
-            )
-            outcome = response["result"]
-            status = "observed" if outcome.get("state") == "exited" else "unknown"
+            if command["type"] == "network.request":
+                outcome = await execute_network(command, cancel)
+                status = "observed" if outcome.get("state") == "observed" else "unknown"
+            else:
+                request = {k: command[k] for k in ("executable", "sha256", "argv", "timeout_seconds")}
+                response = await compute(
+                    BRIDGE,
+                    request,
+                    runtime="trusted_python",
+                    trusted_full_access=True,
+                    timeout=min(30, command["timeout_seconds"] + 6),
+                    cancel=cancel,
+                )
+                outcome = response["result"]
+                status = "observed" if outcome.get("state") == "exited" else "unknown"
             return_value = {"status": status, "preview_id": preview["id"], "outcome": outcome}
         except BaseException:
             # Failed/aborted/unknown host may already have performed the effect.
@@ -664,8 +690,14 @@ class PluginService:
         if p["status"] != "pending":
             raise AppError("plugin_preview_used", "План уже обработан.", 409)
         changes, guards = [], {}
-        if accept and p.get("metadata", {}).get("external_command"):
-            raise AppError("plugin_command_confirmation", "Внешняя команда требует отдельного подтверждения.", 409)
+        if accept and (
+            p.get("metadata", {}).get("external_command")
+            or p.get("metadata", {}).get("external_network")
+        ):
+            raise AppError(
+                "plugin_external_confirmation",
+                "Внешнее действие требует отдельного подтверждения.", 409
+            )
         if accept:
             self.current(p["identity"])
             guards = p["guards"]

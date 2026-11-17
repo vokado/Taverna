@@ -136,8 +136,26 @@ class CommandExec(Strict):
         return self
 
 
+class NetworkRequest(Strict):
+    """Explicitly approved local HTTP(S) request, never hidden in a JSON plan."""
+
+    type: Literal["network.request"]
+    url: str = Field(min_length=1, max_length=2000)
+    method: Literal["GET", "POST"] = "GET"
+    payload: JsonValue | None = None
+    timeout_seconds: float = Field(default=5, ge=0.1, le=8)
+
+    @model_validator(mode="after")
+    def bounded(self):
+        from .plugin_network import encode_request, validate_url
+
+        validate_url(self.url)
+        encode_request(self.method, self.payload)
+        return self
+
+
 PluginAction = Annotated[
-    OwnSet | OwnDelete | NoteSave | BookSave | TemplateRun | NamesRun | CommandExec,
+    OwnSet | OwnDelete | NoteSave | BookSave | TemplateRun | NamesRun | CommandExec | NetworkRequest,
     Field(discriminator="type"),
 ]
 
