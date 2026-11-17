@@ -43,6 +43,7 @@ export function Automations({ visible }: { visible: boolean }) {
   const [minutes, setMinutes] = useState(60);
   const [maxRuns, setMaxRuns] = useState(10);
   const [parameters, setParameters] = useState("{}");
+  const [conditions, setConditions] = useState("[]");
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -78,6 +79,9 @@ export function Automations({ visible }: { visible: boolean }) {
     const input: unknown = JSON.parse(parameters);
     if (input === null || Array.isArray(input) || typeof input !== "object")
       throw Error("Параметры должны быть JSON-объектом.");
+    const constraints: unknown = JSON.parse(conditions);
+    if (!Array.isArray(constraints))
+      throw Error("Условия должны быть JSON-массивом.");
     const selected = plugins.find((p) => p.id === pluginId);
     if (!selected || !selected.payload.enabled)
       throw Error("Выберите включённое расширение.");
@@ -89,6 +93,7 @@ export function Automations({ visible }: { visible: boolean }) {
       trigger,
       interval_minutes: trigger === "interval" ? minutes : null,
       parameters: input,
+      conditions: constraints,
       max_runs: maxRuns,
       confirmed,
     });
@@ -159,6 +164,20 @@ export function Automations({ visible }: { visible: boolean }) {
             />
           </label>
         )}
+        <label>
+          Условия запуска (JSON)
+          <textarea
+            rows={3}
+            aria-label="Условия автоматизации"
+            value={conditions}
+            onChange={(e) => setConditions(e.target.value)}
+          />
+        </label>
+        <p>
+          Необязательно. Пример: [{"type":"own.revision","target":"memo","expected_revision":0}].
+          Запуск разрешён, пока версия собственной записи расширения точно совпадает.
+          Для условия требуется отдельное разрешение own.read.
+        </p>
         <label>
           Максимум запусков
           <input
