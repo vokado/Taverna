@@ -93,6 +93,16 @@ def _safe_entries(archive: ZipFile):
         if total > _LIMIT_BYTES:
             raise _update_error("update_archive_too_large", "Архив слишком большой.")
         entries.append((info, clean))
+    # Windows treats paths case-insensitively. A file cannot also be the
+    # parent directory of another archive member, even if the names differ
+    # only by case or the parent directory is implicit.
+    files = {name.casefold() for info, name in entries if not info.is_dir()}
+    for _, name in entries:
+        pieces = name.casefold().split("/")
+        if any("/".join(pieces[:index]) in files for index in range(1, len(pieces))):
+            raise _update_error(
+                "update_archive_collision", "Архив содержит конфликт файлов и каталогов."
+            )
     actual = {name for info, name in entries if not info.is_dir()}
     if not _REQUIRED_CODE.issubset(actual):
         raise _update_error("update_archive_incomplete", "Не найден обязательный комплект EXE и интерфейса.")
