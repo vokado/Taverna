@@ -57,9 +57,17 @@ async def test_idle_stream_flushes_before_sse_replay_without_waiting_for_next_fr
     _, queue, jid = seed_queue(tmp_path)
     await queue.emit(jid, "delta", {"text": "Первый "})
     await queue.emit(jid, "delta", {"text": "второй"})
-    await asyncio.sleep(0.06)
-    events = await queue.events(jid)
-    assert "".join(e["data"]["text"] for e in events) == "Первый второй"
+    # Windows CI under concurrent disk load can exceed a fixed 60ms timer.
+    # Check an eventual idle flush, while still failing if it never occurs.
+    # On hosted Windows runners a single real JSON fsync may exceed 1.5 s.
+    # Preserve the eventual-flush invariant without treating CI disk congestion
+    # as a failure of the 50 ms idle-flush scheduling policy.
+    async with asyncio.timeout(15):
+        while True:
+            events = await queue.events(jid)
+            if "".join(e["data"]["text"] for e in events) == "Первый второй":
+                break
+            await asyncio.sleep(0.01)
     await queue.emit(jid, "cancelled", {}, state="cancelled")
     assert (await queue.events(jid))[-1]["type"] == "generation.cancelled"
 
