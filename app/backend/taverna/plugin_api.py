@@ -140,6 +140,10 @@ def router(registry, queue=None, service=None):
     async def execute_command(preview_id: UUID, body: PluginCommandDecision):
         return await service.approve_external(str(preview_id), body)
 
+    @api.post("/previews/{preview_id}/execute-network")
+    async def execute_network(preview_id: UUID, body: PluginCommandDecision):
+        return await service.approve_external(str(preview_id), body, action_type="network.request")
+
     @api.post("/previews/{preview_id}/reconcile-command")
     async def reconcile_command(preview_id: UUID, body: PluginCommandReconcile):
         return await asyncio.to_thread(service.reconcile_external, str(preview_id), body)
