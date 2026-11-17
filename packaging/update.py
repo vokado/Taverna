@@ -95,7 +95,7 @@ def select_restore():
         if (
             name in (".", "..")
             or name.endswith((" ", "."))
-            or not re.fullmatch(r"[\\w .()\\-]{1,100}", name)
+            or not re.fullmatch(r"[\w .()\-]{1,100}", name)
         ):
             messagebox.showerror("Ошибка", "Недопустимое имя папки.")
             return None
