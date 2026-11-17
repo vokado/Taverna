@@ -500,6 +500,11 @@ def main():
 
         # Exercise the actual *frozen* updater in CLI mode after both
         # instances have stopped. The original installation must survive.
+        for required_doc in (
+            "USER_GUIDE.md", "MANUAL_UPDATE.md", "RELEASE_ACCEPTANCE.md",
+            "LM_STUDIO.md", "API.md",
+        ):
+            assert (root / "docs" / required_doc).is_file(), required_doc
         updater = root / "Taverna-Updater.exe"
         assert updater.is_file(), "Portable ZIP omitted the manual updater"
         upgraded = Path(outside) / "Обновлённая Таверна"
