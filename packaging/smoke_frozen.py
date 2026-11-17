@@ -505,21 +505,26 @@ def main():
         assert updater.is_file(), "Portable ZIP omitted the manual updater"
         upgraded = Path(outside) / "Обновлённая Таверна"
         old_exe_sha = hashlib.sha256((root / "Taverna.exe").read_bytes()).hexdigest()
-        upgrade = subprocess.run(
-            [
-                str(updater), "--source", str(root),
-                "--archive", str(archive.resolve()),
-                "--destination", str(upgraded),
-                "--sha256", hashlib.sha256(archive.read_bytes()).hexdigest(),
-            ],
-            cwd=root,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=180,
-        )
+        try:
+            upgrade = subprocess.run(
+                [
+                    str(updater), "--source", str(root),
+                    "--archive", str(archive.resolve()),
+                    "--destination", str(upgraded),
+                    "--sha256", hashlib.sha256(archive.read_bytes()).hexdigest(),
+                ],
+                cwd=root,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=90,
+            )
+        except subprocess.TimeoutExpired as exc:
+            print("Updater phase trace:", (exc.stderr or b"")[-4000:].decode("utf-8", errors="replace"))
+            raise
         assert upgrade.returncode == 0, (
-            "Frozen manual updater failed before creating a valid independent copy"
+            "Frozen manual updater failed: "
+            + upgrade.stderr.decode("utf-8", errors="replace")[-3000:]
         )
         assert (upgraded / "Taverna.exe").is_file()
         assert (upgraded / "Taverna-PluginHost.exe").is_file()
