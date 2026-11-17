@@ -24,12 +24,21 @@ from .world_models import Strict
 LOG = logging.getLogger("taverna.automations")
 
 
+class OwnRevisionCondition(Strict):
+    """Run only if the plugin's own JSON record still has this revision."""
+
+    type: Literal["own.revision"] = "own.revision"
+    target: str = Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")
+    expected_revision: int = Field(ge=0)
+
+
 class RuleInput(Strict):
     name: str = Field(min_length=1, max_length=120)
     plugin_id: UUID
     trigger: Literal["manual", "interval"] = "manual"
     interval_minutes: int | None = Field(default=None, ge=15, le=10080)
     parameters: dict[str, JsonValue] = Field(default_factory=dict, max_length=50)
+    conditions: list[OwnRevisionCondition] = Field(default_factory=list, max_length=8)
     max_runs: int = Field(default=100, ge=1, le=10000)
     confirmed: bool = False
 
@@ -57,6 +66,7 @@ class RulePayload(Strict):
     trigger: Literal["manual", "interval"]
     interval_minutes: int | None
     parameters: dict[str, JsonValue]
+    conditions: list[OwnRevisionCondition] = Field(default_factory=list, max_length=8)
     enabled: bool
     next_due_at: str | None
     max_runs: int
@@ -127,6 +137,10 @@ class AutomationService:
                 403,
             )
         self.plugins.parameters(row["payload"]["manifest"], body.parameters)
+        if len({condition.target for condition in body.conditions}) != len(body.conditions):
+            raise AppError("automation_conditions_duplicate", "Повторное условие по одному ключу.", 422)
+        for condition in body.conditions:
+            self.plugins.permit(row, "own.read", condition.target)
         identity = {
             "catalog_revision": self.registry.list()["catalog_revision"],
             "plugin_revision": row["revision"],
@@ -141,6 +155,7 @@ class AutomationService:
             trigger=body.trigger,
             interval_minutes=body.interval_minutes,
             parameters=body.parameters,
+            conditions=body.conditions,
             enabled=True,
             next_due_at=(
                 (current + timedelta(minutes=body.interval_minutes)).isoformat()
@@ -185,7 +200,18 @@ class AutomationService:
         if row["payload"]["manifest"]["runtime"] == "trusted_python":
             raise AppError("automation_trust_denied", "Фоновый Python запрещён.", 403)
         self.plugins.parameters(row["payload"]["manifest"], payload["parameters"])
+        for condition in payload.get("conditions", []):
+            self.plugins.permit(row, "own.read", condition["target"])
         return row
+
+    def _conditions_match(self, payload):
+        """No event is reserved when an owner-approved precondition is false."""
+        for condition in payload.get("conditions", []):
+            value = self.store.get(self.plugins.own_key(payload["plugin_id"], condition["target"]))
+            revision = value["revision"] if value else 0
+            if revision != condition["expected_revision"]:
+                return False
+        return True
 
     def _has_unreviewed_plan(self, rule):
         eid = rule["payload"]["last_event_id"]
@@ -219,6 +245,12 @@ class AutomationService:
         if not p["enabled"] or p["runs_started"] >= p["max_runs"]:
             raise AppError("automation_disabled", "Правило отключено или достигнут предел запусков.", 409)
         self._current(p)
+        if not self._conditions_match(p):
+            raise AppError(
+                "automation_condition_unmet",
+                "Данные не соответствуют условиям правила. Запуск не произведён.",
+                409,
+            )
         event = document(
             "automation_event",
             RuleEvent(
@@ -251,6 +283,15 @@ class AutomationService:
         if not rule["payload"]["enabled"]:
             p["state"] = "failed"
             p["error_code"] = "automation_disabled"
+            self.store.transaction(
+                [Mutation(self.event_key(rule["id"], event["id"]), event, event["revision"])]
+            )
+            return self.store.get(self.event_key(rule["id"], event["id"]))
+        # A rule may have been reserved before a dependency changed. Never
+        # calculate a plan with stale preconditions after a restart.
+        if not self._conditions_match(rule["payload"]):
+            p["state"] = "failed"
+            p["error_code"] = "automation_condition_unmet"
             self.store.transaction(
                 [Mutation(self.event_key(rule["id"], event["id"]), event, event["revision"])]
             )
