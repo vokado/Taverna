@@ -101,6 +101,37 @@ def test_unsafe_zip_never_extracted_and_old_code_untouched(tmp_path, bad):
     assert not (tmp_path / "traversal").exists()
 
 
+@pytest.mark.parametrize(
+    "conflict",
+    [
+        "app/web",  # file would shadow required app/web/dist/index.html
+        "APP/WEB",  # same collision on case-insensitive Windows
+        "LICENSES",  # file would shadow explicit licenses directory
+        "App/Web/Dist",  # case-insensitive parent collision
+    ],
+)
+def test_zip_file_directory_collisions_rejected_before_backup(tmp_path, conflict):
+    old = tmp_path / "old"
+    make_source(old)
+    archive = write_zip(tmp_path, extra=conflict)
+    with pytest.raises(AppError) as error:
+        prepare_update(old, archive, tmp_path / "new")
+    assert error.value.code == "update_archive_collision"
+    assert not (tmp_path / "new").exists()
+    assert not list((old / "backups").glob("taverna-pre-update-*.zip"))
+
+
+def test_duplicate_member_never_publishes_installation(tmp_path):
+    old = tmp_path / "old"
+    make_source(old)
+    archive = write_zip(tmp_path, extra="Taverna.exe")
+    with pytest.raises(AppError) as error:
+        prepare_update(old, archive, tmp_path / "new")
+    assert error.value.code == "update_archive_duplicate"
+    assert not (tmp_path / "new").exists()
+
+
+
 @pytest.mark.parametrize("change", ["missing", "link", "checksum"])
 def test_missing_exe_zip_link_or_bad_digest_rejected(tmp_path, change):
     old = tmp_path / "old"
