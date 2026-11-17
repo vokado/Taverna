@@ -15,6 +15,7 @@ _REQUIRED = (
     "Taverna.exe",
     "Taverna-Diagnostics.exe",
     "Taverna-PluginHost.exe",
+    "Taverna-Updater.exe",
     "app/web/dist/index.html",
 )
 
