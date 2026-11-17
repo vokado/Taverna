@@ -49,7 +49,16 @@ def archive_bytes(*, extra=None, missing=None, link=None):
 
 def write_zip(root, *, extra=None, missing=None, link=None):
     path = root / "new.zip"
-    path.write_bytes(archive_bytes(extra=extra, missing=missing, link=link))
+    # Windows zipfile.writestr normalizes backslashes to slash *before* the
+    # archive is written; construct a genuinely malformed ZIP entry to test
+    # untrusted ZIP bytes on both Windows and Linux consistently.
+    if extra and chr(92) in extra:
+        placeholder = extra.replace(chr(92), "@")
+        raw = archive_bytes(extra=placeholder, missing=missing, link=link)
+        raw = raw.replace(placeholder.encode("utf-8"), extra.encode("utf-8"))
+    else:
+        raw = archive_bytes(extra=extra, missing=missing, link=link)
+    path.write_bytes(raw)
     return path
 
 
