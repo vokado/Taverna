@@ -22,6 +22,7 @@ from .chat import ChatService
 from .chat_api import router as chat_router
 from .chat_import import router as chat_import_router
 from .core import AppError, Config
+from .diagnostic_archive import DiagnosticService
 from .director import DirectorService
 from .director_api import router as director_router
 from .director_drafts import router as director_drafts_router
@@ -93,6 +94,8 @@ def create_app(config: Config, shutdown=None, launcher_key: str | None = None) -
     app.state.store = store
     app.state.backups = BackupService(store)
     app.include_router(app.state.backups.router())
+    app.state.diagnostic_archive = DiagnosticService(store)
+    app.include_router(app.state.diagnostic_archive.router())
     app.state.generation = generation
     app.include_router(generation.router())
     app.include_router(generation.profiles.router())
