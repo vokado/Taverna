@@ -17,9 +17,9 @@ from uuid import UUID, uuid4
 from .core import AppError
 from .plugin_actions import PluginPlan, PluginRun
 from .plugin_command_worker import BRIDGE, pinned_executable
-from .plugin_network import execute as execute_network
 from .plugin_compute import compute
 from .plugin_files import PluginFiles
+from .plugin_network import execute as execute_network
 from .plugin_registry import CATALOG
 from .storage import Mutation, document, encoded, safe_path
 from .tool_models import NameRun, TemplatePreview
