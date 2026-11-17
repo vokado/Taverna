@@ -300,7 +300,16 @@ class AutomationService:
         body = PluginRun(
             **identity,
             parameters=rule["payload"]["parameters"],
-            reads=[],
+            # Bind every condition to the plugin's existing read/guard protocol,
+            # so a revision change *after enqueue* also invalidates publication.
+            reads=[
+                {
+                    "kind": "own",
+                    "target": condition["target"],
+                    "expected_revision": condition["expected_revision"],
+                }
+                for condition in rule["payload"].get("conditions", [])
+            ],
             files=[],
             confirmed_full_access_run=False,
         )
