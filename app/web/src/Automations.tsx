@@ -174,7 +174,7 @@ export function Automations({ visible }: { visible: boolean }) {
           />
         </label>
         <p>
-          Необязательно. Пример: [{"type":"own.revision","target":"memo","expected_revision":0}].
+          Необязательно. Пример: <code>{'[{"type":"own.revision","target":"memo","expected_revision":0}]'} </code>.
           Запуск разрешён, пока версия собственной записи расширения точно совпадает.
           Для условия требуется отдельное разрешение own.read.
         </p>
