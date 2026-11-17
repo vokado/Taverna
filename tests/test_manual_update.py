@@ -7,6 +7,7 @@ from pathlib import Path
 from zipfile import ZipFile, ZipInfo
 
 import pytest
+
 from taverna.core import AppError
 from taverna.manual_update import prepare_update
 from taverna.storage import JsonStore, Mutation, document
