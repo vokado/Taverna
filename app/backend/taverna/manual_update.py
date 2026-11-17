@@ -72,6 +72,17 @@ def _safe_entries(archive: ZipFile):
     for info in archive.infolist():
         if len(entries) >= _LIMIT_FILES:
             raise _update_error("update_archive_too_large", "В архиве слишком много файлов.")
+        # zipfile normalizes backslashes in member names on Windows before
+        # exposing ZipInfo.filename. Inspect the raw local header so a hostile
+        # ZIP cannot bypass the same filename policy across operating systems.
+        archive.fp.seek(info.header_offset)
+        local_header = archive.fp.read(30)
+        if len(local_header) != 30 or local_header[:4] != b"PK\\x03\\x04":
+            raise _update_error("update_archive_unsafe", "Некорректный заголовок ZIP.")
+        raw_name_size = int.from_bytes(local_header[26:28], "little")
+        raw_name = archive.fp.read(raw_name_size)
+        if len(raw_name) != raw_name_size or bytes((92,)) in raw_name:
+            raise _update_error("update_archive_unsafe", "Недопустимый путь в ZIP.")
         name = info.filename
         if not name or "\x00" in name or info.orig_filename != name or info.flag_bits & 1:
             raise _update_error("update_archive_unsafe", "Архив содержит недопустимое имя.")
