@@ -77,7 +77,7 @@ def _safe_entries(archive: ZipFile):
         # ZIP cannot bypass the same filename policy across operating systems.
         archive.fp.seek(info.header_offset)
         local_header = archive.fp.read(30)
-        if len(local_header) != 30 or local_header[:4] != b"PK\\x03\\x04":
+        if len(local_header) != 30 or local_header[:4] != bytes((80, 75, 3, 4)):
             raise _update_error("update_archive_unsafe", "Некорректный заголовок ZIP.")
         raw_name_size = int.from_bytes(local_header[26:28], "little")
         raw_name = archive.fp.read(raw_name_size)
