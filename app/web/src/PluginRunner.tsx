@@ -58,6 +58,13 @@ type Preview = {
         timeout_seconds: number;
         fingerprint: string;
       };
+      external_network?: {
+        url: string;
+        method: "GET" | "POST";
+        payload: unknown;
+        timeout_seconds: number;
+        fingerprint: string;
+      };
     };
     identity: { package_sha256: string };
   };
@@ -660,9 +667,33 @@ export function PluginRunner({
               </p>
             </section>
           )}
+          {p.payload.metadata.external_network && (
+            <section aria-label="Предпросмотр сетевого запроса">
+              <h5>Локальный сетевой запрос — отдельное разрешение</h5>
+              <p>
+                Метод: {p.payload.metadata.external_network.method} ·
+                Точный адрес: {p.payload.metadata.external_network.url}
+              </p>
+              <p>
+                Максимальное время: {p.payload.metadata.external_network.timeout_seconds} с
+              </p>
+              {p.payload.metadata.external_network.payload != null && (
+                <>
+                  <p>Тело JSON:</p>
+                  <pre>{JSON.stringify(p.payload.metadata.external_network.payload, null, 2)}</pre>
+                </>
+              )}
+              <p>
+                Запрос работает только по явно разрешённому локальному IP:port.
+                DNS, прокси и перенаправления запрещены. Даже ошибка или отмена
+                не исключают уже выполненное удалённым сервисом действие.
+                Повторного исполнения этого плана не будет.
+              </p>
+            </section>
+          )}
           {["unknown", "started"].includes(p.payload.status) &&
-            p.payload.metadata.external_command && (
-              <section aria-label="Ручная сверка внешней команды">
+            (p.payload.metadata.external_command || p.payload.metadata.external_network) && (
+              <section aria-label="Ручная сверка внешнего действия">
                 <label>
                   Результат проверки и причина (не менее 5 символов)
                   <input
@@ -687,7 +718,7 @@ export function PluginRunner({
                         },
                       );
                       await refresh();
-                      setStatus("Ручная отметка записана. Команда НЕ запускалась повторно.");
+                      setStatus("Ручная отметка записана. Внешнее действие НЕ запускалось повторно.");
                     })
                   }
                 >
@@ -707,21 +738,25 @@ export function PluginRunner({
                 />
                 {p.payload.metadata.external_command
                   ? "Подтверждаю запуск внешней программы с полным доступом и риск необратимых действий"
-                  : "Подтверждаю перечисленные изменения JSON этого плана"}
+                  : p.payload.metadata.external_network
+                    ? "Подтверждаю локальный сетевой запрос и риск внешнего необратимого действия"
+                    : "Подтверждаю перечисленные изменения JSON этого плана"}
               </label>
               <button
                 disabled={busy || !confirmed[p.id]}
                 onClick={() =>
                   void act(async () => {
-                    if (p.payload.metadata.external_command) {
+                    const command = p.payload.metadata.external_command;
+                    const network = p.payload.metadata.external_network;
+                    if (command || network) {
                       const next = await request<Job>(
-                        `/plugins/previews/${p.id}/execute-command`,
+                        `/plugins/previews/${p.id}/${command ? "execute-command" : "execute-network"}`,
                         "POST",
                         {
                           expected_revision: p.revision,
                           confirmed: true,
                           full_access_warning_ack: true,
-                          fingerprint: p.payload.metadata.external_command.fingerprint,
+                          fingerprint: (command || network)!.fingerprint,
                         },
                       );
                       setJob(next);
@@ -736,14 +771,18 @@ export function PluginRunner({
                     setStatus(
                       p.payload.metadata.external_command
                         ? "Внешняя команда поставлена в очередь. Ожидайте записи результата."
-                        : "План применён атомарно; запись результата сохранена.",
+                        : p.payload.metadata.external_network
+                          ? "Сетевой запрос поставлен в очередь. Проверьте результат перед повторными действиями."
+                          : "План применён атомарно; запись результата сохранена.",
                     );
                   })
                 }
               >
                 {p.payload.metadata.external_command
                   ? "Запустить проверенную внешнюю команду"
-                  : "Применить план расширения"}
+                  : p.payload.metadata.external_network
+                    ? "Выполнить подтверждённый локальный сетевой запрос"
+                    : "Применить план расширения"}
               </button>
               <button
                 disabled={busy}
